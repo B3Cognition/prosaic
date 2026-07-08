@@ -1,0 +1,806 @@
+{
+  "inventory_hash": "0790dc2681d6dfaf77af4c6779103c308ddb7b9d09ab827d56b55d10eafdeda1",
+  "kind": "echelon.canonical_requirements",
+  "requirements": [
+    {
+      "id": "AC-001",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 21,
+      "source_text": "- **AC-001**: Given a source of truth containing valid artifacts and a set of selected targets, when the author runs apply, then the system writes exactly 1 rendered output per artifact for each selected target that natively supports that artifact's type, placed in that target's declared directory."
+    },
+    {
+      "id": "AC-002",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 22,
+      "source_text": "- **AC-002**: Given a selected target whose adapter does not declare native support for a given artifact type, when apply runs on an artifact of that type, then the system skips that artifact-target pair, emits at least 1 warning naming the artifact and the target, and writes 0 files for that pair."
+    },
+    {
+      "id": "AC-003",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 23,
+      "source_text": "- **AC-003**: Given a selected target identifier that is absent from the target registry, when apply runs, then the system aborts before writing any file and reports the unknown target identifier."
+    },
+    {
+      "id": "AC-004",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 34,
+      "source_text": "- **AC-004**: Given a prior successful apply with unchanged source artifacts and unchanged configuration, when the author re-runs apply, then every rendered output is byte-identical to the previous run and the system reports 0 changed files."
+    },
+    {
+      "id": "AC-005",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 35,
+      "source_text": "- **AC-005**: Given an existing tool-generated output file whose rendered content would change, when apply overwrites the file, then the system writes at least 1 backup of the prior content before writing the new content."
+    },
+    {
+      "id": "AC-006",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 47,
+      "source_text": "- **AC-006**: Given a prior apply recorded in the managed-paths manifest, when the author runs revert, then the system removes exactly the files recorded as tool-generated and leaves every other file untouched."
+    },
+    {
+      "id": "AC-007",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 48,
+      "source_text": "- **AC-007**: Given a user-authored native file that the system did not generate residing inside a target directory, when revert runs, then the system deletes 0 such files."
+    },
+    {
+      "id": "AC-008",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 49,
+      "source_text": "- **AC-008**: Given 2 targets that write into 1 shared directory, when the author reverts a single target, then the system removes only that target's recorded files and leaves the sibling target's files present."
+    },
+    {
+      "id": "AC-009",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 60,
+      "source_text": "- **AC-009**: Given an artifact declaring neutral behavior keys, when the system renders the artifact for a target, then the emitted artifact contains that target's concrete frontmatter for each key and contains 0 neutral behavior keys."
+    },
+    {
+      "id": "AC-010",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 61,
+      "source_text": "- **AC-010**: Given an artifact carrying a target-specific override for an intent that has no neutral equivalent, when the system renders the artifact for that target, then the emitted artifact contains the override value."
+    },
+    {
+      "id": "AC-011",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 62,
+      "source_text": "- **AC-011**: Given a declared intent that a target cannot represent, when the system renders for that target, then the system emits at least 1 warning identifying the artifact, the target, and the dropped intent, consistent with the configured lossy-transform policy."
+    },
+    {
+      "id": "AC-012",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 72,
+      "source_text": "- **AC-012**: Given a skill bundle containing a resource file and an internal reference to that resource, when the system renders the bundle for a target, then the emitted bundle has its path, name, and frontmatter rewritten for that target and its internal reference resolves to the relocated resource."
+    },
+    {
+      "id": "AC-013",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 73,
+      "source_text": "- **AC-013**: Given a skill bundle with an internal reference to a resource that is absent, when the system renders the bundle, then the system emits at least 1 warning naming the unresolved reference rather than shipping a broken link."
+    },
+    {
+      "id": "AC-014",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 83,
+      "source_text": "- **AC-014**: Given a target whose contract requires a non-Markdown serialization, when the system renders an artifact for that target, then the emitted file is in the required serialization with the artifact's content mapped into that format's fields."
+    },
+    {
+      "id": "AC-015",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 84,
+      "source_text": "- **AC-015**: Given repeated renders of the same unchanged artifact to a structured-format target, when the system serializes the artifact, then the field ordering and quoting are deterministic and the output is byte-identical across runs."
+    },
+    {
+      "id": "AC-016",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 94,
+      "source_text": "- **AC-016**: Given 1 source command artifact and 3 targets whose native slots differ, when apply runs, then the system emits the artifact as a command on the command-supporting target, as a skill on the skill-supporting target, and as an agent definition on the agent-supporting target."
+    },
+    {
+      "id": "AC-017",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 95,
+      "source_text": "- **AC-017**: Given a source artifact whose resolved deployment type has 0 native slots on a selected target, when apply runs, then the system skips that pair and emits at least 1 warning."
+    },
+    {
+      "id": "AC-018",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 106,
+      "source_text": "- **AC-018**: Given the dry-run flag on apply, when the author runs apply, then the system reports every file it would create, overwrite, back up, or remove through reconciliation, writes 0 files to disk, and deletes 0 files from disk."
+    },
+    {
+      "id": "AC-019",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 107,
+      "source_text": "- **AC-019**: Given the dry-run flag on revert, when the author runs revert, then the system reports every file it would remove and deletes 0 files from disk."
+    },
+    {
+      "id": "AC-020",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 118,
+      "source_text": "- **AC-020**: Given an artifact with malformed frontmatter, when discovery runs, then the system emits at least 1 validation warning naming the file, drops that artifact from the run, and processes the remaining artifacts without terminating."
+    },
+    {
+      "id": "AC-021",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 119,
+      "source_text": "- **AC-021**: Given an artifact whose frontmatter fails the schema for its artifact type, when discovery runs, then the system reports the failing field and excludes the artifact from rendering."
+    },
+    {
+      "id": "AC-022",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 129,
+      "source_text": "- **AC-022**: Given a configuration that enables a subset of targets and artifact types, when apply runs, then the system distributes only the enabled artifact types to the enabled targets."
+    },
+    {
+      "id": "AC-023",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 130,
+      "source_text": "- **AC-023**: Given a configuration file containing an unknown key, when the system loads the configuration, then the system rejects the configuration and reports the unknown key rather than ignoring the key."
+    },
+    {
+      "id": "AC-024",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 141,
+      "source_text": "- **AC-024**: Given a new target described by a declarative adapter descriptor and a passing conformance test, when the contributor adds the target to the registry, then the system distributes to the new target with 0 changes to core transformation logic."
+    },
+    {
+      "id": "AC-025",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 142,
+      "source_text": "- **AC-025**: Given a target adapter that has 0 passing conformance tests, when the registry is validated, then the system marks that target as not conformance-verified."
+    },
+    {
+      "id": "AC-026",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 153,
+      "source_text": "- **AC-026**: Given a computed output path that resolves inside the project root, when the system writes the file, then the write proceeds."
+    },
+    {
+      "id": "AC-027",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 154,
+      "source_text": "- **AC-027**: Given a computed write-or-delete path that resolves outside the project root, including a path that escapes via a symlink, when the system attempts the operation, then the system refuses the operation and reports the escaping path."
+    },
+    {
+      "id": "AC-028",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 143,
+      "source_text": "- **AC-028**: Given a remote catalog input that is unreachable or fails validation, when apply runs, then the system falls back to the built-in registry and completes the run."
+    },
+    {
+      "id": "AC-029",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 24,
+      "source_text": "- **AC-029**: Given a source of truth containing 0 discoverable artifacts, when apply runs, then the system completes with an empty-run report and writes 0 files."
+    },
+    {
+      "id": "AC-030",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 108,
+      "source_text": "- **AC-030**: Given a dry-run apply where reconciliation would remove 1 or more orphaned outputs, when the author runs apply, then the reconcile deletions appear in the preview labeled as removals and 0 files are deleted."
+    },
+    {
+      "id": "AC-031",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 36,
+      "source_text": "- **AC-031**: Given a prior apply and a subsequent run that no longer produces a previously generated output, when the author re-runs apply, then the system removes only the orphaned outputs recorded in the managed-paths manifest and removes 0 files absent from the manifest."
+    },
+    {
+      "id": "AC-032",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 50,
+      "source_text": "- **AC-032**: Given a managed-paths manifest that is absent, unreadable, or fails its integrity check, when the author runs revert or a reconciling apply, then the system aborts the deletion path, reports the manifest error, and deletes 0 files."
+    },
+    {
+      "id": "AC-033",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 37,
+      "source_text": "- **AC-033**: Given a content-changing overwrite, when the system writes the backup, then the backup path resolves inside the project root, is excluded from artifact discovery on subsequent runs, and no more than 3 backups per file are retained."
+    },
+    {
+      "id": "AC-034",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 96,
+      "source_text": "- **AC-034**: Given an artifact declaring a neutral execution intent, when the system resolves the deployment type, then the resolved deployment type equals the deployment type mapped from that declared execution intent, and an artifact declaring no execution intent resolves to the deployment type mapped from its artifact type."
+    },
+    {
+      "id": "AC-035",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 131,
+      "source_text": "- **AC-035**: Given an effective configuration that selects 0 targets, when apply runs, then the system completes as a no-op, reports that 0 targets were selected, and writes 0 files."
+    },
+    {
+      "id": "FR-001",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 162,
+      "source_text": "- **FR-001**: The system SHALL classify each discovered artifact into exactly 1 of the 4 artifact types {rule, skill, subagent, command}, producing a typed artifact list."
+    },
+    {
+      "id": "FR-001..FR-065",
+      "source_file": "coverage-map.md",
+      "source_kind": "coverage",
+      "source_line": 3,
+      "source_text": "> Every requirement in spec.md (FR-001..FR-065, NFR-001..NFR-012) is mapped below to an automated test approach. **0 rows are `manual`** \u2014 the only non-`automated` rows are the Post-MVP remote-catalog items (FR-041/AC-028), classified `deferred-automation` (automated when the catalog seam is built; no MVP requirement depends on them). Test types: unit / integration / e2e / contract (conformance is a contract-layer golden-fixture form). Test-case ID prefixes: `TC-U` unit \u00b7 `TC-C` contract/conformance \u00b7 `TC-I` integration \u00b7 `TC-S` safety(integration, real FS) \u00b7 `TC-E` e2e(CLI-process)."
+    },
+    {
+      "id": "FR-002",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 174,
+      "source_text": "- **FR-002**: The system SHALL parse each discovered artifact classified by FR-001 into exactly 1 frontmatter map paired with exactly 1 Markdown body."
+    },
+    {
+      "id": "FR-003",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 178,
+      "source_text": "- **FR-003**: The system SHALL validate each artifact's frontmatter against exactly 1 schema selected by artifact type (FR-001) before rendering."
+    },
+    {
+      "id": "FR-004",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 186,
+      "source_text": "- **FR-004**: When an artifact's frontmatter is malformed, the system SHALL emit at least 1 validation warning that names the file and drop that artifact from the run."
+    },
+    {
+      "id": "FR-005",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 190,
+      "source_text": "- **FR-005**: The system SHALL report 100% of a run's validation warnings without aborting on the first invalid artifact."
+    },
+    {
+      "id": "FR-006",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 197,
+      "source_text": "- **FR-006**: When registering a target, the system SHALL represent that target as exactly 1 declarative adapter descriptor rather than as imperative per-target code, producing 1 auditable descriptor per target."
+    },
+    {
+      "id": "FR-007",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 217,
+      "source_text": "- **FR-007**: When publishing a target-registry release, the system SHALL assign exactly 1 version identifier to that release, producing an auditable registry version."
+    },
+    {
+      "id": "FR-008",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 221,
+      "source_text": "- **FR-008**: The system SHALL admit a new target from exactly 1 declarative adapter descriptor without changes to core transformation logic."
+    },
+    {
+      "id": "FR-009",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 225,
+      "source_text": "- **FR-009**: The system SHALL withhold conformance-verified status from a target until at least 1 conformance test pinning that target's expected on-disk output passes."
+    },
+    {
+      "id": "FR-010",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 233,
+      "source_text": "- **FR-010**: When the transformation stage queries a target, the system SHALL expose 100% of that target's native-support capability flags, producing queryable capability data."
+    },
+    {
+      "id": "FR-011",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 240,
+      "source_text": "- **FR-011**: When transforming an artifact-target pair, the system SHALL execute the transformation pipeline as exactly 1 fixed sequence of 8 ordered stages, applying each stage exactly 1 time, producing 1 fully transformed artifact."
+    },
+    {
+      "id": "FR-012",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-013",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-014",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-015",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-016",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 269,
+      "source_text": "- **FR-016**: The system SHALL provide exactly 1 target-specific override mechanism for intent that has no neutral-vocabulary equivalent."
+    },
+    {
+      "id": "FR-017",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 277,
+      "source_text": "- **FR-017**: The system SHALL apply to skill and subagent artifacts the same 4 transformation categories \u2014 path, name, frontmatter, and format \u2014 that command artifacts receive."
+    },
+    {
+      "id": "FR-018",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 281,
+      "source_text": "- **FR-018**: When a declared intent cannot be represented on a target, the system SHALL emit at least 1 warning identifying the artifact, the target, and the dropped intent (FR-019)."
+    },
+    {
+      "id": "FR-019",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 281,
+      "source_text": "- **FR-018**: When a declared intent cannot be represented on a target, the system SHALL emit at least 1 warning identifying the artifact, the target, and the dropped intent (FR-019)."
+    },
+    {
+      "id": "FR-020",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-021",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 296,
+      "source_text": "- **FR-021**: When an unchanged artifact is rendered more than once, the system SHALL keep the renders 100% byte-identical, producing 0 spurious differences."
+    },
+    {
+      "id": "FR-022",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 300,
+      "source_text": "- **FR-022**: When a target requires companion files, the system SHALL write 100% of them alongside the primary rendered output, producing a complete artifact set."
+    },
+    {
+      "id": "FR-023",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-024",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 315,
+      "source_text": "- **FR-024**: When the system writes a generated file, the system SHALL record 100% of generated files in the managed-paths manifest keyed by the pair (target identifier, path), producing an auditable provenance record."
+    },
+    {
+      "id": "FR-025",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 319,
+      "source_text": "- **FR-025**: Before overwriting a content-changing tool-generated file recorded by FR-024, the system SHALL write at least 1 backup of the prior content."
+    },
+    {
+      "id": "FR-026",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 335,
+      "source_text": "- **FR-026**: The system SHALL confirm that 100% of write paths resolve inside the project root before writing."
+    },
+    {
+      "id": "FR-027",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 339,
+      "source_text": "- **FR-027**: When a write or delete resolves to a path that escapes the project root, including via a symlink, the system SHALL refuse the operation and report the escaping path, producing a refusal message."
+    },
+    {
+      "id": "FR-028",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 343,
+      "source_text": "- **FR-028**: On re-apply, the system SHALL reconcile 100% of the previously generated outputs that the current run no longer produces."
+    },
+    {
+      "id": "FR-029",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 358,
+      "source_text": "- **FR-029**: When a run starts, the system SHALL load exactly 1 effective run configuration selecting the active targets and artifact types, producing the active target and artifact-type set."
+    },
+    {
+      "id": "FR-030",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 366,
+      "source_text": "- **FR-030**: When loading configuration (FR-029) that contains at least 1 unknown key, the system SHALL reject the configuration and report each unknown key, producing a rejection message."
+    },
+    {
+      "id": "FR-031",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 370,
+      "source_text": "- **FR-031**: The system SHALL resolve configuration from 3 sources \u2014 project-level, ancestor-directory, and global \u2014 in a fixed precedence where project-level overrides ancestor-directory and ancestor-directory overrides global."
+    },
+    {
+      "id": "FR-032",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 374,
+      "source_text": "- **FR-032**: The system SHALL let each command-line target-selection override replace exactly 1 corresponding file-configuration value."
+    },
+    {
+      "id": "FR-033",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 385,
+      "source_text": "- **FR-033**: The system SHALL provide exactly 1 apply operation that renders and writes selected artifacts to every selected supporting target, producing 1 rendered output per supported artifact-target pair."
+    },
+    {
+      "id": "FR-034",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 351,
+      "source_text": "- **FR-050**: When the managed-paths manifest is absent, unreadable, or fails its integrity check, the system SHALL abort revert (FR-034) and reconciliation (FR-028), report the manifest error, and delete 0 files."
+    },
+    {
+      "id": "FR-035",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 401,
+      "source_text": "- **FR-035**: The system SHALL NOT delete a file during revert unless the manifest records that file as tool-generated."
+    },
+    {
+      "id": "FR-036",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 405,
+      "source_text": "- **FR-036**: During revert of 1 target, the system SHALL leave intact 100% of the FR-024 recorded files of any other target sharing the same directory."
+    },
+    {
+      "id": "FR-037",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 409,
+      "source_text": "- **FR-037**: The system SHALL provide exactly 1 dry-run mode for apply that reports every create, overwrite, backup, and reconcile-removal and writes 0 files to disk."
+    },
+    {
+      "id": "FR-038",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 413,
+      "source_text": "- **FR-038**: The system SHALL provide exactly 1 dry-run mode for revert that reports every planned removal and deletes 0 files from disk."
+    },
+    {
+      "id": "FR-039",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 417,
+      "source_text": "- **FR-039**: When a selected target's adapter does not declare the FR-047 capability flag for an artifact type, the system SHALL skip that pair, write 0 files for it, and emit at least 1 warning."
+    },
+    {
+      "id": "FR-040",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 421,
+      "source_text": "- **FR-040**: When a selected target identifier is absent from the registry, the system SHALL abort the run before writing any file and report the unknown identifier."
+    },
+    {
+      "id": "FR-041",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 425,
+      "source_text": "- **FR-041**: The system SHOULD validate any remote catalog input before use and fall back to the built-in registry when the catalog is unavailable."
+    },
+    {
+      "id": "FR-042",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-043",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 244,
+      "source_text": "- **Ordered stages:** (1) path rewrite [FR-012], (2) name rewrite [FR-013], (3) argument-placeholder rewrite [FR-014], (4) neutral-behavior translation [FR-015], (5) neutral-behavior strip [FR-042], (6) frontmatter rewrite [FR-043], (7) format conversion [FR-020], (8) deployment-type routing [FR-023]."
+    },
+    {
+      "id": "FR-044",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 201,
+      "source_text": "- **FR-044**: Each target adapter descriptor SHALL declare exactly 1 destination directory for the target."
+    },
+    {
+      "id": "FR-045",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 205,
+      "source_text": "- **FR-045**: Each target adapter descriptor SHALL declare exactly 1 serialization format and exactly 1 argument token for the target."
+    },
+    {
+      "id": "FR-046",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 209,
+      "source_text": "- **FR-046**: Each target adapter descriptor SHALL declare exactly 3 frontmatter rule categories: strip, passthrough, and inject."
+    },
+    {
+      "id": "FR-047",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 213,
+      "source_text": "- **FR-047**: Each target adapter descriptor SHALL declare at least 1 native-support capability flag per artifact type."
+    },
+    {
+      "id": "FR-048",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 304,
+      "source_text": "- **FR-048**: When resolving deployment type, the system SHALL map each artifact to exactly 1 deployment type of the 3 types {command, skill, agent}, taken from the artifact's declared execution intent when present and from the artifact type otherwise, producing 1 resolved deployment type."
+    },
+    {
+      "id": "FR-049",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 327,
+      "source_text": "- **FR-049**: The system SHALL retain no more than 3 backups per overwritten file (FR-025), deleting the oldest surplus backup rather than letting backups accumulate without bound."
+    },
+    {
+      "id": "FR-050",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 351,
+      "source_text": "- **FR-050**: When the managed-paths manifest is absent, unreadable, or fails its integrity check, the system SHALL abort revert (FR-034) and reconciliation (FR-028), report the manifest error, and delete 0 files."
+    },
+    {
+      "id": "FR-051",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 347,
+      "source_text": "- **FR-051**: During reconciliation the system SHALL remove only the files recorded by FR-024 in the manifest."
+    },
+    {
+      "id": "FR-052",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 166,
+      "source_text": "- **FR-052**: The system SHALL exclude and report any artifact that matches 0 types or more than 1 type."
+    },
+    {
+      "id": "FR-053",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 170,
+      "source_text": "- **FR-053**: An empty source of truth SHALL yield a run that writes 0 files."
+    },
+    {
+      "id": "FR-054",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 362,
+      "source_text": "- **FR-054**: An effective configuration that selects 0 targets SHALL yield a no-op run that writes 0 files."
+    },
+    {
+      "id": "FR-055",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 331,
+      "source_text": "- **FR-055**: The system SHALL exclude the backup location from artifact discovery."
+    },
+    {
+      "id": "FR-056",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 323,
+      "source_text": "- **FR-056**: The system SHALL NOT overwrite a tool-generated file before that file's prior-content backup from FR-025 is written."
+    },
+    {
+      "id": "FR-057",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 182,
+      "source_text": "- **FR-057**: The system SHALL NOT render an artifact that fails parsing (FR-002) or schema validation (FR-003)."
+    },
+    {
+      "id": "FR-058",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 229,
+      "source_text": "- **FR-058**: The system SHALL NOT mark a target conformance-verified while 0 of its conformance tests pass."
+    },
+    {
+      "id": "FR-059",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 273,
+      "source_text": "- **FR-059**: The system SHALL NOT reorder or skip any of the 8 transformation stages defined in FR-011."
+    },
+    {
+      "id": "FR-060",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 378,
+      "source_text": "- **FR-060**: During apply, the system SHALL NOT distribute an artifact type that the effective configuration from FR-029 has not enabled."
+    },
+    {
+      "id": "FR-061",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 389,
+      "source_text": "- **FR-061**: During apply, the system SHALL NOT modify a user-authored native file that FR-024 has not recorded as tool-generated."
+    },
+    {
+      "id": "FR-062",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 393,
+      "source_text": "- **FR-062**: The system SHALL NOT write more than 1 rendered output per artifact-target pair routed by FR-023."
+    },
+    {
+      "id": "FR-063",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 429,
+      "source_text": "- **FR-063**: During a dry-run apply, the system SHALL NOT delete any file (FR-037)."
+    },
+    {
+      "id": "FR-064",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 433,
+      "source_text": "- **FR-064**: The system SHALL NOT distribute to a target that is absent from the registry (FR-040)."
+    },
+    {
+      "id": "FR-065",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 437,
+      "source_text": "- **FR-065**: The system SHALL NOT emit an output outside a target's declared directory (FR-044)."
+    },
+    {
+      "id": "NFR-001",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 444,
+      "source_text": "- **NFR-001**: A no-op re-apply of FR-033 SHALL keep 100% of rendered outputs byte-identical and report 0 changed files."
+    },
+    {
+      "id": "NFR-001..NFR-012",
+      "source_file": "coverage-map.md",
+      "source_kind": "coverage",
+      "source_line": 3,
+      "source_text": "> Every requirement in spec.md (FR-001..FR-065, NFR-001..NFR-012) is mapped below to an automated test approach. **0 rows are `manual`** \u2014 the only non-`automated` rows are the Post-MVP remote-catalog items (FR-041/AC-028), classified `deferred-automation` (automated when the catalog seam is built; no MVP requirement depends on them). Test types: unit / integration / e2e / contract (conformance is a contract-layer golden-fixture form). Test-case ID prefixes: `TC-U` unit \u00b7 `TC-C` contract/conformance \u00b7 `TC-I` integration \u00b7 `TC-S` safety(integration, real FS) \u00b7 `TC-E` e2e(CLI-process)."
+    },
+    {
+      "id": "NFR-002",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 447,
+      "source_text": "- **NFR-002**: 100% of content-changing overwrites SHALL be preceded by at least 1 backup of the prior content (FR-025)."
+    },
+    {
+      "id": "NFR-003",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 450,
+      "source_text": "- **NFR-003**: 100% of write and delete operations SHALL pass a project-root containment check (FR-026, FR-027) before execution."
+    },
+    {
+      "id": "NFR-004",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 453,
+      "source_text": "- **NFR-004**: Every conformance-verified target (FR-009) SHALL have at least 1 passing per-target conformance test."
+    },
+    {
+      "id": "NFR-005",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 456,
+      "source_text": "- **NFR-005**: The system SHALL complete distribution of at least 100 artifacts across at least 30 targets in under 30 seconds on a developer workstation."
+    },
+    {
+      "id": "NFR-006",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 459,
+      "source_text": "- **NFR-006**: The system SHALL surface at least 1 warning for every skipped or lossy transformation (FR-018, FR-039), naming the artifact and the target."
+    },
+    {
+      "id": "NFR-007",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 462,
+      "source_text": "- **NFR-007**: The system SHALL keep a manual run and a CI run on identical inputs 100% byte-identical."
+    },
+    {
+      "id": "NFR-008",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 465,
+      "source_text": "- **NFR-008**: The system SHALL support at least 35 target adapters, the pinned Ruler-parity baseline whose exact Ruler reference version is recorded per release."
+    },
+    {
+      "id": "NFR-009",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 468,
+      "source_text": "- **NFR-009**: Structured-format serialization SHALL keep field ordering and quoting 100% byte-identical across repeated renders of unchanged input."
+    },
+    {
+      "id": "NFR-010",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 471,
+      "source_text": "- **NFR-010**: A single malformed artifact SHALL NOT abort a run, and the run SHALL complete for 100% of valid artifacts."
+    },
+    {
+      "id": "NFR-011",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 474,
+      "source_text": "- **NFR-011**: Every release SHALL record exactly 1 target-registry version identifier so contract changes are traceable."
+    },
+    {
+      "id": "NFR-012",
+      "source_file": "spec.md",
+      "source_kind": "spec",
+      "source_line": 477,
+      "source_text": "- **NFR-012**: Every managed-paths manifest write from FR-024 SHALL complete as exactly 1 atomic operation, leaving 0 partially written manifests under interrupted or concurrent runs."
+    }
+  ],
+  "spec_dir": "/Users/michalbachorik/work/md_distribuation/specs/001-prose-distribution-engine",
+  "version": 1
+}
