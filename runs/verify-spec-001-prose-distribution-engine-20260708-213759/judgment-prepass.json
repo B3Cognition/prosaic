@@ -1,0 +1,978 @@
+{
+  "rows": [
+    {
+      "fallback_reason": null,
+      "id": "AC-001",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-001 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-002",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-002 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-003",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-003 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-004",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-004 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-005",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-005 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-006",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-006 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-007",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-007 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-008",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-008 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-009",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-009 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-010",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-010 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-011",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-011 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-012",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-012 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-013",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-013 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-014",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-014 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-015",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-015 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-016",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-016 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-017",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-017 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-018",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-018 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-019",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-019 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-020",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-020 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-021",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-021 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-022",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-022 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-023",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-023 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-024",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-024 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-025",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-025 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-026",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-026 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-027",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-027 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "AC-028",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-029",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-029 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-030",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-030 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-031",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-031 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-032",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-032 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-033",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-033 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-034",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-034 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "AC-035",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| AC-035 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-001",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-001 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-001..FR-065",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-002",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-002 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-003",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-003 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-004",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-004 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-005",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-005 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-006",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-006 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-007",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-007 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-008",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-008 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-009",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-009 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-010",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-010 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-011",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-012",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-012 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-013",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-013 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-014",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-014 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-015",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-015 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-016",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-016 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-017",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-017 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-018",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-019",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-020",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-020 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-021",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-021 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-022",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-023",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-023 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-024",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-024 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-025",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-026",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-027",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-028",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-029",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-030",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-031",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-032",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-033",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-034",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-035",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-036",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-037",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-038",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-039",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-040",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-041",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-042",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-042 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": null,
+      "id": "FR-043",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| FR-043 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-044",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-045",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-046",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-047",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-048",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-049",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-050",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-051",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-052",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-053",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-054",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-055",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-056",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-057",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-058",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-059",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-060",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-061",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-062",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-063",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-064",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "FR-065",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "NFR-001",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| NFR-001 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-001..NFR-012",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-002",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-003",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-004",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-005",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-006",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-007",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": null,
+      "id": "NFR-008",
+      "mechanical": true,
+      "proposed_status": "IMPLEMENTED",
+      "reason_code": "source_and_test_strong",
+      "report_row": "| NFR-008 | IMPLEMENTED | prepass:source_and_test_strong |"
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-009",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-010",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "confidence_or_semantics_require_judgment",
+      "id": "NFR-011",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    },
+    {
+      "fallback_reason": "notes_require_judgment",
+      "id": "NFR-012",
+      "mechanical": false,
+      "proposed_status": null,
+      "reason_code": null,
+      "report_row": null
+    }
+  ],
+  "summary": {
+    "fallback_count": 56,
+    "fallback_ids": [
+      "AC-028",
+      "FR-001..FR-065",
+      "FR-011",
+      "FR-018",
+      "FR-019",
+      "FR-022",
+      "FR-025",
+      "FR-026",
+      "FR-027",
+      "FR-028",
+      "FR-029",
+      "FR-030",
+      "FR-031",
+      "FR-032",
+      "FR-033",
+      "FR-034",
+      "FR-035",
+      "FR-036",
+      "FR-037",
+      "FR-038",
+      "FR-039",
+      "FR-040",
+      "FR-041",
+      "FR-044",
+      "FR-045",
+      "FR-046",
+      "FR-047",
+      "FR-048",
+      "FR-049",
+      "FR-050",
+      "FR-051",
+      "FR-052",
+      "FR-053",
+      "FR-054",
+      "FR-055",
+      "FR-056",
+      "FR-057",
+      "FR-058",
+      "FR-059",
+      "FR-060",
+      "FR-061",
+      "FR-062",
+      "FR-063",
+      "FR-064",
+      "FR-065",
+      "NFR-001..NFR-012",
+      "NFR-002",
+      "NFR-003",
+      "NFR-004",
+      "NFR-005",
+      "NFR-006",
+      "NFR-007",
+      "NFR-009",
+      "NFR-010",
+      "NFR-011",
+      "NFR-012"
+    ],
+    "mechanical_count": 58
+  }
+}
