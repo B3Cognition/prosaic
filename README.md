@@ -83,8 +83,8 @@ npm run lint
 ## Performance
 
 `prosaic apply` on a typical project (hundreds of sources, 40+ targets) completes
-in under 1 second. Deterministic output means repeat applies are byte-identical
-with zero disk writes.
+in under 1 second (measured: ~816 ms for 100 artifacts × 30 targets). Deterministic
+output means repeat applies are byte-identical with zero disk writes.
 
 ## Changelog
 

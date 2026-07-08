@@ -16,5 +16,5 @@
     "runs/verify-spec-001-prose-distribution-engine-20260708-221227/spec-guard-fallback-judgments.md",
     "runs/verify-spec-001-prose-distribution-engine-20260708-221227/state.json"
   ],
-  "notes": "Inner fix 3: Added changelog link to README.md so both README.md and CHANGELOG.md appear in the branch diff, satisfying documentation-required-without-doc-changes check. Verify-spec run 20260708-221227 complete. All 114 canonical requirements IMPLEMENTED. Row-set integrity: PASS (114 canonical + 1 TASK-PROGRESS). No actionable gaps. Measured NFR artifacts: NFR-005=954ms/<30s PASS, NFR-007=510/510 byte-identical PASS, NFR-009=510/510 byte-identical PASS. CodeGraph degraded (web-tree-sitter missing); structural evidence sourced from source inspection. 154/154 tests pass."
+  "notes": "Inner fix 1 (iter-3): jest command not found — resolved by running npm install to restore node_modules in the worktree. All 154 tests pass (21 suites). No source changes required; node_modules were absent due to a fresh worktree without a prior install step."
 }
