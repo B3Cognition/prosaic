@@ -79,3 +79,7 @@ npm run build
 npm test
 npm run lint
 ```
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for release history.
