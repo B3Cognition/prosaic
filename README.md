@@ -85,7 +85,19 @@ npm run lint
 `prosaic apply` on a typical project (hundreds of sources, 40+ targets) completes
 in under 1 second (measured: ~816 ms for 100 artifacts × 30 targets). Deterministic
 output means repeat applies are byte-identical with zero disk writes. Cross-environment
-reproducibility is verified on Linux and macOS.
+reproducibility is verified on Linux and macOS via CI benchmark artifacts in
+`test-results/`.
+
+## Testing
+
+```bash
+npm test                    # unit + integration tests
+npm run test:benchmark      # NFR-005 throughput benchmark
+npm run test:cross-env      # NFR-007 cross-environment reproducibility
+npm run test:deterministic  # NFR-009 deterministic render verification
+```
+
+Benchmark artifacts are committed to `test-results/` for auditable CI history.
 
 ## Changelog
 

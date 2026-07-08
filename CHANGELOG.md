@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Planned: watch-mode (`prosaic apply --watch`) for continuous distribution on source changes.
+- Testing commands documented: `npm run test:benchmark`, `npm run test:cross-env`, `npm run test:deterministic` for NFR verification.
 
 ### Performance
 
 - Measured: 100 artifacts × 30 targets distributed in ~816 ms (threshold: 30 000 ms); byte-identical output verified across 510 files on darwin/Node 26.
 - Cross-environment reproducibility confirmed: deterministic render verified across Linux and macOS (NFR-007, NFR-009).
+- Benchmark artifacts committed to `test-results/` for auditable CI history across iterations.
 
 ## [0.1.0] - 2026-07-09
 
