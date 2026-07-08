@@ -1,0 +1,11 @@
+{
+  "nfr": "NFR-005",
+  "description": "100 artifacts × 30 targets distribution time",
+  "artifactCount": 100,
+  "targetCount": 30,
+  "outputCount": 3000,
+  "elapsedMs": 559,
+  "thresholdMs": 30000,
+  "pass": true,
+  "recordedAt": "2026-07-08T21:55:26.739Z"
+}
