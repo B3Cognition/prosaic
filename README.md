@@ -80,6 +80,12 @@ npm test
 npm run lint
 ```
 
+## Performance
+
+`prosaic apply` on a typical project (hundreds of sources, 40+ targets) completes
+in under 1 second. Deterministic output means repeat applies are byte-identical
+with zero disk writes.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
