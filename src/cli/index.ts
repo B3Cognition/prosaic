@@ -1,0 +1,120 @@
+#!/usr/bin/env node
+import yargs from 'yargs';
+import { hideBin } from 'yargs/helpers';
+import { apply, revert } from '../lifecycle/run';
+import { surfaceWarnings } from '../lifecycle/warnings';
+import { CliOverrides } from '../config/cli-override';
+import { ConfigError } from '../config/load';
+import { UnknownTargetError } from '../registry/registry';
+import { ManifestError } from '../manifest/manifest';
+import { LossyTransformError } from '../vocabulary/lossy';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const pkg = require('../../package.json') as { version: string };
+
+function toOverrides(argv: {
+  targets?: string[];
+  types?: string[];
+  source?: string;
+  lossy?: string;
+}): CliOverrides {
+  const cli: CliOverrides = {};
+  if (argv.targets && argv.targets.length > 0) cli.targets = argv.targets;
+  if (argv.types && argv.types.length > 0) cli.artifactTypes = argv.types;
+  if (argv.source) cli.source = argv.source;
+  if (argv.lossy === 'warn' || argv.lossy === 'error') cli.lossyPolicy = argv.lossy;
+  return cli;
+}
+
+function reportError(e: unknown): number {
+  if (
+    e instanceof ConfigError ||
+    e instanceof UnknownTargetError ||
+    e instanceof ManifestError ||
+    e instanceof LossyTransformError
+  ) {
+    process.stderr.write(`error: ${e.message}\n`);
+    return 1;
+  }
+  process.stderr.write(`error: ${(e as Error).message}\n`);
+  return 1;
+}
+
+export async function main(args: string[]): Promise<number> {
+  let exitCode = 0;
+
+  await yargs(hideBin(args.length ? args : process.argv))
+    .scriptName('prosaic')
+    .version(pkg.version)
+    .option('targets', {
+      type: 'array',
+      string: true,
+      describe: 'Target identifiers to distribute to (overrides config)',
+    })
+    .option('types', {
+      type: 'array',
+      string: true,
+      describe: 'Artifact types to distribute (rule|skill|subagent|command)',
+    })
+    .option('source', { type: 'string', describe: 'Source-of-truth directory' })
+    .option('lossy', { choices: ['warn', 'error'], describe: 'Lossy-transform policy' })
+    .command(
+      ['apply', '$0'],
+      'Render and write selected artifacts to every selected supporting target',
+      (y) => y.option('dry-run', { type: 'boolean', default: false }),
+      (argv) => {
+        try {
+          const report = apply({
+            projectRoot: process.cwd(),
+            cli: toOverrides(argv as any),
+            dryRun: argv['dry-run'] as boolean,
+          });
+          for (const line of report.preview) process.stdout.write(line + '\n');
+          for (const line of surfaceWarnings(report.warnings)) process.stdout.write(line + '\n');
+          if (report.zeroTargets) {
+            process.stdout.write('0 targets selected; nothing to do.\n');
+          } else if (!report.dryRun) {
+            process.stdout.write(
+              `apply: ${report.created} created, ${report.overwritten} overwritten, ` +
+                `${report.unchanged} unchanged, ${report.removed} removed, ` +
+                `${report.backedUp} backed up. ${report.changedFiles} changed file(s).\n`,
+            );
+          }
+        } catch (e) {
+          exitCode = reportError(e);
+        }
+      },
+    )
+    .command(
+      'revert',
+      'Remove previously distributed tool-generated files',
+      (y) => y.option('dry-run', { type: 'boolean', default: false }),
+      (argv) => {
+        try {
+          const report = revert({
+            projectRoot: process.cwd(),
+            cli: toOverrides(argv as any),
+            dryRun: argv['dry-run'] as boolean,
+          });
+          for (const line of report.preview) process.stdout.write(line + '\n');
+          if (!report.dryRun) {
+            process.stdout.write(`revert: ${report.removed} file(s) removed.\n`);
+          }
+        } catch (e) {
+          exitCode = reportError(e);
+        }
+      },
+    )
+    .demandCommand(0)
+    .strict()
+    .help()
+    .parseAsync();
+
+  return exitCode;
+}
+
+if (require.main === module) {
+  main(process.argv).then((code) => {
+    process.exitCode = code;
+  });
+}
