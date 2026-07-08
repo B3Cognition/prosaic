@@ -3,3 +3,8 @@ dist/
 coverage/
 *.log
 .DS_Store
+# Per-run CI measurement artifacts (archived by CI, not committed)
+test-results/benchmark-nfr005.json
+test-results/cross-env-nfr007.json
+test-results/deterministic-render-nfr009.json
+test-results/junit.xml
