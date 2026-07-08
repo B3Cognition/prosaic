@@ -1,7 +1,6 @@
+import * as fs from 'fs';
 import { apply, revert } from '../../src/lifecycle/run';
 import { Registry, StaticRegistrySource } from '../../src/registry/registry';
-import { Manifest } from '../../src/manifest/manifest';
-import { GuardedFs } from '../../src/write/guarded-fs';
 import { makeDescriptor } from '../helpers/descriptor-factory';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 
@@ -114,7 +113,7 @@ describe('provenance + revert + reconcile (T-031/T-032/T-033, FR-061/FR-034/FR-0
   it('AC-031: re-apply reconciles an orphaned output; unmanaged files untouched', () => {
     apply({ projectRoot: t.root, registry: testRegistry() });
     // Remove a source artifact so its outputs orphan.
-    require('fs').rmSync(t.p('.prosaic/commands/deploy.md'));
+    fs.rmSync(t.p('.prosaic/commands/deploy.md'));
     const r = apply({ projectRoot: t.root, registry: testRegistry() });
     expect(r.removed).toBeGreaterThanOrEqual(1);
     expect(t.exists('.cmd/deploy.md')).toBe(false);
@@ -122,7 +121,7 @@ describe('provenance + revert + reconcile (T-031/T-032/T-033, FR-061/FR-034/FR-0
 
   it('AC-032/FR-050: revert with a corrupt manifest aborts and deletes 0 files', () => {
     apply({ projectRoot: t.root, registry: testRegistry() });
-    require('fs').writeFileSync(t.p('.prosaic-manifest.json'), '{corrupt');
+    fs.writeFileSync(t.p('.prosaic-manifest.json'), '{corrupt');
     expect(() => revert({ projectRoot: t.root, registry: testRegistry() })).toThrow();
     expect(t.exists('.shared/rules/style.md')).toBe(true);
   });
@@ -149,7 +148,7 @@ describe('dry-run (T-034, FR-037/FR-038/FR-063/AC-018/AC-030)', () => {
 
   it('AC-030: dry-run apply shows reconcile removals labeled, deletes 0', () => {
     apply({ projectRoot: t.root, registry: testRegistry() });
-    require('fs').rmSync(t.p('.prosaic/commands/deploy.md'));
+    fs.rmSync(t.p('.prosaic/commands/deploy.md'));
     const r = apply({ projectRoot: t.root, registry: testRegistry(), dryRun: true });
     expect(r.preview.some((l) => l.startsWith('remove'))).toBe(true);
     expect(t.exists('.cmd/deploy.md')).toBe(true); // not deleted in dry-run

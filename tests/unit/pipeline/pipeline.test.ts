@@ -117,7 +117,6 @@ describe('stage 6 frontmatter rewrite (T-024, FR-043)', () => {
 
 describe('stage 8 routing (T-025, FR-023/FR-062)', () => {
   it('AC-016: routes one artifact to command/skill/agent slots across targets', () => {
-    const a = artifact({ type: 'command', frontmatter: { execution: 'command' } });
     const desc = makeDescriptor({
       id: 'multi',
       slots: {

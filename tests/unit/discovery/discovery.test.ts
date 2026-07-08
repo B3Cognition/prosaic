@@ -81,4 +81,22 @@ describe('discover integration (T-009/T-010, FR-004/FR-005/FR-053/NFR-010)', () 
     const skill = r.artifacts.find((a) => a.type === 'skill');
     expect(skill?.resources?.map((x) => x.relPath)).toEqual(['ref.md']);
   });
+
+  it('a bundle resource is never also discovered as a standalone artifact (no spurious warning)', () => {
+    // ref.md sorts before SKILL.md under locale compare; it must be a resource, not a skill.
+    t.write('.prosaic/skills/greet/SKILL.md', '---\nname: greet\ndescription: d\n---\nBody\n');
+    t.write('.prosaic/skills/greet/ref.md', '# reference material\n');
+    const r = discover(t.p('.prosaic'), t.root);
+    expect(r.artifacts).toHaveLength(1);
+    expect(r.artifacts[0].id).toBe('skills/greet/SKILL.md');
+    expect(r.warnings).toHaveLength(0);
+  });
+
+  it('collects nested bundle resources with their relative paths', () => {
+    t.write('.prosaic/subagents/rev/AGENT.md', '---\nname: rev\ndescription: d\n---\nBody\n');
+    t.write('.prosaic/subagents/rev/tpl/prompt.md', 'nested');
+    const r = discover(t.p('.prosaic'), t.root);
+    const sub = r.artifacts.find((a) => a.type === 'subagent');
+    expect(sub?.resources?.map((x) => x.relPath)).toEqual(['tpl/prompt.md']);
+  });
 });

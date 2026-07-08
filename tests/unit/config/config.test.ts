@@ -1,6 +1,6 @@
 import { parseConfig } from '../../../src/config/schema';
 import { applyCliOverrides, CliOverrideError } from '../../../src/config/cli-override';
-import { mergeConfig, resolvePrecedence } from '../../../src/config/precedence';
+import { mergeConfig } from '../../../src/config/precedence';
 import { toEffective, selectsZeroTargets, typeEnabled } from '../../../src/config/selection';
 import { resolveConfig } from '../../../src/config/resolve';
 import { ConfigError } from '../../../src/config/load';

@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import { GuardedFs } from '../../src/write/guarded-fs';
 import { BackupManager } from '../../src/write/backup';
 import { isBackupPath } from '../../src/write/backup-location';
@@ -27,7 +28,7 @@ describe('BackupManager (T-003, FR-025/FR-049/FR-055)', () => {
     for (let i = 1; i <= 4; i++) {
       // Simulate a content-changing overwrite: back up, then change content.
       backups.backup(abs);
-      require('fs').writeFileSync(abs, `v${i}`);
+      fs.writeFileSync(abs, `v${i}`);
     }
 
     const kept = backups.listBackups(abs);
