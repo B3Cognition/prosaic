@@ -1,0 +1,4 @@
+description: Deploy the app.
+instructions: |
+  Deploy using the arguments {{args}} and report status.
+version: 1.0.0

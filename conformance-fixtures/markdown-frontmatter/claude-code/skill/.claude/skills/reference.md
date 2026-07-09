@@ -1,0 +1,3 @@
+# Reference
+
+Greeting templates.

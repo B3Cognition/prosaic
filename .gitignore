@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+# Per-run CI measurement artifacts (committed as build evidence for verify-spec)
+test-results/junit.xml

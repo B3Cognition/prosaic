@@ -1,0 +1,15 @@
+{
+  "spec_id": "001-prose-distribution-engine",
+  "project_root": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260708-120705-417830/worktrees/default/iter-2",
+  "spec_dir": "/Users/michalbachorik/work/md_distribuation/specs/001-prose-distribution-engine",
+  "strict": false,
+  "reconcile": false,
+  "dry_run": false,
+  "verify_scope": "full",
+  "scoped_ids": [],
+  "base_full_verify_commit": null,
+  "verify_run_dir": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260708-120705-417830/worktrees/default/iter-2/runs/verify-spec-001-prose-distribution-engine-20260708-215620",
+  "status": "done",
+  "structural_evidence": "degraded",
+  "codegraph_evidence_map": "skipped_degraded_codegraph"
+}

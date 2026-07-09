@@ -1,0 +1,12 @@
+{
+  "nfr": "NFR-007",
+  "description": "Byte-identity across two independent runs on identical inputs",
+  "nodeVersion": "v26.4.0",
+  "platform": "darwin",
+  "fileCount": 510,
+  "identicalCount": 510,
+  "divergentCount": 0,
+  "divergent": [],
+  "pass": true,
+  "recordedAt": "2026-07-09T00:04:18.252Z"
+}
