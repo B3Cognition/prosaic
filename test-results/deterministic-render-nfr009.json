@@ -8,7 +8,7 @@
   "divergentCount": 0,
   "divergent": [],
   "goldenMismatchCount": 0,
-  "goldenFile": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260708-120705-417830/worktrees/default/iter-4/test-results/deterministic-render-nfr009-golden.json",
+  "goldenFile": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260709-171106-362298/worktrees/default/iter-0/test-results/deterministic-render-nfr009-golden.json",
   "pass": true,
-  "recordedAt": "2026-07-09T00:04:18.073Z"
+  "recordedAt": "2026-07-09T16:10:45.457Z"
 }

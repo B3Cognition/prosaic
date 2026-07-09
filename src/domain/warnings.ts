@@ -10,7 +10,15 @@ export type WarningKind =
   | 'unsupported-pair'
   | 'lossy-intent'
   | 'unresolved-reference'
-  | 'config';
+  | 'config'
+  | 'portability'
+  | 'ambiguous-detection'
+  | 'unrecognized-format'
+  | 'injected-strip'
+  | 'defaulted-choice'
+  | 'override-recovered'
+  | 'round-trip-mismatch'
+  | 'unverified-target';
 
 export interface Warning {
   kind: WarningKind;

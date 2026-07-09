@@ -8,6 +8,8 @@ import { ConfigError } from '../config/load';
 import { UnknownTargetError } from '../registry/registry';
 import { ManifestError } from '../manifest/manifest';
 import { LossyTransformError } from '../vocabulary/lossy';
+import { importRun } from '../import/run';
+import { formatPortabilityReport, formatRunSummary } from '../import/report';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../../package.json') as { version: string };
@@ -80,6 +82,47 @@ export async function main(args: string[]): Promise<number> {
                 `${report.backedUp} backed up. ${report.changedFiles} changed file(s).\n`,
             );
           }
+        } catch (e) {
+          exitCode = reportError(e);
+        }
+      },
+    )
+    .command(
+      'import [path]',
+      'Import existing tool prose into neutral prosaic source (inverse of apply)',
+      (y) =>
+        y
+          .positional('path', {
+            type: 'string',
+            describe: 'Foreign directory to import from (defaults to current directory)',
+          })
+          .option('format', {
+            type: 'string',
+            describe: 'Explicit format identifier (bypasses auto-detection)',
+          })
+          .option('dry-run', { type: 'boolean', default: false })
+          .option('overwrite', { type: 'boolean', default: false }),
+      (argv) => {
+        try {
+          const report = importRun({
+            projectRoot: process.cwd(),
+            foreignDir: (argv as any).path as string | undefined,
+            format: (argv as any).format as string | undefined,
+            sourceDir: (argv as any).source as string | undefined,
+            dryRun: argv['dry-run'] as boolean,
+            overwrite: argv['overwrite'] as boolean,
+          });
+          for (const line of report.preview) process.stdout.write(line + '\n');
+          for (const line of formatRunSummary(report)) process.stdout.write(line + '\n');
+          for (const line of formatPortabilityReport(report)) process.stdout.write(line + '\n');
+          for (const w of report.allWarnings) {
+            const where = [w.artifact, w.target].filter(Boolean).join(' → ');
+            process.stderr.write(
+              `warning[${w.kind}]${where ? ' ' + where : ''}: ${w.message}\n`,
+            );
+          }
+          const hasErrors = report.files.some((f) => !f.outcome.ok);
+          if (hasErrors) exitCode = 1;
         } catch (e) {
           exitCode = reportError(e);
         }
