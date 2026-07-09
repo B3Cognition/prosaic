@@ -1,5 +1,10 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { buildImportReport, formatPortabilityReport, formatRunSummary } from '../../../src/import/report';
 import { FileReport } from '../../../src/import/types';
+
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-silent-drop-nfr005.json');
 
 const dropReport: FileReport = {
   foreignPath: '.claude/agents/broken.md',
@@ -39,6 +44,29 @@ describe('import report aggregation (T-018, FR-029, FR-044, FR-088, FR-022, FR-0
     resolutionMethod: 'auto-detected' as const,
     dryRun: false,
   };
+
+  afterAll(() => {
+    // Record measured artifact for NFR-005: silent-drop count = 0 across conformance fixtures
+    const reportWithDrop = buildImportReport([dropReport, successReport], opts);
+    const reportSuccessOnly = buildImportReport([successReport], opts);
+    const totalSilentDrops = reportWithDrop.silentDropCount + reportSuccessOnly.silentDropCount;
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+    fs.writeFileSync(
+      ARTIFACT_PATH,
+      JSON.stringify(
+        {
+          nfr: 'NFR-005',
+          description: 'Zero silent drops: import surfaces at least one warning for every dropped, skipped, or non-invertible item',
+          fixturesChecked: 2,
+          silentDropCount: totalSilentDrops,
+          pass: totalSilentDrops === 0,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+  });
 
   it('produces a per-run report covering each foreign file (FR-044)', () => {
     const report = buildImportReport([dropReport, successReport], opts);

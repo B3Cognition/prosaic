@@ -7,6 +7,9 @@ import { builtinRegistry } from '../../src/registry/builtin';
 import { runPipeline } from '../../src/pipeline/runner';
 import { ALL_DESCRIPTORS } from '../../src/registry/adapters';
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const NFR003_ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-offline-nfr003.json');
+
 function makeTempDir(): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'import-e2e-')));
 }
@@ -103,6 +106,25 @@ describe('import command e2e (T-005, T-019, FR-001, FR-003, FR-004, FR-007, FR-0
       expect(report.resolvedFormat).toBe('cline');
       // Measured artifact: 0 sockets opened, 0 credentials required (NFR-003)
       expect(socketSpy).toHaveBeenCalledTimes(0);
+
+      const socketsOpened = socketSpy.mock.calls.length;
+      fs.mkdirSync(RESULTS_DIR, { recursive: true });
+      fs.writeFileSync(
+        NFR003_ARTIFACT_PATH,
+        JSON.stringify(
+          {
+            nfr: 'NFR-003',
+            description: 'Fully offline operation: import completes with network access disabled',
+            socketsOpened,
+            credentialsRequired: 0,
+            pass: socketsOpened === 0,
+            isolationMechanism: 'jest.spyOn(net.Socket.prototype, "connect") throws on any call',
+            recordedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      );
     } finally {
       socketSpy.mockRestore();
       fs.rmSync(root, { recursive: true, force: true });

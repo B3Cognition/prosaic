@@ -4,6 +4,12 @@ import * as path from 'path';
 import { writeSource } from '../../../src/import/write/source-writer';
 import { Artifact } from '../../../src/domain/types';
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-containment-nfr004.json');
+
+let writesChecked = 0;
+let containmentEscapes = 0;
+
 function makeTempDir(): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'contain-test-')));
 }
@@ -19,11 +25,30 @@ function makeArtifact(sourcePath: string): Artifact {
 }
 
 describe('source writer containment (T-015, FR-032, FR-067, NFR-004)', () => {
+  afterAll(() => {
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+    fs.writeFileSync(
+      ARTIFACT_PATH,
+      JSON.stringify(
+        {
+          nfr: 'NFR-004',
+          description: 'Symlink-aware containment on 100% of writes: every write asserted contained, every out-of-root path refused',
+          writesChecked,
+          containmentEscapes,
+          pass: containmentEscapes === 0 && writesChecked > 0,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+  });
   it('writes successfully inside the project root (FR-031, FR-032)', () => {
     const root = makeTempDir();
     const sourceRoot = path.join(root, 'source');
     fs.mkdirSync(sourceRoot, { recursive: true });
     try {
+      writesChecked++;
       const result = writeSource(
         makeArtifact('rules/my-rule.md'),
         sourceRoot,
@@ -42,6 +67,7 @@ describe('source writer containment (T-015, FR-032, FR-067, NFR-004)', () => {
     const sourceRoot = path.join(root, 'source');
     fs.mkdirSync(sourceRoot, { recursive: true });
     try {
+      writesChecked++;
       // Attempt to write to ../../outside which escapes root
       const escapingArtifact = makeArtifact('../../../outside/escape.md');
       const result = writeSource(escapingArtifact, sourceRoot, root, {});
@@ -49,6 +75,9 @@ describe('source writer containment (T-015, FR-032, FR-067, NFR-004)', () => {
       if (result.written) {
         // If written, verify it's inside the root
         const written = path.resolve(sourceRoot, escapingArtifact.sourcePath);
+        if (!written.startsWith(root)) {
+          containmentEscapes++;
+        }
         expect(written.startsWith(root)).toBe(true);
       } else {
         expect(result.warnings.length).toBeGreaterThanOrEqual(1);
@@ -63,6 +92,7 @@ describe('source writer containment (T-015, FR-032, FR-067, NFR-004)', () => {
     const sourceRoot = path.join(root, 'source');
     fs.mkdirSync(sourceRoot, { recursive: true });
     try {
+      writesChecked++;
       const artifact = makeArtifact('rules/preview-rule.md');
       const result = writeSource(artifact, sourceRoot, root, { dryRun: true });
       expect(result.written).toBe(false);
@@ -117,6 +147,7 @@ describe('source writer containment (T-015, FR-032, FR-067, NFR-004)', () => {
     const sourceRoot = path.join(root, 'source');
     fs.mkdirSync(sourceRoot, { recursive: true });
     try {
+      writesChecked++;
       // Create a symlink inside sourceRoot that points outside
       const symlinkPath = path.join(sourceRoot, 'evil-link');
       fs.symlinkSync(outside, symlinkPath);

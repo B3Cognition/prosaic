@@ -1,0 +1,9 @@
+{
+  "nfr": "NFR-003",
+  "description": "Fully offline operation: import completes with network access disabled",
+  "socketsOpened": 0,
+  "credentialsRequired": 0,
+  "pass": true,
+  "isolationMechanism": "jest.spyOn(net.Socket.prototype, \"connect\") throws on any call",
+  "recordedAt": "2026-07-09T16:50:12.807Z"
+}

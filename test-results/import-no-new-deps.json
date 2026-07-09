@@ -1,0 +1,15 @@
+{
+  "nfr": "NFR-006",
+  "description": "Import module adds 0 new third-party runtime dependencies beyond those already used by apply",
+  "baselineDependencies": [
+    "@iarna/toml",
+    "js-yaml",
+    "yargs",
+    "zod"
+  ],
+  "addedDependencies": [],
+  "addedCount": 0,
+  "pass": true,
+  "measurableTarget": "0 new runtime dependencies added",
+  "recordedAt": "2026-07-09T16:50:13.795Z"
+}

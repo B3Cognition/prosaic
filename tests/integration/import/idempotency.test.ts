@@ -8,6 +8,9 @@ import { idempotencyCheck } from '../../../src/import/verify/idempotency';
 import { runPipeline } from '../../../src/pipeline/runner';
 import { ALL_DESCRIPTORS } from '../../../src/registry/adapters';
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-idempotency-nfr002.json');
+
 const cline = ALL_DESCRIPTORS.find((d) => d.id === 'cline')!;
 
 function makeTempDir(): string {
@@ -49,6 +52,24 @@ describe('source-level idempotency (T-016, FR-040, FR-072, NFR-002)', () => {
 
       // Run idempotency check
       const idemResult = idempotencyCheck(gated.artifact, cline, sourceRoot, root);
+
+      fs.mkdirSync(RESULTS_DIR, { recursive: true });
+      fs.writeFileSync(
+        ARTIFACT_PATH,
+        JSON.stringify(
+          {
+            nfr: 'NFR-002',
+            description: 'Source-level idempotency: second identical run produces 0 changed files',
+            secondRunChangedFileCount: idemResult.divergences.length,
+            idempotent: idemResult.idempotent,
+            pass: idemResult.idempotent && idemResult.divergences.length === 0,
+            recordedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ),
+      );
+
       expect(idemResult.idempotent).toBe(true);
       expect(idemResult.divergences).toHaveLength(0);
     } finally {

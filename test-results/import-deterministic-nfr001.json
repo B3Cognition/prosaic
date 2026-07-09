@@ -1,0 +1,16 @@
+{
+  "nfr": "NFR-001",
+  "description": "Deterministic round-trip rendering: identical inputs produce byte-identical output across repeated runs",
+  "pairsCompared": 1,
+  "spuriousDiffs": 0,
+  "pass": true,
+  "results": [
+    {
+      "target": "cline",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    }
+  ],
+  "recordedAt": "2026-07-09T16:50:12.534Z"
+}

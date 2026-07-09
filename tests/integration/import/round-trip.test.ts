@@ -11,11 +11,36 @@ import { renderMarkdown } from '../../../src/render/markdown';
 const claudeCode = ALL_DESCRIPTORS.find((d) => d.id === 'claude-code')!;
 const cline = ALL_DESCRIPTORS.find((d) => d.id === 'cline')!;
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-deterministic-nfr001.json');
+
+const nfr001Results: Array<{ target: string; run1Fidelity: string; run2Fidelity: string; stable: boolean }> = [];
+
 function makeTempDir(): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'roundtrip-test-')));
 }
 
 describe('round-trip byte oracle (T-014, FR-036, FR-037, FR-038, FR-039, FR-070, FR-071, FR-023, FR-020, NFR-001)', () => {
+  afterAll(() => {
+    const spuriousDiffs = nfr001Results.filter((r) => !r.stable).length;
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+    fs.writeFileSync(
+      ARTIFACT_PATH,
+      JSON.stringify(
+        {
+          nfr: 'NFR-001',
+          description: 'Deterministic round-trip rendering: identical inputs produce byte-identical output across repeated runs',
+          pairsCompared: nfr001Results.length,
+          spuriousDiffs,
+          pass: spuriousDiffs === 0,
+          results: nfr001Results,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+  });
   it('byte-identical round-trip yields verified=true, fidelity=fully-invertible (FR-037)', () => {
     const root = makeTempDir();
     try {
@@ -154,6 +179,13 @@ describe('round-trip byte oracle (T-014, FR-036, FR-037, FR-038, FR-039, FR-070,
 
       const { result: rt1 } = roundTrip(gated.artifact, cline, content, relToRoot);
       const { result: rt2 } = roundTrip(gated.artifact, cline, content, relToRoot);
+
+      nfr001Results.push({
+        target: 'cline',
+        run1Fidelity: rt1.fidelity,
+        run2Fidelity: rt2.fidelity,
+        stable: rt1.fidelity === rt2.fidelity && rt1.verified === rt2.verified,
+      });
 
       expect(rt1.fidelity).toBe(rt2.fidelity);
       expect(rt1.verified).toBe(rt2.verified);

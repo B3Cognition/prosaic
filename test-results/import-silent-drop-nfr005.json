@@ -1,0 +1,8 @@
+{
+  "nfr": "NFR-005",
+  "description": "Zero silent drops: import surfaces at least one warning for every dropped, skipped, or non-invertible item",
+  "fixturesChecked": 2,
+  "silentDropCount": 0,
+  "pass": true,
+  "recordedAt": "2026-07-09T16:50:11.997Z"
+}

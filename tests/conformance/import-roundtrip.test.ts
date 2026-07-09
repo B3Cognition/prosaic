@@ -9,6 +9,12 @@ import { runPipeline } from '../../src/pipeline/runner';
 import { ALL_DESCRIPTORS } from '../../src/registry/adapters';
 import { Artifact } from '../../src/domain/types';
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const NFR008_PATH = path.join(RESULTS_DIR, 'import-conformance-nfr008.json');
+const SC003_PATH = path.join(RESULTS_DIR, 'import-roundtrip-sc003.json');
+
+const conformanceResults: Array<{ target: string; fidelity: string; pass: boolean }> = [];
+
 function makeTempDir(): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'import-conform-')));
 }
@@ -30,6 +36,47 @@ function makeConformanceArtifact(name: string): Artifact {
 describe('per-target import/round-trip conformance (T-022, NFR-008, FR-052)', () => {
   // Test only the import-stable targets to avoid marking untested ones as stable
   const stableTargets = ALL_DESCRIPTORS.filter((d) => IMPORT_STABLE_TARGETS.has(d.id));
+
+  afterAll(() => {
+    const failCount = conformanceResults.filter((r) => !r.pass).length;
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+
+    fs.writeFileSync(
+      NFR008_PATH,
+      JSON.stringify(
+        {
+          nfr: 'NFR-008',
+          description: 'Per-target import conformance gating: each import-stable target has a passing sample',
+          stableTargetCount: IMPORT_STABLE_TARGETS.size,
+          targetsWithSample: conformanceResults.length,
+          failCount,
+          pass: failCount === 0 && conformanceResults.length >= IMPORT_STABLE_TARGETS.size,
+          results: conformanceResults,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+
+    fs.writeFileSync(
+      SC003_PATH,
+      JSON.stringify(
+        {
+          sc: 'SC-003',
+          description: 'Byte-for-byte round-trip in 100% of conformance samples for fully-invertible targets',
+          totalSamples: conformanceResults.length,
+          fullyInvertible: conformanceResults.filter((r) => r.fidelity === 'fully-invertible').length,
+          failCount,
+          pass: failCount === 0,
+          results: conformanceResults,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+  });
 
   it('IMPORT_STABLE_TARGETS set has at least 1 target', () => {
     expect(IMPORT_STABLE_TARGETS.size).toBeGreaterThanOrEqual(1);
@@ -87,6 +134,7 @@ describe('per-target import/round-trip conformance (T-022, NFR-008, FR-052)', ()
 
         // SC-003: stable targets that use prosaic-generated fixtures must achieve byte-identity.
         // 'mismatch' is never acceptable for import-stable targets (SC-003, NFR-001).
+        conformanceResults.push({ target: desc.id, fidelity: rtResult.fidelity, pass: rtResult.fidelity === 'fully-invertible' });
         expect(rtResult.fidelity).toBe('fully-invertible');
       } finally {
         fs.rmSync(root, { recursive: true, force: true });

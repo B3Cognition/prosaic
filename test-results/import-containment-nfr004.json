@@ -1,0 +1,8 @@
+{
+  "nfr": "NFR-004",
+  "description": "Symlink-aware containment on 100% of writes: every write asserted contained, every out-of-root path refused",
+  "writesChecked": 4,
+  "containmentEscapes": 0,
+  "pass": true,
+  "recordedAt": "2026-07-09T16:50:12.091Z"
+}

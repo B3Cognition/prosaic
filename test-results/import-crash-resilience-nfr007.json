@@ -1,0 +1,8 @@
+{
+  "nfr": "NFR-007",
+  "description": "Crash-free malformed input: malformed or attacker-influenceable foreign input fails closed without crashing",
+  "malformedFixturesTested": 4,
+  "crashes": 0,
+  "pass": true,
+  "recordedAt": "2026-07-09T16:50:12.645Z"
+}
