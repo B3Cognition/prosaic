@@ -1,4 +1,8 @@
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import { buildInverseMap, applyInverseMap, NonInjectiveValueMapError } from '../../../../src/import/neutralize/inverse-map';
+import { neutralize } from '../../../../src/import/neutralize/neutralize';
 import { parseDescriptor } from '../../../../src/registry/descriptor';
 import { ALL_DESCRIPTORS } from '../../../../src/registry/adapters';
 import { adapter } from '../../../../src/registry/adapters/build';
@@ -46,6 +50,36 @@ describe('buildInverseMap (T-006, FR-010, FR-054, FR-019, FR-081)', () => {
   it('builds real descriptors without throwing', () => {
     for (const desc of ALL_DESCRIPTORS) {
       expect(() => buildInverseMap(desc)).not.toThrow();
+    }
+  });
+});
+
+describe('neutralize() with non-injective valueMap (FR-019 integration)', () => {
+  it('returns ok:false when descriptor has non-injective valueMap (FR-019)', () => {
+    const tmp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'fr019-')));
+    try {
+      const fileAbs = path.join(tmp, 'rule.md');
+      fs.writeFileSync(fileAbs, '---\nname: my-rule\nlevel: low\n---\n\nBody\n');
+
+      const nonInjective = adapter({
+        id: 'test-noninject-e2e',
+        dir: '.test/rules',
+        translations: {
+          capability: {
+            toKey: 'level',
+            valueMap: { basic: 'low', advanced: 'low' },
+          },
+        },
+      });
+
+      const result = neutralize(fileAbs, 'rule.md', nonInjective, tmp);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.dropped.reason).toContain('test-noninject-e2e');
+        expect(result.dropped.warnings[0].kind).toBe('unrecognized-format');
+      }
+    } finally {
+      fs.rmSync(tmp, { recursive: true, force: true });
     }
   });
 });

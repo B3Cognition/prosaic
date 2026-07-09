@@ -3,9 +3,10 @@ import * as os from 'os';
 import * as path from 'path';
 import { neutralize } from '../../../src/import/neutralize/neutralize';
 import { validateGate } from '../../../src/import/neutralize/validate-gate';
-import { roundTrip } from '../../../src/import/verify/round-trip';
+import { roundTrip, fidelityLevel } from '../../../src/import/verify/round-trip';
 import { runPipeline } from '../../../src/pipeline/runner';
 import { ALL_DESCRIPTORS } from '../../../src/registry/adapters';
+import { adapter } from '../../../src/registry/adapters/build';
 import { renderMarkdown } from '../../../src/render/markdown';
 
 const claudeCode = ALL_DESCRIPTORS.find((d) => d.id === 'claude-code')!;
@@ -19,6 +20,58 @@ const nfr001Results: Array<{ target: string; run1Fidelity: string; run2Fidelity:
 function makeTempDir(): string {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'roundtrip-test-')));
 }
+
+describe('non-invertible target fidelity (SC-004)', () => {
+  it('fidelityLevel is invertible-with-overrides for a target-specific non-neutral key (SC-004)', () => {
+    const root = makeTempDir();
+    try {
+      // Descriptor with explicit passthrough (not '*'). 'source' is not in the
+      // passthrough list, so it is not a neutral key — it goes to overrides with
+      // a warning (0 silent loss). applyOverrides in stage 4 then re-injects it
+      // during re-deploy, so the round-trip produces byte-identical output.
+      const desc = adapter({
+        id: 'test-sc004',
+        dir: '.test-sc004/rules',
+        passthrough: ['name'],
+      });
+
+      // Original file has a target-specific key 'source' not in neutral vocabulary
+      const primaryContent = '---\nname: my-rule\nsource: foreign-tool\n---\n\nBody\n';
+      const fileAbs = path.join(root, '.test-sc004', 'rules', 'my-rule.md');
+      fs.mkdirSync(path.dirname(fileAbs), { recursive: true });
+      fs.writeFileSync(fileAbs, primaryContent);
+
+      const relToRoot = path.relative(root, fileAbs).split(path.sep).join('/');
+      const neutralResult = neutralize(fileAbs, relToRoot, desc, root);
+      expect(neutralResult.ok).toBe(true);
+      if (!neutralResult.ok) return;
+
+      const { artifact, overrides, warnings: neutralWarnings } = neutralResult.result;
+
+      // 'source' must be captured in overrides, not silently dropped (SC-004)
+      expect(overrides['source']).toBe('foreign-tool');
+
+      // At least 1 warning emitted — no silent loss (SC-004)
+      expect(neutralWarnings.some((w) => w.kind === 'override-recovered')).toBe(true);
+
+      const gated = validateGate(artifact, relToRoot);
+      expect(gated.ok).toBe(true);
+      if (!gated.ok) return;
+
+      const { result: rtResult } = roundTrip(gated.artifact, desc, primaryContent, relToRoot);
+
+      // applyOverrides in stage 4 re-injects overrides during re-deploy,
+      // so the output matches the original byte-for-byte
+      expect(rtResult.verified).toBe(true);
+
+      const hasOverrides = Object.keys(overrides).length > 0;
+      const fidelity = fidelityLevel(rtResult, hasOverrides);
+      expect(fidelity).toBe('invertible-with-overrides');
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
 
 describe('round-trip byte oracle (T-014, FR-036, FR-037, FR-038, FR-039, FR-070, FR-071, FR-023, FR-020, NFR-001)', () => {
   afterAll(() => {

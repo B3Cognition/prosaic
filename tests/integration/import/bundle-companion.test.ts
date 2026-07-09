@@ -3,6 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import { consumeCompanion, primaryBaseName } from '../../../src/import/bundle/companion';
 import { reassociateBundle } from '../../../src/import/bundle/reassociate';
+import { writeSource } from '../../../src/import/write/source-writer';
 import { ALL_DESCRIPTORS } from '../../../src/registry/adapters';
 
 const githubCopilot = ALL_DESCRIPTORS.find((d) => d.id === 'github-copilot')!;
@@ -62,6 +63,63 @@ describe('bundle reassociation (T-020, FR-041, FR-073, FR-074, FR-075)', () => {
       const result = reassociateBundle(primaryAbs, slotDir, root, '.claude/skills/flat-skill.md');
       expect(result.resources).toHaveLength(0);
       expect(result.warnings).toHaveLength(0);
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('intra-bundle reference post-write resolution (FR-074)', () => {
+  it('intra-bundle references resolve correctly after writing bundle to source (FR-074)', () => {
+    const root = makeTempDir();
+    const sourceDir = path.join(root, 'src');
+    fs.mkdirSync(sourceDir, { recursive: true });
+
+    try {
+      // Create a foreign bundle: primary + resource in a sub-directory
+      const bundleDir = path.join(root, '.claude', 'skills', 'my-skill');
+      fs.mkdirSync(bundleDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(bundleDir, 'SKILL.md'),
+        '---\nname: my-skill\ndescription: A skill\n---\n\nSee [resource](resource.md)\n',
+      );
+      fs.writeFileSync(path.join(bundleDir, 'resource.md'), '# Resource\nSee [skill](SKILL.md)\n');
+
+      const primaryAbs = path.join(bundleDir, 'SKILL.md');
+      const slotDir = path.join(root, '.claude', 'skills');
+      const bundleResult = reassociateBundle(primaryAbs, slotDir, root, 'my-skill/SKILL.md');
+
+      expect(bundleResult.resources.length).toBeGreaterThanOrEqual(1);
+      expect(bundleResult.resources.some((r) => r.relPath === 'resource.md')).toBe(true);
+
+      // Build the neutral artifact with bundle resources
+      const artifact = {
+        id: 'skills/my-skill.md',
+        type: 'skill' as const,
+        frontmatter: { name: 'my-skill', description: 'A skill' },
+        body: 'See [resource](resource.md)\n',
+        sourcePath: 'skills/my-skill.md',
+        resources: bundleResult.resources,
+        bundleRoot: 'skills/my-skill',
+      };
+
+      // Write to source root
+      const writeResult = writeSource(artifact, sourceDir, root, {});
+      expect(writeResult.written).toBe(true);
+
+      // Primary must exist at destination
+      const primaryWritten = path.join(root, writeResult.destPath);
+      expect(fs.existsSync(primaryWritten)).toBe(true);
+
+      // Resource must be written adjacent to primary (FR-074)
+      const resourceWritten = path.join(path.dirname(primaryWritten), 'resource.md');
+      expect(fs.existsSync(resourceWritten)).toBe(true);
+
+      // Intra-bundle reference 'resource.md' from primary must resolve post-write
+      const primaryContent = fs.readFileSync(primaryWritten, 'utf8');
+      expect(primaryContent).toContain('resource.md');
+      const refResolved = path.resolve(path.dirname(primaryWritten), 'resource.md');
+      expect(fs.existsSync(refResolved)).toBe(true);
     } finally {
       fs.rmSync(root, { recursive: true, force: true });
     }
