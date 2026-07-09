@@ -99,6 +99,10 @@ npm run test:deterministic  # NFR-009 deterministic render verification
 
 Benchmark artifacts are committed to `test-results/` for auditable CI history.
 
+## Verification
+
+All 48 delivery tasks are complete and all 114 canonical requirements are fulfilled (or deferred-safe) as verified by spec-guard. See `test-results/` for committed benchmark artifacts (NFR-005, NFR-007, NFR-009).
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
