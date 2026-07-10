@@ -464,6 +464,72 @@ Skills and subagents can include bundled resource files. Prosaic rewrites
 internal references when distributing the bundle so generated outputs do not
 point back to stale source paths.
 
+## Import from Existing Tool Directories
+
+Prosaic can also reverse-engineer existing tool-specific files back into neutral
+source. The `import` command detects which tool produced a directory of prose
+files, un-translates the concrete frontmatter into the neutral vocabulary,
+writes prosaic source, and verifies fidelity by re-deploying and comparing to
+the original.
+
+### Quick Import
+
+```bash
+prosaic import .claude
+```
+
+Prosaic auto-detects that `.claude/` is Claude Code format, neutralizes every
+artifact, and writes neutral source files into `.prosaic/`.
+
+### Import with Explicit Format
+
+If the directory layout is ambiguous or hand-authored, specify the format:
+
+```bash
+prosaic import .claude --format claude-code
+prosaic import .cursor/rules --format cursor
+```
+
+### Dry Run & Preview
+
+Preview exactly what will be imported before writing:
+
+```bash
+prosaic import .claude --dry-run
+```
+
+### Round-Trip Verification
+
+Import automatically verifies that re-deploying the neutralized artifact to the
+same tool reproduces the original file byte-for-byte:
+
+```bash
+prosaic import .claude
+# Output includes round-trip verification results per file
+```
+
+If fidelity is not exact, import reports which keys or content differ. For
+targets whose forward translation is not fully invertible, import preserves
+non-invertible data under a per-target `overrides:` section and reports the
+fidelity level.
+
+### Portability Warnings
+
+Import warns about content that won't travel across tools, such as absolute
+filesystem paths or tool-only frontmatter keys:
+
+- Absolute path references are flagged with a suggestion to use project-relative paths
+- Unknown frontmatter keys are preserved in overrides with a warning
+- Tool-only keys injected at deploy time are stripped before reconstruction
+
+A consolidated portability report is presented at the end of the run.
+
+### Bundles and Companions
+
+Import recognizes multi-file skill and subagent bundles, re-associates resource
+files, and rewrites internal references. Tool companion metadata files are
+consumed and their data recovered into the neutral artifact.
+
 ## Command Reference
 
 ```bash
@@ -477,6 +543,10 @@ prosaic apply --lossy error
 prosaic revert
 prosaic revert --dry-run
 prosaic revert --targets cursor
+
+prosaic import <foreign-directory>
+prosaic import <foreign-directory> --format <tool-id>
+prosaic import <foreign-directory> --dry-run
 ```
 
 CLI flags override `prosaic.config.yaml` for that run.

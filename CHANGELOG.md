@@ -9,7 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Planned: watch-mode (`prosaic apply --watch`) for continuous distribution on source changes.
+- `prosaic import` CLI command for reverse-engineering existing tool-specific prose files into neutral source.
+- Auto-detection of tool format from directory conventions (e.g., `.claude/`, `.cursor/`) with fallback to explicit `--format` flag.
+- Round-trip verification: after import, re-deploys neutralized artifacts to the originating tool and compares byte-for-byte against the original, reporting fidelity per file.
+- Portability warnings for absolute paths, project-relative paths, unknown frontmatter keys, and tool-only data with concrete remediation suggestions.
+- Per-target `overrides:` section for non-invertible or unknown keys, ensuring zero silent data loss.
+- Support for multi-file skill and subagent bundles with resource re-association and internal reference rewriting.
+- Companion metadata file consumption and per-target fidelity level reporting (fully-invertible, invertible-with-overrides, normalized-equivalent).
 - Testing commands documented: `npm run test:benchmark`, `npm run test:cross-env`, `npm run test:deterministic` for NFR verification.
 - All 48 delivery tasks complete (100%); all 114 canonical requirements fulfilled or deferred-safe per spec-guard audit.
 
