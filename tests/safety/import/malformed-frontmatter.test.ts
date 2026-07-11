@@ -8,7 +8,7 @@ const RESULTS_DIR = path.join(process.cwd(), 'test-results');
 const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-crash-resilience-nfr007.json');
 
 let fixturesTested = 0;
-let crashes = 0;
+const crashes = 0;
 
 const claudeCode = ALL_DESCRIPTORS.find((d) => d.id === 'claude-code')!;
 const codexCli = ALL_DESCRIPTORS.find((d) => d.id === 'codex-cli')!;

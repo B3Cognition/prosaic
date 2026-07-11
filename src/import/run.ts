@@ -4,7 +4,7 @@ import { Registry } from '../registry/registry';
 import { builtinRegistry } from '../registry/builtin';
 import { resolveConfig } from '../config/resolve';
 import { ImportRunOptions, ImportReport, FileReport } from './types';
-import { detectFormat, resolveExplicitFormat } from './detect/detect';
+import { detectFormat, resolveExplicitFormat, scanCandidates } from './detect/detect';
 import { resolveScope } from './detect/scope';
 import { unverifiedTargetWarning } from './detect/parity';
 import { neutralize } from './neutralize/neutralize';
@@ -42,6 +42,8 @@ export function importRun(
   let resolvedTargetId: string;
   let resolutionMethod: 'auto-detected' | 'explicitly-specified';
   const detectionWarnings: import('../domain/warnings').Warning[] = [];
+  // AC-007: candidates an explicit --format overrode when the layout was ambiguous.
+  let overriddenCandidates: string[] | undefined;
 
   if (opts.format) {
     const explicit = resolveExplicitFormat(opts.format, descriptors);
@@ -70,6 +72,21 @@ export function importRun(
     }
     resolvedTargetId = explicit.targetId;
     resolutionMethod = 'explicitly-specified';
+
+    // AC-007: even though the target is the named one (auto-detection runs 0 times,
+    // FR-003), a candidate scan tells us whether the layout WAS ambiguous. If so,
+    // record that the ambiguity was resolved by explicit override — distinguishing
+    // this run from an unambiguous explicit run.
+    const candidates = scanCandidates(foreignDir, opts.projectRoot, descriptors);
+    if (candidates.length >= 2) {
+      overriddenCandidates = candidates;
+      detectionWarnings.push({
+        kind: 'ambiguous-detection',
+        message:
+          `Foreign layout was ambiguous — matched ${candidates.length} targets: ` +
+          `${candidates.join(', ')}. Ambiguity resolved by explicit --format "${explicit.targetId}".`,
+      });
+    }
   } else {
     // Auto-detection (FR-002)
     const detection = detectFormat(foreignDir, opts.projectRoot, descriptors);
@@ -251,6 +268,7 @@ export function importRun(
     resolvedFormat: resolvedTargetId,
     resolutionMethod,
     dryRun: opts.dryRun ?? false,
+    overriddenCandidates,
   });
 
   return report;

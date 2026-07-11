@@ -76,4 +76,65 @@ describe('source-level idempotency (T-016, FR-040, FR-072, NFR-002)', () => {
       fs.rmSync(root, { recursive: true, force: true });
     }
   });
+
+  it('reports every source-level divergence with a warning when the second source diverges (FR-072)', () => {
+    const root = makeTempDir();
+    const sourceRoot = path.join(root, 'source');
+    fs.mkdirSync(sourceRoot, { recursive: true });
+    try {
+      const artifact = {
+        id: 'rules/diverge-rule.md',
+        type: 'rule' as const,
+        frontmatter: { name: 'diverge-rule', description: 'Original description' },
+        body: 'Rule body.\n',
+        sourcePath: 'rules/diverge-rule.md',
+      };
+
+      const deployed = runPipeline(artifact, cline);
+      const filePath = path.join(root, deployed.path);
+      fs.mkdirSync(path.dirname(filePath), { recursive: true });
+      fs.writeFileSync(filePath, deployed.content);
+
+      const relToRoot = deployed.path;
+      const neutralResult = neutralize(filePath, relToRoot, cline, root);
+      expect(neutralResult.ok).toBe(true);
+      if (!neutralResult.ok) return;
+
+      const gated = validateGate(neutralResult.result.artifact, relToRoot);
+      expect(gated.ok).toBe(true);
+      if (!gated.ok) return;
+
+      const writeResult = writeSource(gated.artifact, sourceRoot, root, { overwrite: true });
+      expect(writeResult.written).toBe(true);
+
+      // Simulate a non-convergent transform / injected pollution in the written source:
+      // the second read diverges from the once-imported neutral frontmatter on 2 keys.
+      const writtenPath = path.join(sourceRoot, gated.artifact.sourcePath);
+      fs.writeFileSync(
+        writtenPath,
+        '---\nname: diverge-rule\ndescription: MUTATED description\ninjected: true\n---\nRule body.\n',
+      );
+
+      const idemResult = idempotencyCheck(gated.artifact, cline, sourceRoot, root);
+
+      // FR-072: divergence detected, NOT idempotent, and EVERY divergence is reported.
+      expect(idemResult.idempotent).toBe(false);
+      expect(idemResult.divergences.length).toBeGreaterThanOrEqual(2);
+      // The changed 'description' and the newly 'injected' key must each be surfaced.
+      const reasons = idemResult.divergences.map((d) => d.reason).join(' | ');
+      expect(reasons).toContain('description');
+      expect(reasons).toContain('injected');
+      // Every divergence names the source path and is paired with a warning.
+      for (const d of idemResult.divergences) {
+        expect(d.sourcePath).toBe(gated.artifact.sourcePath);
+      }
+      expect(idemResult.warnings.length).toBe(idemResult.divergences.length);
+      for (const w of idemResult.warnings) {
+        expect(w.kind).toBe('round-trip-mismatch');
+        expect(w.message).toContain('idempotency divergence');
+      }
+    } finally {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
 });

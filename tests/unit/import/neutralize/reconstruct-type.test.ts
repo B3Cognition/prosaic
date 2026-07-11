@@ -1,5 +1,6 @@
 import { reconstructType } from '../../../../src/import/neutralize/reconstruct-type';
 import { ALL_DESCRIPTORS } from '../../../../src/registry/adapters';
+import { adapter } from '../../../../src/registry/adapters/build';
 
 const claudeCode = ALL_DESCRIPTORS.find((d) => d.id === 'claude-code')!;
 const cline = ALL_DESCRIPTORS.find((d) => d.id === 'cline')!;
@@ -38,7 +39,6 @@ describe('reconstructType (T-009, FR-014, FR-057, FR-015, FR-058)', () => {
   it('emits ambiguity warning when agent slot dir == destinationDir (FR-015, FR-058)', () => {
     // For cline which has no distinct agent slot and only supports rules:
     // But let us construct a synthetic test with a descriptor where agent slot == dest dir
-    const { adapter } = require('../../../../src/registry/adapters/build');
     const synthetic = adapter({
       id: 'synthetic-test',
       dir: '.synthetic/content',

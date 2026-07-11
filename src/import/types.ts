@@ -48,6 +48,12 @@ export interface ImportReport {
   silentDropCount: number;
   preview: string[];
   dryRun: boolean;
+  /**
+   * Set when an explicit `--format` resolved an otherwise-ambiguous foreign layout
+   * (AC-007). Records every candidate the layout would have matched, so an
+   * override-of-ambiguity run is distinguishable from an unambiguous explicit run.
+   */
+  ambiguityResolvedByOverride?: { candidates: string[] };
 }
 
 /** Options for an import run. */

@@ -1,10 +1,9 @@
-import * as fs from 'fs';
-import * as path from 'path';
 import { buildImportReport, formatPortabilityReport, formatRunSummary } from '../../../src/import/report';
 import { FileReport } from '../../../src/import/types';
 
-const RESULTS_DIR = path.join(process.cwd(), 'test-results');
-const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-silent-drop-nfr005.json');
+// NFR-005/FR-022/SC-002 silent-drop count is measured over the conformance fixture
+// set in tests/integration/import/silent-drop-conformance.test.ts (the sole writer of
+// import-silent-drop-nfr005.json). This file keeps the unit-level report assertions.
 
 const dropReport: FileReport = {
   foreignPath: '.claude/agents/broken.md',
@@ -45,27 +44,20 @@ describe('import report aggregation (T-018, FR-029, FR-044, FR-088, FR-022, FR-0
     dryRun: false,
   };
 
-  afterAll(() => {
-    // Record measured artifact for NFR-005: silent-drop count = 0 across conformance fixtures
-    const reportWithDrop = buildImportReport([dropReport, successReport], opts);
-    const reportSuccessOnly = buildImportReport([successReport], opts);
-    const totalSilentDrops = reportWithDrop.silentDropCount + reportSuccessOnly.silentDropCount;
-    fs.mkdirSync(RESULTS_DIR, { recursive: true });
-    fs.writeFileSync(
-      ARTIFACT_PATH,
-      JSON.stringify(
-        {
-          nfr: 'NFR-005',
-          description: 'Zero silent drops: import surfaces at least one warning for every dropped, skipped, or non-invertible item',
-          fixturesChecked: 2,
-          silentDropCount: totalSilentDrops,
-          pass: totalSilentDrops === 0,
-          recordedAt: new Date().toISOString(),
-        },
-        null,
-        2,
-      ),
-    );
+  it('silentDropCount is computed from the file set: a dropped file with 0 warnings counts (FR-022, NFR-005)', () => {
+    // A silent drop = a dropped/skipped file that surfaced no warning. The count is
+    // measured from files[], not a hardcoded constant, so the invariant is real.
+    const silentlyDropped: FileReport = {
+      foreignPath: '.claude/agents/silent.md',
+      targetId: 'claude-code',
+      outcome: { ok: false, reason: 'dropped without a warning' },
+      warnings: [],
+    };
+    const report = buildImportReport([silentlyDropped, successReport], opts);
+    expect(report.silentDropCount).toBe(1);
+    // And a dropped file WITH a warning is not silent.
+    const withWarning = buildImportReport([dropReport, successReport], opts);
+    expect(withWarning.silentDropCount).toBe(0);
   });
 
   it('produces a per-run report covering each foreign file (FR-044)', () => {

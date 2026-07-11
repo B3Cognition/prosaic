@@ -42,15 +42,17 @@ function walkForeignDir(foreignDir: string, projectRoot: string): string[] {
 }
 
 /**
- * Auto-detect the source format of a foreign directory (FR-002).
- * Returns exactly 1 of 3 outcomes: single, ambiguous, or unrecognized.
- * Never selects 0 targets when outcome is ambiguous (FR-087).
+ * Scan a foreign directory for every target whose signature matches its layout,
+ * WITHOUT resolving or selecting a target (AC-007). This is deliberately distinct
+ * from {@link detectFormat}: it performs no auto-detection resolution, so callers
+ * on the explicit-`--format` path can learn whether a layout WOULD have been
+ * ambiguous while still running auto-detection 0 times (FR-003).
  */
-export function detectFormat(
+export function scanCandidates(
   foreignDir: string,
   projectRoot: string,
   descriptors: TargetDescriptor[],
-): DetectResult {
+): string[] {
   const index = SignatureIndex.build(descriptors);
   const files = walkForeignDir(foreignDir, projectRoot);
 
@@ -60,8 +62,20 @@ export function detectFormat(
       candidateIds.add(id);
     }
   }
+  return [...candidateIds];
+}
 
-  const candidates = [...candidateIds];
+/**
+ * Auto-detect the source format of a foreign directory (FR-002).
+ * Returns exactly 1 of 3 outcomes: single, ambiguous, or unrecognized.
+ * Never selects 0 targets when outcome is ambiguous (FR-087).
+ */
+export function detectFormat(
+  foreignDir: string,
+  projectRoot: string,
+  descriptors: TargetDescriptor[],
+): DetectResult {
+  const candidates = scanCandidates(foreignDir, projectRoot, descriptors);
 
   if (candidates.length === 0) {
     return {

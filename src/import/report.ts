@@ -5,6 +5,8 @@ export interface ReportBuilderOptions {
   resolvedFormat: string;
   resolutionMethod: 'auto-detected' | 'explicitly-specified';
   dryRun: boolean;
+  /** Candidate targets an explicit `--format` overrode when the layout was ambiguous (AC-007). */
+  overriddenCandidates?: string[];
 }
 
 /**
@@ -26,8 +28,12 @@ export function buildImportReport(
 
   const portabilityWarnings = allWarnings.filter((w) => w.kind === 'portability');
 
-  // FR-022: count of silent drops must be 0 — every dropped file has a warning
-  const silentDropCount = 0; // enforced structurally: every dropped file in files[] has warnings
+  // FR-022, NFR-005: a silent drop is a dropped/skipped file that surfaced 0 warnings.
+  // Computed from the actual file set (not a structural constant) so the zero-silent-drop
+  // invariant is *measured* over whatever files this run produced.
+  const silentDropCount = files.filter(
+    (f) => !f.outcome.ok && f.warnings.length === 0,
+  ).length;
 
   const preview = buildPreview(files, opts);
 
@@ -40,6 +46,9 @@ export function buildImportReport(
     silentDropCount,
     preview,
     dryRun: opts.dryRun,
+    ...(opts.overriddenCandidates && opts.overriddenCandidates.length >= 2
+      ? { ambiguityResolvedByOverride: { candidates: opts.overriddenCandidates } }
+      : {}),
   };
 }
 
