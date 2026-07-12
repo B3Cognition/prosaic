@@ -1,0 +1,27 @@
+{
+  "nfr": "NFR-005",
+  "requirements": [
+    "NFR-005",
+    "SC-002",
+    "FR-021",
+    "FR-088"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Every imported artifact is either written as valid neutral source or dropped with an explaining warning — 0 silent discards — measured across the full registry corpus (every target plus a deliberately-malformed drop-with-warning case) and all genuine-foreign fixtures via the real importRun.",
+  "registryTargetCount": 40,
+  "targetsSwept": 40,
+  "foreignFixtures": 9,
+  "filesProcessed": 90,
+  "filesWritten": 50,
+  "filesDroppedWithWarning": 40,
+  "malformedDropsObserved": 40,
+  "silentDropCount": 0,
+  "silentDropDetails": [],
+  "writtenOrWarnedPct": 100,
+  "measurableTargets": {
+    "silentDrops": 0,
+    "writtenOrWarnedPct": 100
+  },
+  "pass": true,
+  "recordedAt": "2026-07-12T12:03:57.563Z"
+}

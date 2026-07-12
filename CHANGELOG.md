@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Companion metadata file consumption and per-target fidelity level reporting (fully-invertible, invertible-with-overrides, normalized-equivalent).
 - Genuine-foreign round-trip conformance oracle (SC-003): round-trips against hand-authored/captured foreign files committed under `conformance-fixtures/import-foreign/` — one static artifact per import-stable target — so re-deploying the neutralized artifact must reproduce the committed original byte-for-byte. Decoupled from the live serializer, this oracle catches serializer drift the self-referential conformance oracle cannot.
 - Testing commands documented: `npm run test:benchmark`, `npm run test:cross-env`, `npm run test:deterministic` for NFR verification.
+- Measured-runtime import-safety evidence under `tests/safety/import/`: the real end-to-end `importRun` is exercised against a genuinely-foreign corpus (`conformance-fixtures/import-foreign/`, never produced by the tool's own forward pipeline) with syscall-level filesystem instrumentation (`fs-instrument.ts`) rather than hand-maintained counters. Covers source-level idempotency (NFR-002, SC-006), no-silent-drop across the full registry (NFR-005, SC-002), single-command auto-detect import per target (SC-001), the neutralize→gate→round-trip conformance gate (NFR-008), and preview/dry-run zero-mutation guarantees (FR-069).
 - All 48 delivery tasks complete (100%); all 114 canonical requirements fulfilled or deferred-safe per spec-guard audit.
 
 ### Performance

@@ -2,8 +2,8 @@
   "nfr": "NFR-006",
   "evidenceKind": "measured_runtime",
   "description": "Import module adds 0 new third-party runtime dependencies beyond those already used by apply",
-  "measuredPackageJsonPath": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260711-092417-364450/worktrees/default/iter-2/package.json",
-  "measuredNodeModulesPath": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260711-092417-364450/worktrees/default/iter-2/node_modules",
+  "measuredPackageJsonPath": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260711-092417-364450/worktrees/default/iter-3/package.json",
+  "measuredNodeModulesPath": "/Users/michalbachorik/work/md_distribuation/runs/targets/prosaic/runs/build-20260711-092417-364450/worktrees/default/iter-3/node_modules",
   "baselineDependencies": [
     "@iarna/toml",
     "js-yaml",
@@ -15,5 +15,5 @@
   "addedCount": 0,
   "pass": true,
   "measurableTarget": "0 new runtime dependencies added",
-  "recordedAt": "2026-07-12T06:39:48.183Z"
+  "recordedAt": "2026-07-12T12:03:56.997Z"
 }

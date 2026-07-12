@@ -522,6 +522,19 @@ fixtures are decoupled from the live serializer, re-deploying the neutralized
 artifact must reproduce the committed original byte-for-byte, catching
 serializer drift the self-referential oracle cannot (SC-003, FR-036, FR-037).
 
+The same genuine-foreign corpus backs a set of measured-runtime safety checks
+under `tests/safety/import/`. Instead of hand-maintained counters, these tests
+run the real end-to-end `importRun` and observe the actual `fs` syscalls it
+makes (`fs-instrument.ts`) plus before/after sha256 tree snapshots. They record
+independent evidence that import is idempotent at the source level (NFR-002,
+SC-006), drops nothing silently across the full target registry (NFR-005,
+SC-002), imports with a single no-flag auto-detect command per target (SC-001),
+and that preview/dry-run runs mutate zero files (FR-069):
+
+```bash
+npm test -- tests/safety/import
+```
+
 ### Portability Warnings
 
 Import warns about content that won't travel across tools, such as absolute

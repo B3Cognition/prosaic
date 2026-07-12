@@ -1,0 +1,92 @@
+{
+  "nfr": "NFR-002",
+  "requirements": [
+    "NFR-002",
+    "SC-006",
+    "FR-040",
+    "FR-072"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Re-running the real end-to-end importRun on unchanged genuinely-foreign inputs produces 0 changed source files: measured by a sha256 before/after diff of the written neutral source tree across two consecutive runs, with fs-syscall instrumentation on the second run.",
+  "oracle": "independent-before-after-source-tree-diff",
+  "corpusSize": 9,
+  "totalSourceFilesWritten": 9,
+  "secondRunChangedFileCount": 0,
+  "measurableTarget": "0 changed source files on the second run over the full foreign corpus",
+  "pass": true,
+  "perTarget": [
+    {
+      "target": "claude-code",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "cursor",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "windsurf",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "cline",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "roo-code",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "codex-cli",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "gemini-cli",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "goose",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "github-copilot",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    }
+  ],
+  "recordedAt": "2026-07-12T12:03:57.053Z"
+}
