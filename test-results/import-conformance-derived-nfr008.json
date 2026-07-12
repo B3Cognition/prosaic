@@ -1,0 +1,27 @@
+{
+  "nfr": "NFR-008",
+  "requirements": [
+    "NFR-008",
+    "FR-052"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Every target in the hardcoded IMPORT_STABLE_TARGETS allowlist is proven, at runtime, to have a passing genuine-foreign round-trip sample. The passing set is derived by executing the real neutralize→gate→round-trip pipeline over committed foreign fixtures; the allowlist must be a subset.",
+  "allowlistSize": 9,
+  "passingSampleTargets": [
+    "claude-code",
+    "cline",
+    "codex-cli",
+    "cursor",
+    "gemini-cli",
+    "github-copilot",
+    "goose",
+    "roo-code",
+    "windsurf"
+  ],
+  "passingSampleCount": 9,
+  "stableTargetsWithoutPassingSample": [],
+  "failingSamples": [],
+  "measurableTarget": "IMPORT_STABLE_TARGETS is a subset of the measured passing-sample set (0 unbacked)",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.042Z"
+}

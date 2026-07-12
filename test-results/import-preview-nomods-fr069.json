@@ -1,0 +1,16 @@
+{
+  "fr": "FR-069",
+  "requirements": [
+    "FR-035",
+    "FR-069"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Preview (dry-run) mode makes exactly 0 filesystem modifications across every preview code path (create, overwrite, collision, bundle resources, escaping): measured by a full sha256 tree diff plus fs-syscall instrumentation.",
+  "previewPathsExercised": 5,
+  "observedMutations": 0,
+  "filesModified": 0,
+  "treeDiff": [],
+  "measurableTarget": "exactly 0 filesystem modifications in preview mode",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.375Z"
+}

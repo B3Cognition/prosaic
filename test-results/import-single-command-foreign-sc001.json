@@ -1,0 +1,260 @@
+{
+  "sc": "SC-001",
+  "requirements": [
+    "SC-001",
+    "FR-001",
+    "FR-002"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "The no-flag single command auto-detects and imports genuinely-foreign prose (never the tool's own forward output) for every unambiguous registry target, with 0 silent drops. Measured per-target via the real end-to-end importRun over hand-written / hand-authored foreign inputs.",
+  "registryTargetCount": 40,
+  "genuineForeignCovered": 40,
+  "handAuthoredFixtureTargets": 3,
+  "synthesizedForeignTargets": 37,
+  "uncoveredTargets": [],
+  "results": [
+    {
+      "target": "agents-md",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "agents-md",
+      "imported": true
+    },
+    {
+      "target": "aide",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "aide",
+      "imported": true
+    },
+    {
+      "target": "aider",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "aider",
+      "imported": true
+    },
+    {
+      "target": "amazon-q",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "amazon-q",
+      "imported": true
+    },
+    {
+      "target": "antigravity",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "antigravity",
+      "imported": true
+    },
+    {
+      "target": "augmentcode",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "augmentcode",
+      "imported": true
+    },
+    {
+      "target": "bolt",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "bolt",
+      "imported": true
+    },
+    {
+      "target": "claude-code",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "claude-code",
+      "imported": true
+    },
+    {
+      "target": "cline",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "cline",
+      "imported": true
+    },
+    {
+      "target": "codex-cli",
+      "oracle": "hand-authored-foreign-fixture",
+      "detected": "codex-cli",
+      "imported": true
+    },
+    {
+      "target": "cody",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "cody",
+      "imported": true
+    },
+    {
+      "target": "continue",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "continue",
+      "imported": true
+    },
+    {
+      "target": "crush",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "crush",
+      "imported": true
+    },
+    {
+      "target": "cursor",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "cursor",
+      "imported": true
+    },
+    {
+      "target": "devin",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "devin",
+      "imported": true
+    },
+    {
+      "target": "firebase-studio",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "firebase-studio",
+      "imported": true
+    },
+    {
+      "target": "gemini-cli",
+      "oracle": "hand-authored-foreign-fixture",
+      "detected": "gemini-cli",
+      "imported": true
+    },
+    {
+      "target": "gemini-code-assist",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "gemini-code-assist",
+      "imported": true
+    },
+    {
+      "target": "github-copilot",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "github-copilot",
+      "imported": true
+    },
+    {
+      "target": "goose",
+      "oracle": "hand-authored-foreign-fixture",
+      "detected": "goose",
+      "imported": true
+    },
+    {
+      "target": "jules",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "jules",
+      "imported": true
+    },
+    {
+      "target": "junie",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "junie",
+      "imported": true
+    },
+    {
+      "target": "kilo-code",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "kilo-code",
+      "imported": true
+    },
+    {
+      "target": "kiro",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "kiro",
+      "imported": true
+    },
+    {
+      "target": "melty",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "melty",
+      "imported": true
+    },
+    {
+      "target": "opencode",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "opencode",
+      "imported": true
+    },
+    {
+      "target": "openhands",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "openhands",
+      "imported": true
+    },
+    {
+      "target": "pearai",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "pearai",
+      "imported": true
+    },
+    {
+      "target": "q-cli",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "q-cli",
+      "imported": true
+    },
+    {
+      "target": "qwen-code",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "qwen-code",
+      "imported": true
+    },
+    {
+      "target": "replit",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "replit",
+      "imported": true
+    },
+    {
+      "target": "roo-code",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "roo-code",
+      "imported": true
+    },
+    {
+      "target": "sweep",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "sweep",
+      "imported": true
+    },
+    {
+      "target": "tabnine",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "tabnine",
+      "imported": true
+    },
+    {
+      "target": "trae",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "trae",
+      "imported": true
+    },
+    {
+      "target": "void",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "void",
+      "imported": true
+    },
+    {
+      "target": "warp",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "warp",
+      "imported": true
+    },
+    {
+      "target": "windsurf",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "windsurf",
+      "imported": true
+    },
+    {
+      "target": "windsurf-next",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "windsurf-next",
+      "imported": true
+    },
+    {
+      "target": "zed",
+      "oracle": "synthesized-foreign-markdown",
+      "detected": "zed",
+      "imported": true
+    }
+  ],
+  "measurableTarget": "every unambiguous registry target auto-detects + imports from a genuinely-foreign input",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.026Z"
+}

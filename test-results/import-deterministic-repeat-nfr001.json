@@ -1,0 +1,70 @@
+{
+  "nfr": "NFR-001",
+  "requirements": [
+    "NFR-001"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Re-rendering each neutralized genuine-foreign artifact 3 times produces byte-identical output every run (stable key order, fixed serialization, single trailing newline). Measured as the number of distinct render hashes per target across repeated runs; the target is 0 spurious diffs.",
+  "repeatsPerTarget": 3,
+  "targetsSampled": 9,
+  "spuriousDiffs": 0,
+  "perTarget": [
+    {
+      "target": "claude-code",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "cursor",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "windsurf",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "cline",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "roo-code",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "codex-cli",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "gemini-cli",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "goose",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    },
+    {
+      "target": "github-copilot",
+      "repeats": 3,
+      "distinctRenders": 1,
+      "matchesForeignOriginal": true
+    }
+  ],
+  "measurableTarget": "0 spurious diffs across repeated renders of identical inputs",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.067Z"
+}

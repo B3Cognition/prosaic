@@ -1,0 +1,12 @@
+{
+  "ac": "AC-007",
+  "description": "Explicit --format over an ambiguous foreign layout: import proceeds and records the override",
+  "suppliedFormat": "cline",
+  "overriddenCandidates": [
+    "cline",
+    "crush"
+  ],
+  "overrideRecorded": true,
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.211Z"
+}

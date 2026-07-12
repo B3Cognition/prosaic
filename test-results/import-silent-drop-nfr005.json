@@ -1,0 +1,9 @@
+{
+  "nfr": "NFR-005",
+  "description": "Zero silent drops measured over the import conformance fixture set: every dropped/skipped file surfaces at least one warning",
+  "fixturesChecked": 9,
+  "filesChecked": 9,
+  "silentDropCount": 0,
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:57.974Z"
+}

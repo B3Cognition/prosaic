@@ -1,0 +1,19 @@
+{
+  "nfr": "NFR-007",
+  "requirements": [
+    "FR-045",
+    "FR-079",
+    "FR-080",
+    "NFR-007"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Crash-free malformed input: the real neutralize() pipeline is driven over a broad on-disk corpus of malformed / attacker-influenceable foreign files (invalid YAML/TOML, binary, NUL bytes, huge/deeply-nested, unreadable) and records 0 uncaught process crashes; every dropped file fails closed with >=1 warning.",
+  "malformedInputsTested": 38,
+  "crashes": 0,
+  "crashCases": [],
+  "droppedClean": 31,
+  "handledNoCrash": 38,
+  "measurableTarget": "0 process crashes across the full malformed-input corpus",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.079Z"
+}

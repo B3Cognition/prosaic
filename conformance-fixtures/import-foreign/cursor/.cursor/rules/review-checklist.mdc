@@ -1,0 +1,8 @@
+---
+name: review-checklist
+description: Pull request review checklist
+---
+
+# Review Checklist
+
+Check naming, tests, and error handling.

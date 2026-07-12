@@ -1,0 +1,93 @@
+{
+  "nfr": "NFR-002",
+  "requirements": [
+    "NFR-002",
+    "SC-006",
+    "FR-040",
+    "FR-072"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Source-level idempotency (SC-006): a second import of unchanged foreign inputs changes 0 files, proven by an independent before/after source-tree diff over the full genuine-foreign corpus.",
+  "oracle": "independent-before-after-source-tree-diff",
+  "corpusSize": 9,
+  "totalSourceFilesWritten": 9,
+  "secondRunChangedFileCount": 0,
+  "measurableTarget": "0 changed source files on the second run over the full foreign corpus",
+  "pass": true,
+  "perTarget": [
+    {
+      "target": "claude-code",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "cursor",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "windsurf",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "cline",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "roo-code",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "codex-cli",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "gemini-cli",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "goose",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    },
+    {
+      "target": "github-copilot",
+      "firstRunSourceFiles": 1,
+      "secondRunSourceWrites": 2,
+      "secondRunChangedFiles": 0,
+      "changedPaths": [],
+      "idempotent": true
+    }
+  ],
+  "recordedAt": "2026-07-12T18:56:57.783Z",
+  "sc": "SC-006"
+}

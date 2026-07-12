@@ -1,0 +1,58 @@
+{
+  "nfr": "NFR-004",
+  "requirements": [
+    "FR-032",
+    "FR-067",
+    "NFR-004"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Symlink-aware containment on 100% of writes: every real filesystem mutation performed by writeSource is observed at the fs syscall level and confirmed inside the project root; every out-of-root path (parent-traversal and symlink) is refused with 0 out-of-root writes.",
+  "writesObserved": 22,
+  "writesContained": 22,
+  "containmentRate": 1,
+  "outOfRootWritesObserved": 0,
+  "escapeVectorsTested": 7,
+  "escapeVectorsRefused": 7,
+  "escapeVectors": [
+    {
+      "vector": "parent-traversal-deep",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "parent-traversal-shallow",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "parent-traversal-sibling",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "symlinked-directory",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "symlinked-intermediate",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "symlink-to-root-parent",
+      "refused": true,
+      "outOfRootWrites": 0
+    },
+    {
+      "vector": "traversal-through-symlink",
+      "refused": true,
+      "outOfRootWrites": 0
+    }
+  ],
+  "referencedPathsTested": 3,
+  "referencedPathsRefusedOrWarned": 3,
+  "measurableTarget": "100% of writes asserted contained; every out-of-root path refused or warned (symlink-aware)",
+  "pass": true,
+  "recordedAt": "2026-07-12T18:56:58.129Z"
+}

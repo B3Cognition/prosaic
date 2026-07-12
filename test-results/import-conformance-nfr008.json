@@ -1,0 +1,56 @@
+{
+  "nfr": "NFR-008",
+  "description": "Per-target import conformance gating: each import-stable target has a passing sample",
+  "stableTargetCount": 9,
+  "targetsWithSample": 9,
+  "failCount": 0,
+  "pass": true,
+  "results": [
+    {
+      "target": "claude-code",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "cursor",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "windsurf",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "cline",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "roo-code",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "codex-cli",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "gemini-cli",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "goose",
+      "fidelity": "fully-invertible",
+      "pass": true
+    },
+    {
+      "target": "github-copilot",
+      "fidelity": "fully-invertible",
+      "pass": true
+    }
+  ],
+  "recordedAt": "2026-07-12T18:56:58.176Z"
+}

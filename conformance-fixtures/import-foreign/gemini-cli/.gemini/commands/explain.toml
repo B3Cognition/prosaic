@@ -1,0 +1,7 @@
+name = "explain"
+description = "Explain a code path"
+prompt = """
+# Explain
+
+Explain the selected function step by step.
+"""

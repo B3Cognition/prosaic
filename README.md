@@ -319,10 +319,13 @@ available in each consuming repository.
 Yes: Prosaic can be introduced into an existing repository, including one that
 already has Claude, Cursor, Copilot, or other tool-specific files.
 
-There is no `prosaic init`, `prosaic import`, or Ruler-style adoption command
-yet. The current adoption flow is manual but deliberately conservative: Prosaic
-will not perform a content-changing overwrite of an existing target file unless
-that file is already recorded in `.prosaic-manifest.json` as Prosaic-managed.
+Prosaic now ships a `prosaic import` command that reverse-engineers existing
+tool-specific files back into neutral `.prosaic/` source; see
+[Import from Existing Tool Directories](#import-from-existing-tool-directories).
+There is still no `prosaic init` or Ruler-style adoption command. Whichever path
+you choose, adoption stays deliberately conservative: Prosaic will not perform a
+content-changing overwrite of an existing target file unless that file is already
+recorded in `.prosaic-manifest.json` as Prosaic-managed.
 
 ### Safe adoption flow
 
@@ -405,8 +408,11 @@ Existing repos often already contain files such as:
 .github/instructions/team.instructions.md
 ```
 
-Prosaic does not currently reverse-import those files into `.prosaic/`. To adopt
-them, manually choose the canonical version and place it under `.prosaic/`:
+The fastest way to adopt these is `prosaic import <tool-directory>`, which
+detects the source format and writes the neutralized artifacts into `.prosaic/`
+for you (see [Import from Existing Tool Directories](#import-from-existing-tool-directories)).
+To adopt them manually instead, choose the canonical version and place it under
+`.prosaic/`:
 
 | Existing file | Typical Prosaic source |
 | --- | --- |
@@ -446,8 +452,8 @@ A conservative migration is:
    only the paths it owns.
 
 Current limitation: migration from `.ruler/` or `.rulesync/` layouts is a
-Post-MVP item. Reverse/pull import from native target directories is also not in
-the current CLI.
+Post-MVP item. Reverse/pull import from native target directories, by contrast,
+is now available through `prosaic import`.
 
 ## Source Artifacts
 
@@ -464,6 +470,94 @@ Skills and subagents can include bundled resource files. Prosaic rewrites
 internal references when distributing the bundle so generated outputs do not
 point back to stale source paths.
 
+## Import from Existing Tool Directories
+
+Prosaic can also reverse-engineer existing tool-specific files back into neutral
+source. The `import` command detects which tool produced a directory of prose
+files, un-translates the concrete frontmatter into the neutral vocabulary,
+writes prosaic source, and verifies fidelity by re-deploying and comparing to
+the original.
+
+### Quick Import
+
+```bash
+prosaic import .claude
+```
+
+Prosaic auto-detects that `.claude/` is Claude Code format, neutralizes every
+artifact, and writes neutral source files into `.prosaic/`.
+
+### Import with Explicit Format
+
+If the directory layout is ambiguous or hand-authored, specify the format:
+
+```bash
+prosaic import .claude --format claude-code
+prosaic import .cursor/rules --format cursor
+```
+
+### Dry Run & Preview
+
+Preview exactly what will be imported before writing:
+
+```bash
+prosaic import .claude --dry-run
+```
+
+### Round-Trip Verification
+
+Import automatically verifies that re-deploying the neutralized artifact to the
+same tool reproduces the original file byte-for-byte:
+
+```bash
+prosaic import .claude
+# Output includes round-trip verification results per file
+```
+
+If fidelity is not exact, import reports which keys or content differ. For
+targets whose forward translation is not fully invertible, import preserves
+non-invertible data under a per-target `overrides:` section and reports the
+fidelity level.
+
+Round-trip fidelity is guarded by two independent conformance oracles. The
+self-referential oracle re-imports the tool's own forward output. The
+genuine-foreign oracle round-trips against hand-authored/captured foreign files
+committed under `conformance-fixtures/import-foreign/` — one static artifact per
+import-stable target, in that tool's canonical on-disk form. Because these
+fixtures are decoupled from the live serializer, re-deploying the neutralized
+artifact must reproduce the committed original byte-for-byte, catching
+serializer drift the self-referential oracle cannot (SC-003, FR-036, FR-037).
+
+The same genuine-foreign corpus backs a set of measured-runtime safety checks
+under `tests/safety/import/`. Instead of hand-maintained counters, these tests
+run the real end-to-end `importRun` and observe the actual `fs` syscalls it
+makes (`fs-instrument.ts`) plus before/after sha256 tree snapshots. They record
+independent evidence that import is idempotent at the source level (NFR-002,
+SC-006), drops nothing silently across the full target registry (NFR-005,
+SC-002), imports with a single no-flag auto-detect command per target (SC-001),
+and that preview/dry-run runs mutate zero files (FR-069):
+
+```bash
+npm test -- tests/safety/import
+```
+
+### Portability Warnings
+
+Import warns about content that won't travel across tools, such as absolute
+filesystem paths or tool-only frontmatter keys:
+
+- Absolute path references are flagged with a suggestion to use project-relative paths
+- Unknown frontmatter keys are preserved in overrides with a warning
+- Tool-only keys injected at deploy time are stripped before reconstruction
+
+A consolidated portability report is presented at the end of the run.
+
+### Bundles and Companions
+
+Import recognizes multi-file skill and subagent bundles, re-associates resource
+files, and rewrites internal references. Tool companion metadata files are
+consumed and their data recovered into the neutral artifact.
+
 ## Command Reference
 
 ```bash
@@ -477,6 +571,10 @@ prosaic apply --lossy error
 prosaic revert
 prosaic revert --dry-run
 prosaic revert --targets cursor
+
+prosaic import <foreign-directory>
+prosaic import <foreign-directory> --format <tool-id>
+prosaic import <foreign-directory> --dry-run
 ```
 
 CLI flags override `prosaic.config.yaml` for that run.
