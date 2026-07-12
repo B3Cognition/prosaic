@@ -1,0 +1,7 @@
+name = "summarize"
+description = "Summarize the current diff"
+prompt = """
+# Summarize
+
+Summarize the staged changes in one paragraph.
+"""

@@ -1,56 +1,68 @@
 {
   "sc": "SC-003",
-  "description": "Byte-for-byte round-trip in 100% of conformance samples for fully-invertible targets",
+  "description": "Byte-for-byte round-trip against hand-authored/captured foreign files (not the tool's own forward output)",
+  "oracle": "hand-authored-foreign-file",
+  "fixtureRoot": "conformance-fixtures/import-foreign",
   "totalSamples": 9,
   "fullyInvertible": 9,
+  "byteIdentical": 9,
   "failCount": 0,
   "pass": true,
   "results": [
     {
       "target": "claude-code",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "cursor",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "windsurf",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "cline",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "roo-code",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "codex-cli",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "gemini-cli",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "goose",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     },
     {
       "target": "github-copilot",
       "fidelity": "fully-invertible",
+      "byteIdentical": true,
       "pass": true
     }
   ],
-  "recordedAt": "2026-07-12T06:39:47.850Z"
+  "recordedAt": "2026-07-12T06:39:48.817Z"
 }

@@ -1,0 +1,7 @@
+name: refactor
+description: Refactor recipe
+instructions: |
+  # Refactor
+
+  Extract shared helpers and remove duplication.
+version: 1.0.0

@@ -1,16 +1,64 @@
 {
   "nfr": "NFR-001",
   "description": "Deterministic round-trip rendering: identical inputs produce byte-identical output across repeated runs",
-  "pairsCompared": 1,
+  "pairsCompared": 9,
   "spuriousDiffs": 0,
   "pass": true,
   "results": [
+    {
+      "target": "claude-code",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "cursor",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "windsurf",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
     {
       "target": "cline",
       "run1Fidelity": "fully-invertible",
       "run2Fidelity": "fully-invertible",
       "stable": true
+    },
+    {
+      "target": "roo-code",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "codex-cli",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "gemini-cli",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "goose",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
+    },
+    {
+      "target": "github-copilot",
+      "run1Fidelity": "fully-invertible",
+      "run2Fidelity": "fully-invertible",
+      "stable": true
     }
   ],
-  "recordedAt": "2026-07-11T18:07:54.042Z"
+  "recordedAt": "2026-07-12T06:39:48.703Z"
 }

@@ -513,6 +513,15 @@ targets whose forward translation is not fully invertible, import preserves
 non-invertible data under a per-target `overrides:` section and reports the
 fidelity level.
 
+Round-trip fidelity is guarded by two independent conformance oracles. The
+self-referential oracle re-imports the tool's own forward output. The
+genuine-foreign oracle round-trips against hand-authored/captured foreign files
+committed under `conformance-fixtures/import-foreign/` — one static artifact per
+import-stable target, in that tool's canonical on-disk form. Because these
+fixtures are decoupled from the live serializer, re-deploying the neutralized
+artifact must reproduce the committed original byte-for-byte, catching
+serializer drift the self-referential oracle cannot (SC-003, FR-036, FR-037).
+
 ### Portability Warnings
 
 Import warns about content that won't travel across tools, such as absolute

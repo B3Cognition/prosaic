@@ -7,10 +7,10 @@ import { roundTrip, fidelityLevel } from '../../../src/import/verify/round-trip'
 import { runPipeline } from '../../../src/pipeline/runner';
 import { ALL_DESCRIPTORS } from '../../../src/registry/adapters';
 import { adapter } from '../../../src/registry/adapters/build';
-import { renderMarkdown } from '../../../src/render/markdown';
+import { IMPORT_STABLE_TARGETS } from '../../../src/import/detect/parity';
 
-const claudeCode = ALL_DESCRIPTORS.find((d) => d.id === 'claude-code')!;
 const cline = ALL_DESCRIPTORS.find((d) => d.id === 'cline')!;
+const stableDescriptors = ALL_DESCRIPTORS.filter((d) => IMPORT_STABLE_TARGETS.has(d.id));
 
 const RESULTS_DIR = path.join(process.cwd(), 'test-results');
 const ARTIFACT_PATH = path.join(RESULTS_DIR, 'import-deterministic-nfr001.json');
@@ -137,113 +137,122 @@ describe('round-trip byte oracle (T-014, FR-036, FR-037, FR-038, FR-039, FR-070,
     }
   });
 
-  it('normalized-equivalent detection for key-reordered hand-authored files (FR-039)', () => {
-    const root = makeTempDir();
-    try {
-      // Hand-authored file with keys in different order than canonical
-      const handAuthored = '---\ndescription: A rule\nname: my-rule\n---\n\nBody content.\n';
-      const filePath = path.join(root, '.clinerules', 'my-rule.md');
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, handAuthored);
+  it('normalized-equivalent: cosmetic-only differences pin fidelity to normalized-equivalent (FR-039, AC-010)', () => {
+    const artifact = {
+      id: 'rules/norm-rule.md',
+      type: 'rule' as const,
+      frontmatter: { name: 'norm-rule', description: 'Normalized equivalent rule' },
+      body: 'Body line one.\nBody line two.\n',
+      sourcePath: 'rules/norm-rule.md',
+    };
 
-      const relToRoot = path.relative(root, filePath).split(path.sep).join('/');
-      const neutralResult = neutralize(filePath, relToRoot, cline, root);
-      expect(neutralResult.ok).toBe(true);
-      if (!neutralResult.ok) return;
+    // Canonical re-deploy bytes for this artifact.
+    const redeployed = runPipeline(artifact, cline, { lossyPolicy: 'warn' }).content;
 
-      const gated = validateGate(neutralResult.result.artifact, relToRoot);
-      if (!gated.ok) return;
+    // A genuinely-foreign original that differs from canonical ONLY by cosmetic
+    // whitespace the markdown normalizer collapses: trailing spaces on every line
+    // and CRLF line endings. Raw bytes differ (>=1 byte) but the normalized forms
+    // are equal, so the outcome must be exactly normalized-equivalent (FR-039) —
+    // not a silent byte-identical pass and not an unexplained mismatch.
+    const originalContent = redeployed.replace(/\n/g, '  \r\n');
+    expect(originalContent).not.toBe(redeployed);
 
-      const { result: rtResult } = roundTrip(
-        gated.artifact,
-        cline,
-        handAuthored,
-        relToRoot,
-      );
+    const { result: rtResult } = roundTrip(artifact, cline, originalContent, 'rules/norm-rule.md');
 
-      // May be verified or normalized-equivalent — not an unexplained failure
-      expect(['fully-invertible', 'normalized-equivalent', 'mismatch']).toContain(rtResult.fidelity);
-    } finally {
-      fs.rmSync(root, { recursive: true, force: true });
-    }
+    expect(rtResult.verified).toBe(false);
+    expect(rtResult.fidelity).toBe('normalized-equivalent');
+    expect(rtResult.diffRegions).toHaveLength(0);
   });
 
-  it('genuine mismatch: names the differing regions, reports not verified (FR-038, FR-070, FR-071)', () => {
-    const root = makeTempDir();
-    try {
-      const artifact = {
-        id: 'rules/test-rule.md',
-        type: 'rule' as const,
-        frontmatter: { name: 'test-rule' },
-        body: 'Original body\n',
-        sourcePath: 'rules/test-rule.md',
-      };
+  it('genuine mismatch: forces a >=1 byte diff, records differing regions, warns, reports not verified (FR-038, FR-070, FR-071)', () => {
+    const artifact = {
+      id: 'rules/mismatch-rule.md',
+      type: 'rule' as const,
+      frontmatter: { name: 'mismatch-rule' },
+      body: 'Re-deployed body that will not match the original.\n',
+      sourcePath: 'rules/mismatch-rule.md',
+    };
 
-      // Original content with an extra field that prosaic would not re-emit
-      const originalContent = '---\nname: test-rule\nextraField: hand-authored-value\n---\n\nOriginal body\n';
-      const filePath = path.join(root, '.clinerules', 'test-rule.md');
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, originalContent);
+    // The original foreign file has a genuinely different body. After re-deploy the
+    // output cannot match, and the difference is semantic (body text), not cosmetic
+    // (whitespace / key order) — so it is a true mismatch, never normalized-equivalent.
+    // This deterministically exercises the mismatch branch: assertions are unconditional.
+    const originalContent =
+      '---\nname: mismatch-rule\n---\n\nCompletely different original body line one.\nAnd an original second line.\n';
 
-      const relToRoot = path.relative(root, filePath).split(path.sep).join('/');
-      const neutralResult = neutralize(filePath, relToRoot, cline, root);
-      if (!neutralResult.ok) return;
+    const { result: rtResult, warnings } = roundTrip(
+      artifact,
+      cline,
+      originalContent,
+      'rules/mismatch-rule.md',
+    );
 
-      const gated = validateGate(neutralResult.result.artifact, relToRoot);
-      if (!gated.ok) return;
+    // FR-071: not verified; FR-038: fidelity is mismatch.
+    expect(rtResult.verified).toBe(false);
+    expect(rtResult.fidelity).toBe('mismatch');
+    // FR-070: at least one differing region is recorded, naming original vs redeployed.
+    expect(rtResult.diffRegions.length).toBeGreaterThanOrEqual(1);
+    expect(rtResult.diffRegions.some((r) => r.original !== r.redeployed)).toBe(true);
+    // FR-038: a round-trip-mismatch warning is emitted naming the artifact.
+    const mismatchWarning = warnings.find((w) => w.kind === 'round-trip-mismatch');
+    expect(mismatchWarning).toBeDefined();
+    expect(mismatchWarning!.message).toContain('mismatch-rule.md');
+  });
 
-      const { result: rtResult } = roundTrip(
-        gated.artifact,
-        cline,
-        originalContent,
-        relToRoot,
-      );
+  it('deterministic re-deploy: 0 spurious diffs across repeated runs over all import-stable targets (NFR-001)', () => {
+    for (const desc of stableDescriptors) {
+      const root = makeTempDir();
+      try {
+        const artifact = {
+          id: `rules/nfr001-${desc.id}.md`,
+          type: 'rule' as const,
+          frontmatter: { name: `nfr001-${desc.id}`, description: `Determinism fixture for ${desc.id}` },
+          body: `# ${desc.id}\n\nDeterminism body.\n`,
+          sourcePath: `rules/nfr001-${desc.id}.md`,
+        };
 
-      // With extra field in overrides, re-deploy may differ — test that mismatch is reported properly
-      if (!rtResult.verified) {
-        expect(rtResult.fidelity).not.toBe('fully-invertible');
+        // Forward-deploy to obtain the canonical foreign file for this target.
+        const deployed = runPipeline(artifact, desc, { lossyPolicy: 'warn' });
+        const filePath = path.join(root, deployed.path);
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
+        fs.writeFileSync(filePath, deployed.content);
+
+        const relToRoot = deployed.path;
+        const neutralResult = neutralize(filePath, relToRoot, desc, root);
+        expect(neutralResult.ok).toBe(true);
+        if (!neutralResult.ok) continue;
+        const gated = validateGate(neutralResult.result.artifact, relToRoot);
+        expect(gated.ok).toBe(true);
+        if (!gated.ok) continue;
+
+        // Repeat the round-trip re-deploy: identical inputs must yield an identical
+        // outcome AND byte-identical re-deployed output (NFR-001, 0 spurious diffs).
+        const { result: rt1 } = roundTrip(gated.artifact, desc, deployed.content, relToRoot);
+        const { result: rt2 } = roundTrip(gated.artifact, desc, deployed.content, relToRoot);
+        const redeploy1 = runPipeline(gated.artifact, desc, { lossyPolicy: 'warn' }).content;
+        const redeploy2 = runPipeline(gated.artifact, desc, { lossyPolicy: 'warn' }).content;
+
+        const stable =
+          rt1.fidelity === rt2.fidelity &&
+          rt1.verified === rt2.verified &&
+          redeploy1 === redeploy2;
+        nfr001Results.push({
+          target: desc.id,
+          run1Fidelity: rt1.fidelity,
+          run2Fidelity: rt2.fidelity,
+          stable,
+        });
+
+        expect(rt1.fidelity).toBe(rt2.fidelity);
+        expect(rt1.verified).toBe(rt2.verified);
+        expect(redeploy1).toBe(redeploy2);
+      } finally {
+        fs.rmSync(root, { recursive: true, force: true });
       }
-    } finally {
-      fs.rmSync(root, { recursive: true, force: true });
     }
-  });
 
-  it('deterministic render produces 0 spurious diffs across repeated runs (NFR-001)', () => {
-    const root = makeTempDir();
-    try {
-      const artifact = {
-        id: 'rules/stable.md',
-        type: 'rule' as const,
-        frontmatter: { name: 'stable-rule', description: 'A stable rule' },
-        body: 'Rule body.\n',
-        sourcePath: 'rules/stable.md',
-      };
-
-      const content = renderMarkdown(artifact.frontmatter, artifact.body);
-      const filePath = path.join(root, '.clinerules', 'stable.md');
-      fs.mkdirSync(path.dirname(filePath), { recursive: true });
-      fs.writeFileSync(filePath, content);
-
-      const relToRoot = path.relative(root, filePath).split(path.sep).join('/');
-      const neutralResult = neutralize(filePath, relToRoot, cline, root);
-      if (!neutralResult.ok) return;
-      const gated = validateGate(neutralResult.result.artifact, relToRoot);
-      if (!gated.ok) return;
-
-      const { result: rt1 } = roundTrip(gated.artifact, cline, content, relToRoot);
-      const { result: rt2 } = roundTrip(gated.artifact, cline, content, relToRoot);
-
-      nfr001Results.push({
-        target: 'cline',
-        run1Fidelity: rt1.fidelity,
-        run2Fidelity: rt2.fidelity,
-        stable: rt1.fidelity === rt2.fidelity && rt1.verified === rt2.verified,
-      });
-
-      expect(rt1.fidelity).toBe(rt2.fidelity);
-      expect(rt1.verified).toBe(rt2.verified);
-    } finally {
-      fs.rmSync(root, { recursive: true, force: true });
-    }
+    // Determinism is demonstrated across the full import-stable target set, not one pair.
+    expect(nfr001Results.length).toBeGreaterThanOrEqual(IMPORT_STABLE_TARGETS.size);
+    expect(nfr001Results.every((r) => r.stable)).toBe(true);
   });
 });
