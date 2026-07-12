@@ -319,10 +319,13 @@ available in each consuming repository.
 Yes: Prosaic can be introduced into an existing repository, including one that
 already has Claude, Cursor, Copilot, or other tool-specific files.
 
-There is no `prosaic init`, `prosaic import`, or Ruler-style adoption command
-yet. The current adoption flow is manual but deliberately conservative: Prosaic
-will not perform a content-changing overwrite of an existing target file unless
-that file is already recorded in `.prosaic-manifest.json` as Prosaic-managed.
+Prosaic now ships a `prosaic import` command that reverse-engineers existing
+tool-specific files back into neutral `.prosaic/` source; see
+[Import from Existing Tool Directories](#import-from-existing-tool-directories).
+There is still no `prosaic init` or Ruler-style adoption command. Whichever path
+you choose, adoption stays deliberately conservative: Prosaic will not perform a
+content-changing overwrite of an existing target file unless that file is already
+recorded in `.prosaic-manifest.json` as Prosaic-managed.
 
 ### Safe adoption flow
 
@@ -405,8 +408,11 @@ Existing repos often already contain files such as:
 .github/instructions/team.instructions.md
 ```
 
-Prosaic does not currently reverse-import those files into `.prosaic/`. To adopt
-them, manually choose the canonical version and place it under `.prosaic/`:
+The fastest way to adopt these is `prosaic import <tool-directory>`, which
+detects the source format and writes the neutralized artifacts into `.prosaic/`
+for you (see [Import from Existing Tool Directories](#import-from-existing-tool-directories)).
+To adopt them manually instead, choose the canonical version and place it under
+`.prosaic/`:
 
 | Existing file | Typical Prosaic source |
 | --- | --- |
@@ -446,8 +452,8 @@ A conservative migration is:
    only the paths it owns.
 
 Current limitation: migration from `.ruler/` or `.rulesync/` layouts is a
-Post-MVP item. Reverse/pull import from native target directories is also not in
-the current CLI.
+Post-MVP item. Reverse/pull import from native target directories, by contrast,
+is now available through `prosaic import`.
 
 ## Source Artifacts
 

@@ -21,6 +21,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Measured-runtime import-safety evidence under `tests/safety/import/`: the real end-to-end `importRun` is exercised against a genuinely-foreign corpus (`conformance-fixtures/import-foreign/`, never produced by the tool's own forward pipeline) with syscall-level filesystem instrumentation (`fs-instrument.ts`) rather than hand-maintained counters. Covers source-level idempotency (NFR-002, SC-006), no-silent-drop across the full registry (NFR-005, SC-002), single-command auto-detect import per target (SC-001), the neutralize→gate→round-trip conformance gate (NFR-008), and preview/dry-run zero-mutation guarantees (FR-069).
 - All 48 delivery tasks complete (100%); all 114 canonical requirements fulfilled or deferred-safe per spec-guard audit.
 
+### Changed
+
+- README "Existing Repositories" adoption guide now points at the shipped `prosaic import` command for reverse-importing native tool directories, replacing the earlier "no import command yet" / "reverse import is not in the current CLI" notes that predated the import feature.
+
 ### Performance
 
 - Measured: 100 artifacts × 30 targets distributed in ~816 ms (threshold: 30 000 ms); byte-identical output verified across 510 files on darwin/Node 26.
