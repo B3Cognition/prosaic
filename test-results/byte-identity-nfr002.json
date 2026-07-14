@@ -1,0 +1,38 @@
+{
+  "nfr": "NFR-002",
+  "ac": "AC-016",
+  "evidenceKind": "measured_runtime",
+  "description": "Distributed/rendered artifact bytes show 0 differences across styling environments (plain/NO_COLOR, styled/FORCE_COLOR, default)",
+  "nodeVersion": "v26.5.0",
+  "platform": "darwin",
+  "baselineEnv": "plain-no-color",
+  "environments": [
+    "plain-no-color",
+    "styled-force-color",
+    "default"
+  ],
+  "fileCount": 612,
+  "differingFiles": 0,
+  "differingBytes": 0,
+  "perEnv": [
+    {
+      "env": "styled-force-color",
+      "baseline": "plain-no-color",
+      "keysMatch": true,
+      "differingFiles": 0,
+      "differingBytes": 0,
+      "divergent": []
+    },
+    {
+      "env": "default",
+      "baseline": "plain-no-color",
+      "keysMatch": true,
+      "differingFiles": 0,
+      "differingBytes": 0,
+      "divergent": []
+    }
+  ],
+  "measurableTarget": "differing bytes between distributed artifacts across environments = 0",
+  "pass": true,
+  "recordedAt": "2026-07-14T19:34:17.004Z"
+}
