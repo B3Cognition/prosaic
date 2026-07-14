@@ -1,0 +1,37 @@
+{
+  "status": "done",
+  "spec_id": "906",
+  "strategy": "default",
+  "completed_task_ids": [
+    "T-001",
+    "T-002",
+    "T-003",
+    "T-004",
+    "T-005",
+    "T-006",
+    "T-007",
+    "T-008",
+    "T-009",
+    "T-010",
+    "T-011",
+    "T-012",
+    "T-013",
+    "T-014",
+    "T-015",
+    "T-016",
+    "T-017",
+    "T-018",
+    "T-019",
+    "T-020"
+  ],
+  "verify_command": "npm test",
+  "verify_result": "pass",
+  "verify_summary": "66 suites / 514 tests passed",
+  "notes": "Closed the sole actionable fulfillment gap NFR-001/AC-017: added tests/contract/styling-no-new-deps.test.ts (styling-scoped zero-new-dependency assertion over package.json, node_modules cross-check, and static third-party-import scan of src/cli/style.ts, theme.ts, presentation.ts) emitting measured artifact test-results/styling-no-new-deps-nfr001.json (pass=true, addedCount=0). Fixed two genuine defects that were making `npm test` red on this salvage branch: (1) src/import/report.ts emitted a non-ASCII em-dash on the plain summary path, violating NFR-007/FR-008 — replaced with an ASCII hyphen (formatters.plain non-ASCII assertion now green); (2) tests/e2e/cli.warnings.test.ts counted structured warning tokens on the raw styled stream without stripping ANSI, so FR-015 styled-mode surfacing failed once the 'warning' token is SGR-wrapped — now strips ANSI before counting, mirroring tests/e2e/cli.severity.test.ts. Rebuilt dist and confirmed the full suite passes.",
+  "deferred": {
+    "T-021": "NFR-008 / AC-029 (palette CVD contrast >=3:1) deferred via deferred-scope.json entries defer-001 and defer-002; no code change required while deferred."
+  },
+  "excluded_from_completed": {
+    "T-022": "NFR-006 styling wall-clock 5% budget: no styling-perf test is present in this worktree (perf-100x30.test.ts covers NFR-005 throughput, not the styled-vs-plain 5% budget; the perf-styling-nfr006 test/artifact referenced by fulfillment-report.md are absent here). Not claimed as verified in this worktree."
+  }
+}

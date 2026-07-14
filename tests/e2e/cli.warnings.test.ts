@@ -1,6 +1,7 @@
 import { runCli } from '../helpers/run-cli';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 import { seedMandatoryWarnings } from '../helpers/seed-cli';
+import { stripAnsi } from '../helpers/strip-ansi';
 
 /**
  * T-006 (FR-015): a mandatory skip/drop/loss warning is surfaced exactly once per
@@ -30,7 +31,10 @@ describe('mandatory warning surfaced once per event, every mode (T-006)', () => 
     it(`each forced event surfaces exactly one warning in ${name} mode`, () => {
       // apply warnings surface on stdout (A-005).
       const r = runCli(t.root, ['apply', '--dry-run'], env);
-      const stream = r.stdout;
+      // Styled mode wraps the 'warning' token in SGR codes; strip them so the
+      // structured-token count measures surfaced warnings, not styling bytes
+      // (mirrors tests/e2e/cli.severity.test.ts). FR-015 is a per-event count.
+      const stream = stripAnsi(r.stdout);
       // Exactly one lossy-intent event (effort dropped).
       expect(occurrences(stream, 'warning[lossy-intent]')).toBe(1);
       expect(occurrences(stream, 'effort')).toBe(1);

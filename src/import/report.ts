@@ -138,7 +138,7 @@ export function formatRunSummary(report: ImportReport, theme: Theme = plainTheme
   }
 
   if (report.portabilityWarnings.length > 0) {
-    lines.push(`  ${report.portabilityWarnings.length} portability warning(s) — see portability report`);
+    lines.push(`  ${report.portabilityWarnings.length} portability warning(s) - see portability report`);
   }
 
   return lines;
