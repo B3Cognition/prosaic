@@ -10,18 +10,18 @@
   "nodeVersion": "v26.5.0",
   "platform": "darwin",
   "plainBaselineMs": {
-    "min": 75.629041,
-    "median": 77.207333,
-    "max": 94.671958
+    "min": 77.453458,
+    "median": 79.934833,
+    "max": 252.46
   },
   "styledMs": {
-    "min": 75.737084,
-    "median": 77.319916,
-    "max": 90.156
+    "min": 78.107459,
+    "median": 79.561208,
+    "max": 212.193333
   },
-  "overheadPct": 0.1429,
+  "overheadPct": 0.8444,
   "budgetPct": 5,
   "measurableTarget": "styled wall-clock increase over plain baseline ≤ 5 percent",
   "pass": true,
-  "recordedAt": "2026-07-14T19:35:21.764Z"
+  "recordedAt": "2026-07-15T07:02:40.555Z"
 }
