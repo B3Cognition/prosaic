@@ -5,5 +5,5 @@
   "credentialsRequired": 0,
   "pass": true,
   "isolationMechanism": "jest.spyOn(net.Socket.prototype, \"connect\") throws on any call",
-  "recordedAt": "2026-07-15T07:02:35.961Z"
+  "recordedAt": "2026-07-15T07:12:19.822Z"
 }
