@@ -749,6 +749,10 @@ target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes —
 every attempt yields either a valid resolution or a structured `errorKind`.
 Recorded in `test-results/resolve-malformed-input-nfr001.json`.
 
+All `test-results/` evidence artifacts have been re-verified end-to-end with
+no regressions; each `recordedAt` timestamp reflects the latest run and every
+pass/fail outcome is unchanged from prior verification.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
