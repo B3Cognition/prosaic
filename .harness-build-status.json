@@ -1,0 +1,5 @@
+{
+  "status": "done",
+  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005"],
+  "summary": "Implemented Foundation + first Core-phase slice of prosaic runtime resolution: src/resolve/types.ts (T-001), src/resolve/resolve-execution.ts (T-002), src/resolve/errors.ts (T-003), extended unit coverage in tests/unit/resolve/resolve-execution.test.ts (T-004), and src/resolve/lookup.ts with tests/unit/resolve/lookup.test.ts (T-005). Verified with `npm run build` (tsc, 0 errors) and `npm test` (474/474 passing, 0 regressions in pre-existing suites)."
+}
