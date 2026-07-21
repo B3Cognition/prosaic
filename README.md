@@ -741,6 +741,14 @@ compared fields), and every runtime-capable target carries at least 1 passing
 fixture test. Both results are recorded in `test-results/resolve-presentation-parity-nfr002.json`
 and `test-results/resolve-conformance-nfr004.json`.
 
+Resolve is also covered by measured-runtime crash-resilience evidence
+(NFR-001): `resolveExecutionData()` is driven over a 39-case multi-axis
+malformed-input corpus (malformed frontmatter YAML, malformed
+`prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial
+target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes —
+every attempt yields either a valid resolution or a structured `errorKind`.
+Recorded in `test-results/resolve-malformed-input-nfr001.json`.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.

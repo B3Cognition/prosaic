@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Measured: 100 artifacts × 30 targets distributed in ~816 ms (threshold: 30 000 ms); byte-identical output verified across 510 files on darwin/Node 26.
 - Cross-environment reproducibility confirmed: deterministic render verified across Linux and macOS (NFR-007, NFR-009).
 - Measured-runtime coverage evidence for resolve (NFR-002, NFR-004): 51 runtime-capable targets compared field-by-field against the FR-003 presentation translation outcome across 153 field comparisons with 0 divergent values, and all 51 targets carry at least 1 passing fixture test — both captured to `test-results/resolve-presentation-parity-nfr002.json` and `test-results/resolve-conformance-nfr004.json`.
+- Measured-runtime crash-resilience evidence for resolve (NFR-001): `resolveExecutionData()` driven over a 39-case multi-axis malformed-input corpus (malformed frontmatter YAML, malformed `prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes — every attempt yields either a valid resolution or a structured `errorKind` — captured to `test-results/resolve-malformed-input-nfr001.json`.
 - Benchmark artifacts committed to `test-results/` for auditable CI history across iterations.
 
 ## [0.1.0] - 2026-07-09
