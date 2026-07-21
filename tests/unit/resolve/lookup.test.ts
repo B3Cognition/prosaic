@@ -108,3 +108,157 @@ describe('resolveExecutionData', () => {
     }
   });
 });
+
+describe('T-006: error-identifiability edge cases', () => {
+  let t: TempRoot;
+  beforeEach(() => {
+    t = makeTempRoot();
+    t.write('.prosaic/rules/style.md', '---\ndescription: style\n---\nBe concise.\n');
+  });
+  afterEach(() => t.cleanup());
+
+  it('errorKind is one of exactly 3 literal values across all failure fixtures, branchable without instanceof/message matching', () => {
+    const brokenRegistry = {
+      get: () => {
+        throw new Error('boom');
+      },
+    } as unknown as Registry;
+
+    const failures = [
+      resolveExecutionData({
+        projectRoot: t.root,
+        artifactId: 'rules/style.md',
+        targetId: 'no-such-target',
+        registry: testRegistry(),
+      }),
+      resolveExecutionData({
+        projectRoot: t.root,
+        artifactId: 'rules/does-not-exist.md',
+        targetId: 'known-target',
+        registry: testRegistry(),
+      }),
+      resolveExecutionData({
+        projectRoot: t.root,
+        artifactId: 'rules/style.md',
+        targetId: 'known-target',
+        registry: brokenRegistry,
+      }),
+    ];
+
+    for (const result of failures) {
+      expect(result.ok).toBe(false);
+      if (result.ok) continue;
+      let branch: string;
+      switch (result.errorKind) {
+        case 'unregistered-target':
+          branch = 'unregistered-target';
+          break;
+        case 'artifact-not-found':
+          branch = 'artifact-not-found';
+          break;
+        case 'internal':
+          branch = 'internal';
+          break;
+        default: {
+          const exhaustive: never = result;
+          throw new Error(`unreachable errorKind: ${JSON.stringify(exhaustive)}`);
+        }
+      }
+      expect(['unregistered-target', 'artifact-not-found', 'internal']).toContain(branch);
+    }
+  });
+
+  it('ResolveOptions.cli.source override is honored, matching apply()\'s existing CliOverrides precedent', () => {
+    t.write('custom-src/rules/other.md', '---\ndescription: other\n---\nBody.\n');
+
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/other.md',
+      targetId: 'known-target',
+      cli: { source: 'custom-src' },
+      registry: testRegistry(),
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.artifactId).toBe('rules/other.md');
+    }
+  });
+
+  it('ResolveOptions.registry defaults to the built-in registry when omitted', () => {
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/style.md',
+      targetId: 'claude-code',
+    });
+
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.data.targetId).toBe('claude-code');
+    }
+  });
+
+  it('NFR-001 corpus: malformed frontmatter drops the artifact from discovery, never crashes (errorKind artifact-not-found)', () => {
+    t.write('.prosaic/rules/broken.md', '---\ndescription: [unterminated\n---\nBody.\n');
+
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/broken.md',
+      targetId: 'known-target',
+      registry: testRegistry(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errorKind).toBe('artifact-not-found');
+    }
+  });
+
+  it('NFR-001 corpus: an unclosed frontmatter block never crashes (errorKind artifact-not-found)', () => {
+    t.write('.prosaic/rules/unclosed.md', '---\ndescription: style\nBody without a closing marker.\n');
+
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/unclosed.md',
+      targetId: 'known-target',
+      registry: testRegistry(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errorKind).toBe('artifact-not-found');
+    }
+  });
+
+  it('NFR-001 corpus: a malformed prosaic.config.yaml converts to errorKind internal, never crashes', () => {
+    t.write('prosaic.config.yaml', 'targets: [unterminated\n');
+
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/style.md',
+      targetId: 'known-target',
+      registry: testRegistry(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errorKind).toBe('internal');
+    }
+  });
+
+  it('NFR-001 corpus: a prosaic.config.yaml with an unknown key converts to errorKind internal, never crashes', () => {
+    t.write('prosaic.config.yaml', 'not_a_real_key: true\n');
+
+    const result = resolveExecutionData({
+      projectRoot: t.root,
+      artifactId: 'rules/style.md',
+      targetId: 'known-target',
+      registry: testRegistry(),
+    });
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.errorKind).toBe('internal');
+    }
+  });
+});

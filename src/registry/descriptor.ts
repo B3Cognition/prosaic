@@ -117,6 +117,14 @@ export const descriptorSchema = z.object({
   argumentPlaceholders: z.array(z.string()).optional(),
 });
 
+/**
+ * Extension seam (FR-012, deferred per ADR-007 — not implemented this delivery):
+ * a future optional `runtimeCapability` field on this type would carry a
+ * `RuntimeCapabilityDeclaration` (see `data-model.md`), reporting per-field
+ * acceptance flags for `model`/`reasoningEffort`/`tools`/`executionType` so a
+ * caller could query a target's runtime-capability support without invoking
+ * resolution. No schema change, query function, or per-target data exists yet.
+ */
 export type TargetDescriptor = z.infer<typeof descriptorSchema>;
 
 export interface DescriptorValidation {

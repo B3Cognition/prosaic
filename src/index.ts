@@ -13,3 +13,7 @@ export { discover } from './discovery/discover';
 export type { TargetDescriptor } from './registry/descriptor';
 export { descriptorSchema, validateDescriptor, parseDescriptor } from './registry/descriptor';
 export type { Artifact, ArtifactType, DeploymentType } from './domain/types';
+export { resolveExecutionData } from './resolve/lookup';
+export { resolveExecution } from './resolve/resolve-execution';
+export type { ResolvedExecutionData, ResolveExecutionResult, ResolveOptions } from './resolve/types';
+export { ArtifactNotFoundError } from './resolve/errors';

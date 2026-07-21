@@ -3,7 +3,9 @@ import * as path from 'path';
 /**
  * The contained directory that holds prior-content backups. It lives inside the
  * project root (so backups pass containment) and is excluded from artifact
- * discovery (FR-055) — see {@link isBackupPath}.
+ * discovery (FR-055) — see {@link isBackupPath}. Pure path arithmetic, no I/O,
+ * so both the write path (`write/backup.ts`) and the read path
+ * (`discovery/walk.ts`) can depend on it without either pulling in the other.
  */
 export const BACKUP_DIR_NAME = '.prosaic-backups';
 

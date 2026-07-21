@@ -1,0 +1,17 @@
+{
+  "artifactId": "commands/deploy.md",
+  "targetId": "claude-code",
+  "model": {
+    "status": "unresolved"
+  },
+  "reasoningEffort": {
+    "status": "unresolved"
+  },
+  "tools": {
+    "status": "unresolved"
+  },
+  "executionType": {
+    "status": "resolved",
+    "value": "command"
+  }
+}
