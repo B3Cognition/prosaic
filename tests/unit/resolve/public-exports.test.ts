@@ -2,11 +2,13 @@ import {
   resolveExecutionData,
   resolveExecution,
   ArtifactNotFoundError,
+  runtimeCapabilityFor,
 } from '../../../src/index';
 import type {
   ResolvedExecutionData,
   ResolveExecutionResult,
   ResolveOptions,
+  RuntimeCapabilityDeclaration,
 } from '../../../src/index';
 
 // T-007: compile-time proof that the resolution API is importable from the
@@ -47,5 +49,16 @@ describe('T-007: public library surface exports the resolution API', () => {
     expect(options.artifactId).toBe('rules/style.md');
     expect(failure.ok).toBe(false);
     expect(data.targetId).toBe('claude-code');
+  });
+
+  it('exposes runtimeCapabilityFor (FR-012) and the RuntimeCapabilityDeclaration type', () => {
+    expect(typeof runtimeCapabilityFor).toBe('function');
+    const cap: RuntimeCapabilityDeclaration = {
+      model: 'unknown',
+      reasoningEffort: 'unknown',
+      tools: 'unknown',
+      executionType: 'unknown',
+    };
+    expect(cap.model).toBe('unknown');
   });
 });
