@@ -733,6 +733,14 @@ The delivery benchmark distributed 100 artifacts across 30 targets in about
 816 ms, under the 30 second threshold. Deterministic rendering and
 cross-environment byte identity are covered by the test commands above.
 
+Resolve conformance and coverage are backed by measured-runtime evidence
+(NFR-002, NFR-004), not just assertion-based pass/fail: a full conformance
+run compares resolved execution data against the presentation translation
+outcome for every registered target (0 divergent field values across all
+compared fields), and every runtime-capable target carries at least 1 passing
+fixture test. Both results are recorded in `test-results/resolve-presentation-parity-nfr002.json`
+and `test-results/resolve-conformance-nfr004.json`.
+
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
