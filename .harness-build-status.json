@@ -1,20 +1,5 @@
 {
   "status": "done",
-  "completed_task_ids": [
-    "T-001",
-    "T-002",
-    "T-003",
-    "T-004",
-    "T-005",
-    "T-006",
-    "T-007",
-    "T-008",
-    "T-009",
-    "T-010",
-    "T-011",
-    "T-012",
-    "T-013",
-    "T-014"
-  ],
-  "notes": "Fixed the fulfillment-gaps MISSING finding for AC-010/AC-011/FR-012 (Runtime Capability Declaration) by implementing it rather than reopening the spec ledger (echelon spec reopen was out of IMPLEMENTER scope). Added: `runtimeCapabilityFor()`, `RuntimeCapabilityDeclaration`/`RuntimeCapabilityFlag` types, `RUNTIME_CAPABILITY_FLAGS`, and a new optional `runtimeCapability` field on `descriptorSchema` (src/registry/descriptor.ts); `Registry.runtimeCapability(id)` (src/registry/registry.ts); root exports from src/index.ts. Always reports exactly 4 flags per target (AC-010); an absent declaration or absent individual field reports 'unknown' rather than assuming 'accepts' (AC-011); resolves data-model.md's OQ-002 as one flag per (target x field). New/updated tests in tests/unit/registry/registry.test.ts, tests/contract/descriptor.schema.test.ts, tests/unit/resolve/public-exports.test.ts. No built-in target descriptor declares runtimeCapability yet (all report all-unknown) and there is no new CLI surface -- library-only addition. Ran TECH WRITER to refresh documentation-impact-report.md (reversing its prior 'FR-012 is deferred, do not document' note) and applied its specified README.md/CHANGELOG.md edits; DOCS VERIFIER re-validated and returned PASS with 0 blocking findings. Full suite: 58 suites / 611 tests passed; `tsc --noEmit` clean; `npm run lint` 0 errors (12 pre-existing warnings unrelated to this change)."
+  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010", "T-011", "T-012", "T-013", "T-014"],
+  "notes": "All 14 canonical tasks were already implemented per the delivery ledger. Inner fix: verification reported documentation-required-without-doc-changes because this iteration's own commit (measured-runtime evidence capture for NFR-002/NFR-004) did not itself touch README.md/CHANGELOG.md, even though the branch overall already had valid, DOCS-VERIFIER-passed doc updates for the FR-012 runtime-capability API from a prior iteration. Fixed by adding a CHANGELOG.md Performance bullet and a README.md Performance and Verification paragraph describing the NFR-002/NFR-004 measured-runtime evidence (test-results/resolve-presentation-parity-nfr002.json, test-results/resolve-conformance-nfr004.json), committed in this iteration alongside the evidence files. Full test suite (611 tests) and `tsc --noEmit` re-verified clean after the change."
 }
