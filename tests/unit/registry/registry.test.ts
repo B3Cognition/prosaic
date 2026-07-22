@@ -1,4 +1,4 @@
-import { validateDescriptor } from '../../../src/registry/descriptor';
+import { validateDescriptor, runtimeCapabilityFor } from '../../../src/registry/descriptor';
 import { Registry, StaticRegistrySource, UnknownTargetError } from '../../../src/registry/registry';
 import { registerTarget } from '../../../src/registry/register';
 import { isConformanceVerified, verifiedTargets } from '../../../src/registry/conformance-status';
@@ -47,6 +47,49 @@ describe('conformance gating (T-016, FR-009/FR-058)', () => {
   it('verifiedTargets filters the zero-pass targets out', () => {
     const v = verifiedTargets(new Map([['a', 2], ['b', 0]]));
     expect([...v]).toEqual(['a']);
+  });
+});
+
+describe('runtime capability declaration (FR-012, AC-010, AC-011)', () => {
+  it('AC-010: reports exactly 4 acceptance flags for a target with a full declaration', () => {
+    const desc = makeDescriptor({
+      runtimeCapability: { model: 'accepts', reasoningEffort: 'accepts', tools: 'rejects', executionType: 'accepts' },
+    });
+    const cap = runtimeCapabilityFor(desc);
+    expect(Object.keys(cap).sort()).toEqual(['executionType', 'model', 'reasoningEffort', 'tools'].sort());
+    expect(cap).toEqual({ model: 'accepts', reasoningEffort: 'accepts', tools: 'rejects', executionType: 'accepts' });
+  });
+
+  it('AC-011: an entirely absent declaration reports unknown for all 4 fields, never accepts', () => {
+    const desc = makeDescriptor();
+    const cap = runtimeCapabilityFor(desc);
+    expect(cap).toEqual({ model: 'unknown', reasoningEffort: 'unknown', tools: 'unknown', executionType: 'unknown' });
+  });
+
+  it('AC-011: a partially declared field falls back to unknown rather than assuming accepts', () => {
+    const desc = makeDescriptor({ runtimeCapability: { model: 'accepts' } });
+    const cap = runtimeCapabilityFor(desc);
+    expect(cap.model).toBe('accepts');
+    expect(cap.reasoningEffort).toBe('unknown');
+    expect(cap.tools).toBe('unknown');
+    expect(cap.executionType).toBe('unknown');
+  });
+
+  it('Registry.runtimeCapability queries a registered target by id', () => {
+    const reg = new Registry(
+      new StaticRegistrySource([makeDescriptor({ id: 'a', runtimeCapability: { model: 'rejects' } })]),
+    );
+    expect(reg.runtimeCapability('a')).toEqual({
+      model: 'rejects',
+      reasoningEffort: 'unknown',
+      tools: 'unknown',
+      executionType: 'unknown',
+    });
+  });
+
+  it('Registry.runtimeCapability throws UnknownTargetError for an unregistered target', () => {
+    const reg = new Registry(new StaticRegistrySource([makeDescriptor({ id: 'a' })]));
+    expect(() => reg.runtimeCapability('missing')).toThrow(UnknownTargetError);
   });
 });
 

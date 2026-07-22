@@ -1,0 +1,17 @@
+{
+  "artifactId": "commands/deploy.md",
+  "targetId": "cursor",
+  "model": {
+    "status": "unresolved"
+  },
+  "reasoningEffort": {
+    "status": "unresolved"
+  },
+  "tools": {
+    "status": "unresolved"
+  },
+  "executionType": {
+    "status": "resolved",
+    "value": "command"
+  }
+}

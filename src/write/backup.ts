@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { GuardedFs } from './guarded-fs';
-import { backupRoot, backupPathFor, backupSequence } from './backup-location';
+import { backupRoot, backupPathFor, backupSequence } from '../domain/backup-location';
 
 /** Default retention bound: at most 3 backups per file (FR-049, AC-033). */
 export const DEFAULT_MAX_BACKUPS = 3;

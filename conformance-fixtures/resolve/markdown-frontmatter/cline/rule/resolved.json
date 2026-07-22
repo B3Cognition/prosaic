@@ -1,0 +1,17 @@
+{
+  "artifactId": "rules/style-guide.md",
+  "targetId": "cline",
+  "model": {
+    "status": "unresolved"
+  },
+  "reasoningEffort": {
+    "status": "unresolved"
+  },
+  "tools": {
+    "status": "unresolved"
+  },
+  "executionType": {
+    "status": "resolved",
+    "value": "agent"
+  }
+}

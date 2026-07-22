@@ -1,5 +1,5 @@
 import { ArtifactType } from '../domain/types';
-import { TargetDescriptor, supports } from './descriptor';
+import { TargetDescriptor, supports, runtimeCapabilityFor, RuntimeCapabilityDeclaration } from './descriptor';
 import { RegistryVersion, REGISTRY_VERSION } from './version';
 
 /** Raised when a selected target identifier is absent from the registry (FR-040). */
@@ -65,6 +65,11 @@ export class Registry {
   /** Whether a target natively supports an artifact type (FR-010, FR-047). */
   supports(id: string, type: ArtifactType): boolean {
     return supports(this.get(id), type);
+  }
+
+  /** A registered target's runtime-invocation capability (FR-012, AC-010, AC-011). */
+  runtimeCapability(id: string): RuntimeCapabilityDeclaration {
+    return runtimeCapabilityFor(this.get(id));
   }
 
   /**

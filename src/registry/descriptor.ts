@@ -65,6 +65,14 @@ const frontmatterRulesSchema = z.object({
 });
 export type FrontmatterRules = z.infer<typeof frontmatterRulesSchema>;
 
+/** Per-field runtime-invocation acceptance declaration (FR-012, data-model.md). */
+const runtimeCapabilitySchema = z.object({
+  model: z.enum(['accepts', 'rejects', 'unknown']).optional(),
+  reasoningEffort: z.enum(['accepts', 'rejects', 'unknown']).optional(),
+  tools: z.enum(['accepts', 'rejects', 'unknown']).optional(),
+  executionType: z.enum(['accepts', 'rejects', 'unknown']).optional(),
+});
+
 export const descriptorSchema = z.object({
   /** Unique target identifier (FR-006). */
   id: z.string().min(1),
@@ -115,9 +123,36 @@ export const descriptorSchema = z.object({
   bodyField: z.string().optional(),
   /** Argument-placeholder patterns to rewrite (defaults applied by the pipeline). */
   argumentPlaceholders: z.array(z.string()).optional(),
+  /** Declared runtime-invocation acceptance per resolved-execution field (FR-012); absent ⇒ query-time 'unknown' (AC-011). */
+  runtimeCapability: runtimeCapabilitySchema.optional(),
 });
 
 export type TargetDescriptor = z.infer<typeof descriptorSchema>;
+
+/** Per-field acceptance state for runtime-capability queries (FR-012, data-model.md). */
+export const RUNTIME_CAPABILITY_FLAGS = ['accepts', 'rejects', 'unknown'] as const;
+export type RuntimeCapabilityFlag = (typeof RUNTIME_CAPABILITY_FLAGS)[number];
+
+/** One flag per resolved-execution field (data-model.md OQ-002 resolution: field-level, not target-level). */
+export interface RuntimeCapabilityDeclaration {
+  model: RuntimeCapabilityFlag;
+  reasoningEffort: RuntimeCapabilityFlag;
+  tools: RuntimeCapabilityFlag;
+  executionType: RuntimeCapabilityFlag;
+}
+
+/** Query a target's runtime-invocation capability (FR-012). Always reports exactly
+ * 4 flags (AC-010); an absent declaration, or an absent individual field, reports
+ * 'unknown' rather than assuming 'accepts' (AC-011). */
+export function runtimeCapabilityFor(desc: TargetDescriptor): RuntimeCapabilityDeclaration {
+  const declared = desc.runtimeCapability;
+  return {
+    model: declared?.model ?? 'unknown',
+    reasoningEffort: declared?.reasoningEffort ?? 'unknown',
+    tools: declared?.tools ?? 'unknown',
+    executionType: declared?.executionType ?? 'unknown',
+  };
+}
 
 export interface DescriptorValidation {
   ok: boolean;

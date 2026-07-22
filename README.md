@@ -558,6 +558,56 @@ Import recognizes multi-file skill and subagent bundles, re-associates resource
 files, and rewrites internal references. Tool companion metadata files are
 consumed and their data recovered into the neutral artifact.
 
+## Resolve Execution Settings for an Orchestrator
+
+`prosaic resolve` returns the model, reasoning effort, tools, and execution
+type Prosaic would use for a given artifact/target pair, as structured JSON —
+for an external runtime orchestrator (e.g. Echelon) that wants to invoke the
+right AI coding tool without parsing generated provider files or
+reimplementing Prosaic's translation logic.
+
+```bash
+prosaic resolve rules/style.md --target claude-code
+```
+
+```json
+{"artifactId":"rules/style.md","targetId":"claude-code","model":{"status":"unresolved"},"reasoningEffort":{"status":"unresolved"},"tools":{"status":"resolved","value":"Read, Edit"},"executionType":{"status":"resolved","value":"agent"}}
+```
+
+The response always has four fields — `model`, `reasoningEffort`, `tools`,
+`executionType` — each reporting `status: "resolved"` or `status:
+"unresolved"`; a property is marked `unresolved` rather than omitted when the
+target has no translation rule for it.
+
+Resolution never writes a file to any target's destination directory and
+never makes a network call or invokes an LLM; repeated resolution of the same
+artifact/target with unchanged source returns identical results. An
+unregistered `--target` or an unresolvable `artifactId` causes exit code 1
+with `error: <message>` on stderr, e.g.:
+
+```bash
+prosaic resolve rules/style.md --target no-such-target
+# error: Unknown target: "no-such-target" is not in the target registry
+```
+
+Node.js/TypeScript consumers can call the library API directly instead of
+spawning the CLI: `resolveExecutionData({ projectRoot, artifactId, targetId })`
+is exported from the `prosaic` package and returns a `ResolveExecutionResult`
+— `{ ok: true, data }` on success or `{ ok: false, errorKind, message }` on
+failure — and never throws. Callers branch on `errorKind`:
+`'unregistered-target'`, `'artifact-not-found'`, or `'internal'`.
+
+Before invoking a target, a library consumer can check what it declares
+support for: `runtimeCapabilityFor(descriptor)` (or
+`registry.runtimeCapability(targetId)`) returns a `RuntimeCapabilityDeclaration`
+with four fields — `model`, `reasoningEffort`, `tools`, `executionType` — each
+`'accepts'`, `'rejects'`, or `'unknown'`. No built-in target currently
+declares a `runtimeCapability` value, so every built-in target reports
+all-`'unknown'` today; this is the correct default, not a missing feature,
+and lets a caller distinguish "known unsupported" from "not yet declared."
+`registry.runtimeCapability(id)` throws the same `UnknownTargetError` as
+`registry.get(id)` for an unregistered target id.
+
 ## Command Reference
 
 ```bash
@@ -575,6 +625,9 @@ prosaic revert --targets cursor
 prosaic import <foreign-directory>
 prosaic import <foreign-directory> --format <tool-id>
 prosaic import <foreign-directory> --dry-run
+
+prosaic resolve <artifactId> --target <targetId>
+prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
 ```
 
 CLI flags override `prosaic.config.yaml` for that run.
@@ -607,6 +660,14 @@ Also check that your config selects at least one target and one artifact type.
 The target ID in `prosaic.config.yaml` or `--targets` is not registered. Check
 [Target On-Disk Contracts](docs/target-contracts.md) or
 `src/registry/adapters/contract-matrix.md` for known IDs.
+
+### `prosaic resolve` fails
+
+`prosaic resolve` reports the same "unregistered target" failure as
+`apply`/`revert` (exit 1, `error: Unknown target: ...`) rather than a silent
+empty result. An `artifactId` that does not match any discovered artifact
+fails with a distinct `error: ...` message (`artifact-not-found`) rather than
+being conflated with the target-lookup failure.
 
 ### Revert refuses to run
 
@@ -659,13 +720,38 @@ Main source directories:
 
 Targets are declarative adapter descriptors plus conformance fixtures. Start
 with [Adding a Target](docs/add-a-target.md), then review
-[Target On-Disk Contracts](docs/target-contracts.md).
+[Target On-Disk Contracts](docs/target-contracts.md). A descriptor may
+optionally declare a `runtimeCapability` block (per-field
+`accepts`/`rejects`/`unknown` for `model`, `reasoningEffort`, `tools`,
+`executionType`) so callers can query acceptance via `runtimeCapabilityFor`/
+`registry.runtimeCapability` before invoking the target; omitted fields
+default to `unknown`.
 
 ## Performance and Verification
 
 The delivery benchmark distributed 100 artifacts across 30 targets in about
 816 ms, under the 30 second threshold. Deterministic rendering and
 cross-environment byte identity are covered by the test commands above.
+
+Resolve conformance and coverage are backed by measured-runtime evidence
+(NFR-002, NFR-004), not just assertion-based pass/fail: a full conformance
+run compares resolved execution data against the presentation translation
+outcome for every registered target (0 divergent field values across all
+compared fields), and every runtime-capable target carries at least 1 passing
+fixture test. Both results are recorded in `test-results/resolve-presentation-parity-nfr002.json`
+and `test-results/resolve-conformance-nfr004.json`.
+
+Resolve is also covered by measured-runtime crash-resilience evidence
+(NFR-001): `resolveExecutionData()` is driven over a 39-case multi-axis
+malformed-input corpus (malformed frontmatter YAML, malformed
+`prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial
+target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes —
+every attempt yields either a valid resolution or a structured `errorKind`.
+Recorded in `test-results/resolve-malformed-input-nfr001.json`.
+
+All `test-results/` evidence artifacts have been re-verified end-to-end with
+no regressions; each `recordedAt` timestamp reflects the latest run and every
+pass/fail outcome is unchanged from prior verification.
 
 ## Changelog
 

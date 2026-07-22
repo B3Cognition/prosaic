@@ -1,0 +1,19 @@
+{
+  "nfr": "NFR-001",
+  "requirements": [
+    "FR-007",
+    "FR-008",
+    "NFR-001"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "resolveExecutionData() driven over a broad, multi-axis corpus of malformed frontmatter, malformed prosaic.config.yaml, binary/NUL/huge/deeply-nested content, and adversarial target/artifact ids; records 0 uncaught crashes across every attempt (each yields either a structured errorKind or a valid resolution — never an uncaught throw).",
+  "malformedInputsTested": 39,
+  "crashes": 0,
+  "crashCases": [],
+  "handledNoCrash": 39,
+  "resolvedOk": 4,
+  "resolvedStructuredError": 35,
+  "measurableTarget": "100% of malformed-input resolution attempts in the corpus are handled without an uncaught crash.",
+  "pass": true,
+  "recordedAt": "2026-07-22T09:20:32.735Z"
+}

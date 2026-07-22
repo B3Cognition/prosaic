@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { isBackupPath } from '../write/backup-location';
-import { MANIFEST_FILENAME } from '../manifest/manifest';
+import { isBackupPath } from '../domain/backup-location';
+import { MANIFEST_FILENAME } from '../manifest/filename';
 
 export interface WalkedFile {
   /** Absolute path on disk. */
