@@ -1,5 +1,4 @@
 {
   "status": "done",
-  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010", "T-011", "T-012", "T-013", "T-014"],
-  "notes": "All 14 canonical tasks were already complete. Prior commit 3b984db added measured-runtime NFR-001 crash-resilience evidence (tests/unit/resolve/malformed-input-corpus.test.ts, test-results/resolve-malformed-input-nfr001.json: 39 malformed-input cases, 0 crashes) but did not itself touch README.md/CHANGELOG.md, tripping documentation-required-without-doc-changes. Inner fix: added a CHANGELOG.md [Unreleased]/Performance bullet and a README.md Performance and Verification paragraph describing the NFR-001 measured-runtime evidence, matching the established style for the NFR-002/NFR-004 entries. Full suite re-verified clean: 650/650 tests across 59 suites, tsc --noEmit clean."
+  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010", "T-011", "T-012", "T-013", "T-014"]
 }
