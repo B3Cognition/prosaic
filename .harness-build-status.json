@@ -10,7 +10,12 @@
     "T-007",
     "T-008",
     "T-009",
-    "T-010"
+    "T-010",
+    "T-029",
+    "T-011",
+    "T-012",
+    "T-013",
+    "T-014"
   ],
-  "notes": "Branch was freshly cut from main with none of T-001-T-005's foundation (examples/, tests/examples/) actually present despite the ledger claiming them done; rebuilt that foundation from scratch alongside the assigned T-006-T-010 candidate rows so the dependency chain (T-007 depends on T-001/T-006, T-010 depends on T-005/T-009, etc.) is genuinely satisfied in this worktree. npm test: 63 suites / 666 tests passing (up from 59/650 baseline). npm run lint: 0 errors, pre-existing warnings only, none in new files."
+  "notes": "Branch head had no ancestor commit for T-001-T-010 despite the ledger claiming them done; the checkpoint commits existed as dangling objects that were exact fast-forward descendants of this branch's HEAD, so recovered them via `git merge --ff-only` instead of redoing the work (verified: 63/63 suites, 666/666 tests passing after recovery). Then completed the assigned candidate rows: T-029 (coverage-gap/divergence-failure harness self-tests using disposable temp fixtures, no committed dummy example), T-011/T-012/T-013 (authored and wired in examples/02-multi-artifact-type covering all 4 artifact categories plus the capability-gating warning path for cursor), T-014 (added the '## Examples' README section linking to examples/README.md, outside the harness/906 diff region). npm test: 63 suites / 670 tests passing. npm run lint: 0 errors, pre-existing warnings only."
 }
