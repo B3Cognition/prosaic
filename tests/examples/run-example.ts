@@ -5,15 +5,19 @@ import * as os from 'os';
 import * as path from 'path';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 import { NETWORK_GUARD_PRELOAD_PATH } from './network-guard';
+import { FS_GUARD_PRELOAD_PATH } from './fs-guard';
 
-const BIN = path.join(__dirname, '..', '..', 'dist', 'cli', 'index.js');
-export const EXAMPLES_DIR = path.join(__dirname, '..', '..', 'examples');
+const REPO_ROOT = fs.realpathSync(path.join(__dirname, '..', '..'));
+const BIN = path.join(REPO_ROOT, 'dist', 'cli', 'index.js');
+export const EXAMPLES_DIR = path.join(REPO_ROOT, 'examples');
 
 export interface StepResult {
   stdout: string;
   exitCode: number;
   /** Measured count of blocked network-guard invocations during this step (FR-003/NFR-004). */
   networkCallCount: number;
+  /** Measured count of filesystem accesses outside the temp root / prosaic install dir during this step (FR-002). */
+  externalFileAccessCount: number;
 }
 
 export interface NetworkCallSample {
@@ -21,11 +25,22 @@ export interface NetworkCallSample {
   networkCallCount: number;
 }
 
+export interface FsAccessSample {
+  args: string[];
+  externalFileAccessCount: number;
+}
+
 const networkCallSamples: NetworkCallSample[] = [];
+const fsAccessSamples: FsAccessSample[] = [];
 
 /** Every measured network-call sample recorded by runManifestStep so far, for CI artifact aggregation. */
 export function getNetworkCallSamples(): NetworkCallSample[] {
   return networkCallSamples;
+}
+
+/** Every measured external-filesystem-access sample recorded by runManifestStep so far, for CI artifact aggregation. */
+export function getFsAccessSamples(): FsAccessSample[] {
+  return fsAccessSamples;
 }
 
 function readAndClearNetworkCallCount(countFile: string): number {
@@ -39,16 +54,29 @@ function readAndClearNetworkCallCount(countFile: string): number {
   }
 }
 
+function readAndClearFsAccessCount(countFile: string): number {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(countFile, 'utf8')) as { externalFileAccessCount: number };
+    return parsed.externalFileAccessCount;
+  } catch {
+    return 0;
+  } finally {
+    fs.rmSync(countFile, { force: true });
+  }
+}
+
 export interface ComparisonResult {
   pass: boolean;
   byteDiffCount: number;
 }
 
 /**
- * Copy `sourceDir`'s own files into a fresh temp root. Because the temp root
- * starts empty and receives only this directory's contents, a subsequent CLI
- * invocation with `cwd: tempRoot` has no other file available to it (proves
- * FR-002 by construction).
+ * Copy `sourceDir`'s own files into a fresh temp root. The temp root starts
+ * empty and receives only this directory's contents; runManifestStep then
+ * measures every filesystem access the CLI subprocess makes outside this
+ * root (and outside the prosaic install dir) via fs-guard-preload.js,
+ * turning "no other file is available" from an architectural assumption
+ * into a measured runtime count (FR-002).
  */
 export function copyDirToTempRoot(sourceDir: string): TempRoot {
   const tempRoot = makeTempRoot();
@@ -68,29 +96,36 @@ export function copyExampleToTempRoot(exampleId: string): TempRoot {
  * inside the same disposable copy — never outside it.
  */
 export function runManifestStep(tempRoot: TempRoot, args: string[], cwdRelPath?: string): StepResult {
-  const countFile = path.join(
-    os.tmpdir(),
-    `prosaic-network-guard-${process.pid}-${crypto.randomBytes(4).toString('hex')}.json`,
-  );
+  const uid = `${process.pid}-${crypto.randomBytes(4).toString('hex')}`;
+  const networkCountFile = path.join(os.tmpdir(), `prosaic-network-guard-${uid}.json`);
+  const fsCountFile = path.join(os.tmpdir(), `prosaic-fs-guard-${uid}.json`);
+  const env = {
+    ...process.env,
+    NODE_OPTIONS: `--require ${NETWORK_GUARD_PRELOAD_PATH} --require ${FS_GUARD_PRELOAD_PATH}`,
+    NETWORK_GUARD_COUNT_FILE: networkCountFile,
+    FS_GUARD_COUNT_FILE: fsCountFile,
+    FS_GUARD_ALLOWED_ROOTS: JSON.stringify([tempRoot.root, REPO_ROOT]),
+  };
   let networkCallCount: number;
+  let externalFileAccessCount: number;
   try {
     const stdout = execFileSync('node', [BIN, ...args], {
       cwd: cwdRelPath ? tempRoot.p(cwdRelPath) : tempRoot.root,
       encoding: 'utf8',
-      env: {
-        ...process.env,
-        NODE_OPTIONS: `--require ${NETWORK_GUARD_PRELOAD_PATH}`,
-        NETWORK_GUARD_COUNT_FILE: countFile,
-      },
+      env,
     });
-    networkCallCount = readAndClearNetworkCallCount(countFile);
+    networkCallCount = readAndClearNetworkCallCount(networkCountFile);
+    externalFileAccessCount = readAndClearFsAccessCount(fsCountFile);
     networkCallSamples.push({ args, networkCallCount });
-    return { stdout, exitCode: 0, networkCallCount };
+    fsAccessSamples.push({ args, externalFileAccessCount });
+    return { stdout, exitCode: 0, networkCallCount, externalFileAccessCount };
   } catch (e: any) {
     const stdout = (e.stdout ?? '') + (e.stderr ?? '');
-    networkCallCount = readAndClearNetworkCallCount(countFile);
+    networkCallCount = readAndClearNetworkCallCount(networkCountFile);
+    externalFileAccessCount = readAndClearFsAccessCount(fsCountFile);
     networkCallSamples.push({ args, networkCallCount });
-    return { stdout, exitCode: e.status ?? 1, networkCallCount };
+    fsAccessSamples.push({ args, externalFileAccessCount });
+    return { stdout, exitCode: e.status ?? 1, networkCallCount, externalFileAccessCount };
   }
 }
 

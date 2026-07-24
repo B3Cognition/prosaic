@@ -25,6 +25,11 @@ const https = require('https');
 const net = require('net');
 const dns = require('dns');
 
+// Captured immediately, before any other preload (e.g. fs-guard-preload.js)
+// can patch fs.writeFileSync, so this housekeeping write is never itself
+// counted as an example-command file access.
+const originalWriteFileSync = fs.writeFileSync;
+
 let networkCallCount = 0;
 
 function recordAndBlock(api) {
@@ -60,7 +65,7 @@ dns.lookup = function blockedDnsLookup() {
 if (process.env.NETWORK_GUARD_COUNT_FILE) {
   process.on('exit', () => {
     try {
-      fs.writeFileSync(process.env.NETWORK_GUARD_COUNT_FILE, JSON.stringify({ networkCallCount }));
+      originalWriteFileSync(process.env.NETWORK_GUARD_COUNT_FILE, JSON.stringify({ networkCallCount }));
     } catch {
       // Best-effort: the process is already exiting.
     }
