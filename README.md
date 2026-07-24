@@ -225,7 +225,9 @@ Hand-authored files not recorded in `.prosaic-manifest.json` are not deleted.
 
 Runnable, self-contained walkthroughs covering write/preview/revert,
 multi-artifact-type distribution, and more, each verified automatically
-against a captured Expected-Output Record. See
+against a captured Expected-Output Record. If a code change makes an
+example's live output diverge from its recorded output, the check fails
+and names that specific example rather than passing silently. See
 [`examples/README.md`](examples/README.md) for the full index.
 
 ## Company-Managed Prose Repository
