@@ -4,8 +4,8 @@
   "artifactCount": 100,
   "targetCount": 30,
   "outputCount": 3000,
-  "elapsedMs": 957,
+  "elapsedMs": 1241,
   "thresholdMs": 30000,
   "pass": true,
-  "recordedAt": "2026-07-24T14:52:46.693Z"
+  "recordedAt": "2026-07-24T14:53:49.157Z"
 }
