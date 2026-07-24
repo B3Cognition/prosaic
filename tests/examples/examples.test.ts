@@ -283,8 +283,8 @@ describe('03-import (T-019)', () => {
   it('AC-007: the malformed file produces exactly one per-file warning and the run completes rather than aborting', () => {
     const warningLines = result.stdout
       .split('\n')
-      .filter((line) => line.includes('warning[malformed-frontmatter]'));
-    expect(warningLines.length).toBeGreaterThanOrEqual(1);
+      .filter((line) => line.startsWith('warning[malformed-frontmatter]'));
+    expect(warningLines).toHaveLength(1);
     expect(result.stdout).toContain('team-guardrails.md');
   });
 });
