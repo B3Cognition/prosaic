@@ -402,6 +402,16 @@ describe('Example Verification Check: illustrative label (T-028, FR-014/AC-011)'
   });
 });
 
+describe('Example Verification Check: entry-point examples link (NFR-003)', () => {
+  it('README.md contains exactly one link to examples/README.md', () => {
+    const readmePath = path.join(process.cwd(), 'README.md');
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    const matches = readme.match(/\]\(examples\/README\.md\)/g) ?? [];
+    expect(matches).toHaveLength(1);
+    expect(fs.existsSync(path.join(process.cwd(), 'examples', 'README.md'))).toBe(true);
+  });
+});
+
 describe('Example Verification Check: measured network-call count (T-011, FR-003/NFR-004)', () => {
   it('total measured network-guard invocations across every executed manifest step is 0', () => {
     const samples = getNetworkCallSamples();
