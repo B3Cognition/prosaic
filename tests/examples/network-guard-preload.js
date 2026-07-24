@@ -6,6 +6,10 @@
  * prove Example manifest steps make zero network calls (FR-003/NFR-004), and
  * usable by a reader manually re-running the same command with the guard
  * enabled, since it patches the runtime rather than a Jest-side mock.
+ *
+ * When NETWORK_GUARD_COUNT_FILE is set, the number of blocked-call attempts
+ * is written to that path on process exit, giving callers a measured
+ * call-count artifact rather than relying on absence-of-a-thrown-error alone.
  */
 
 class NetworkCallBlockedError extends Error {
@@ -15,34 +19,52 @@ class NetworkCallBlockedError extends Error {
   }
 }
 
+const fs = require('fs');
 const http = require('http');
 const https = require('https');
 const net = require('net');
 const dns = require('dns');
 
+let networkCallCount = 0;
+
+function recordAndBlock(api) {
+  networkCallCount += 1;
+  throw new NetworkCallBlockedError(api);
+}
+
 http.request = function blockedHttpRequest() {
-  throw new NetworkCallBlockedError('http.request');
+  recordAndBlock('http.request');
 };
 http.get = function blockedHttpGet() {
-  throw new NetworkCallBlockedError('http.get');
+  recordAndBlock('http.get');
 };
 
 https.request = function blockedHttpsRequest() {
-  throw new NetworkCallBlockedError('https.request');
+  recordAndBlock('https.request');
 };
 https.get = function blockedHttpsGet() {
-  throw new NetworkCallBlockedError('https.get');
+  recordAndBlock('https.get');
 };
 
 net.connect = function blockedNetConnect() {
-  throw new NetworkCallBlockedError('net.connect');
+  recordAndBlock('net.connect');
 };
 net.createConnection = function blockedNetCreateConnection() {
-  throw new NetworkCallBlockedError('net.createConnection');
+  recordAndBlock('net.createConnection');
 };
 
 dns.lookup = function blockedDnsLookup() {
-  throw new NetworkCallBlockedError('dns.lookup');
+  recordAndBlock('dns.lookup');
 };
+
+if (process.env.NETWORK_GUARD_COUNT_FILE) {
+  process.on('exit', () => {
+    try {
+      fs.writeFileSync(process.env.NETWORK_GUARD_COUNT_FILE, JSON.stringify({ networkCallCount }));
+    } catch {
+      // Best-effort: the process is already exiting.
+    }
+  });
+}
 
 module.exports = { NetworkCallBlockedError };

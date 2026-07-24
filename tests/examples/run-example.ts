@@ -1,5 +1,7 @@
 import { execFileSync } from 'child_process';
+import * as crypto from 'crypto';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 import { NETWORK_GUARD_PRELOAD_PATH } from './network-guard';
@@ -10,6 +12,31 @@ export const EXAMPLES_DIR = path.join(__dirname, '..', '..', 'examples');
 export interface StepResult {
   stdout: string;
   exitCode: number;
+  /** Measured count of blocked network-guard invocations during this step (FR-003/NFR-004). */
+  networkCallCount: number;
+}
+
+export interface NetworkCallSample {
+  args: string[];
+  networkCallCount: number;
+}
+
+const networkCallSamples: NetworkCallSample[] = [];
+
+/** Every measured network-call sample recorded by runManifestStep so far, for CI artifact aggregation. */
+export function getNetworkCallSamples(): NetworkCallSample[] {
+  return networkCallSamples;
+}
+
+function readAndClearNetworkCallCount(countFile: string): number {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(countFile, 'utf8')) as { networkCallCount: number };
+    return parsed.networkCallCount;
+  } catch {
+    return 0;
+  } finally {
+    fs.rmSync(countFile, { force: true });
+  }
 }
 
 export interface ComparisonResult {
@@ -41,6 +68,11 @@ export function copyExampleToTempRoot(exampleId: string): TempRoot {
  * inside the same disposable copy — never outside it.
  */
 export function runManifestStep(tempRoot: TempRoot, args: string[], cwdRelPath?: string): StepResult {
+  const countFile = path.join(
+    os.tmpdir(),
+    `prosaic-network-guard-${process.pid}-${crypto.randomBytes(4).toString('hex')}.json`,
+  );
+  let networkCallCount: number;
   try {
     const stdout = execFileSync('node', [BIN, ...args], {
       cwd: cwdRelPath ? tempRoot.p(cwdRelPath) : tempRoot.root,
@@ -48,12 +80,17 @@ export function runManifestStep(tempRoot: TempRoot, args: string[], cwdRelPath?:
       env: {
         ...process.env,
         NODE_OPTIONS: `--require ${NETWORK_GUARD_PRELOAD_PATH}`,
+        NETWORK_GUARD_COUNT_FILE: countFile,
       },
     });
-    return { stdout, exitCode: 0 };
+    networkCallCount = readAndClearNetworkCallCount(countFile);
+    networkCallSamples.push({ args, networkCallCount });
+    return { stdout, exitCode: 0, networkCallCount };
   } catch (e: any) {
     const stdout = (e.stdout ?? '') + (e.stderr ?? '');
-    return { stdout, exitCode: e.status ?? 1 };
+    networkCallCount = readAndClearNetworkCallCount(countFile);
+    networkCallSamples.push({ args, networkCallCount });
+    return { stdout, exitCode: e.status ?? 1, networkCallCount };
   }
 }
 

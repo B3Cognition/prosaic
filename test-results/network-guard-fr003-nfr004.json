@@ -1,0 +1,10 @@
+{
+  "fr": "FR-003",
+  "nfr": "NFR-004",
+  "description": "Measured network-guard-blocked-call count across every example manifest-step invocation in this suite run",
+  "invocationCount": 11,
+  "totalNetworkCalls": 0,
+  "thresholdNetworkCalls": 0,
+  "pass": true,
+  "recordedAt": "2026-07-24T15:05:35.776Z"
+}

@@ -3,7 +3,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
 import { loadManifest } from './manifest-schema';
-import { compareOutput, copyExampleToTempRoot, EXAMPLES_DIR, runManifestStep } from './run-example';
+import { compareOutput, copyExampleToTempRoot, EXAMPLES_DIR, getNetworkCallSamples, runManifestStep } from './run-example';
 import { TempRoot } from '../helpers/temp-root';
 
 function expectedOutputPathFor(exampleId: string, relativeFile: string): string {
@@ -138,6 +138,7 @@ describe('01-basic-write-preview-revert (T-010)', () => {
     );
     expect(comparison.pass).toBe(true);
     expect(comparison.byteDiffCount).toBe(0);
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('writes the generated files (setup for AC-002)', () => {
@@ -148,6 +149,7 @@ describe('01-basic-write-preview-revert (T-010)', () => {
       expectedOutputPathFor(exampleId, applyStep.expectedOutputFile),
     );
     expect(comparison.pass).toBe(true);
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('AC-002: an unchanged re-apply reports exactly 0 changed files', () => {
@@ -160,6 +162,7 @@ describe('01-basic-write-preview-revert (T-010)', () => {
     expect(comparison.pass).toBe(true);
     expect(comparison.byteDiffCount).toBe(0);
     expect(result.stdout).toContain('0 changed file(s)');
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('AC-003: reverting with zero prior writes returns exactly one error and a non-zero exit code', () => {
@@ -174,6 +177,7 @@ describe('01-basic-write-preview-revert (T-010)', () => {
       );
       expect(comparison.pass).toBe(true);
       expect(result.stdout.trim().split('\n')).toHaveLength(1);
+      expect(result.networkCallCount).toBe(0);
     } finally {
       freshRoot.cleanup();
     }
@@ -209,6 +213,7 @@ describe('02-multi-artifact-type (T-013)', () => {
     for (const destination of ['commands/changelog.md', 'api-conventions.md', 'skills/onboarding.md', 'agents/reviewer.md']) {
       expect(result.stdout).toContain(destination);
     }
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('AC-005: applying to cursor surfaces one capability-gating warning per unsupported category, never a silent drop', () => {
@@ -226,6 +231,7 @@ describe('02-multi-artifact-type (T-013)', () => {
     expect(warningLines).toHaveLength(2);
     expect(result.stdout).toContain('artifact type "skill"; skipped');
     expect(result.stdout).toContain('artifact type "subagent"; skipped');
+    expect(result.networkCallCount).toBe(0);
   });
 });
 
@@ -271,6 +277,7 @@ describe('03-import (T-019)', () => {
       .split('\n')
       .filter((line) => line.trim().startsWith('fidelity[claude-code]'));
     expect(fidelityLines).toHaveLength(1);
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('AC-007: the malformed file produces exactly one per-file warning and the run completes rather than aborting', () => {
@@ -313,6 +320,7 @@ describe('04-resolve (T-022)', () => {
       expect(parsed[field]).toBeDefined();
       expect(parsed[field].status).toMatch(/^(resolved|unresolved)$/);
     }
+    expect(result.networkCallCount).toBe(0);
   });
 
   it('AC-009: resolving against an unregistered target reports exactly one documented error, non-zero exit', () => {
@@ -326,6 +334,7 @@ describe('04-resolve (T-022)', () => {
     expect(comparison.pass).toBe(true);
     expect(result.stdout.trim().split('\n')).toHaveLength(1);
     expect(result.stdout).toContain('Unknown target');
+    expect(result.networkCallCount).toBe(0);
   });
 });
 
@@ -368,6 +377,7 @@ describe('05-multi-repository (T-027)', () => {
     );
     expect(comparison.pass).toBe(true);
     expect(comparison.byteDiffCount).toBe(0);
+    expect(result.networkCallCount).toBe(0);
   });
 });
 
@@ -389,5 +399,38 @@ describe('Example Verification Check: illustrative label (T-028, FR-014/AC-011)'
     expect(manifestRaw).not.toContain('CI checkout');
     expect(manifestRaw).not.toContain('Package or artifact sync');
     expect(manifestRaw).not.toContain('Monorepo shared directory');
+  });
+});
+
+describe('Example Verification Check: measured network-call count (T-011, FR-003/NFR-004)', () => {
+  it('total measured network-guard invocations across every executed manifest step is 0', () => {
+    const samples = getNetworkCallSamples();
+    const totalNetworkCalls = samples.reduce((sum, sample) => sum + sample.networkCallCount, 0);
+
+    // Emit measured call-count artifact so CI can archive it as build evidence (FR-003/NFR-004),
+    // matching the test-results/*.json convention used by NFR-005/NFR-007/NFR-009.
+    const resultsDir = path.join(process.cwd(), 'test-results');
+    fs.mkdirSync(resultsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(resultsDir, 'network-guard-fr003-nfr004.json'),
+      JSON.stringify(
+        {
+          fr: 'FR-003',
+          nfr: 'NFR-004',
+          description:
+            'Measured network-guard-blocked-call count across every example manifest-step invocation in this suite run',
+          invocationCount: samples.length,
+          totalNetworkCalls,
+          thresholdNetworkCalls: 0,
+          pass: totalNetworkCalls === 0,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+
+    expect(samples.length).toBeGreaterThan(0);
+    expect(totalNetworkCalls).toBe(0);
   });
 });
