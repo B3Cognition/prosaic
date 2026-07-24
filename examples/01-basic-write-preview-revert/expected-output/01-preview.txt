@@ -1,0 +1,5 @@
+Dry run (apply): 4 create, 0 overwrite, 0 backup, 0 remove, 0 unchanged. 0 files written, 0 files deleted.
+create  .claude/commands/release.md [claude-code]
+create  .claude/style.md [claude-code]
+create  .cursor/commands/release.md [cursor]
+create  .cursor/rules/style.mdc [cursor]

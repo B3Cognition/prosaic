@@ -1,4 +1,16 @@
 {
   "status": "done",
-  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010", "T-011", "T-012", "T-013", "T-014"]
+  "completed_task_ids": [
+    "T-001",
+    "T-002",
+    "T-003",
+    "T-004",
+    "T-005",
+    "T-006",
+    "T-007",
+    "T-008",
+    "T-009",
+    "T-010"
+  ],
+  "notes": "Branch was freshly cut from main with none of T-001-T-005's foundation (examples/, tests/examples/) actually present despite the ledger claiming them done; rebuilt that foundation from scratch alongside the assigned T-006-T-010 candidate rows so the dependency chain (T-007 depends on T-001/T-006, T-010 depends on T-005/T-009, etc.) is genuinely satisfied in this worktree. npm test: 63 suites / 666 tests passing (up from 59/650 baseline). npm run lint: 0 errors, pre-existing warnings only, none in new files."
 }
