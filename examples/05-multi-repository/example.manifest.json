@@ -1,0 +1,11 @@
+{
+  "exampleId": "05-multi-repository",
+  "steps": [
+    {
+      "args": ["apply", "--dry-run"],
+      "expectedOutputFile": "expected-output/01-consuming-app-apply.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    }
+  ]
+}

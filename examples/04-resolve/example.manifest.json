@@ -1,0 +1,17 @@
+{
+  "exampleId": "04-resolve",
+  "steps": [
+    {
+      "args": ["resolve", "rules/style.md", "--target", "claude-code"],
+      "expectedOutputFile": "expected-output/01-resolve.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["resolve", "rules/style.md", "--target", "no-such-target"],
+      "expectedOutputFile": "expected-output/02-unregistered-target.txt",
+      "expectedExitCode": 1,
+      "nonHappyPath": true
+    }
+  ]
+}

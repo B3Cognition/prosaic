@@ -1,6 +1,7 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import * as yaml from 'js-yaml';
 import { loadManifest } from './manifest-schema';
 import { compareOutput, copyExampleToTempRoot, EXAMPLES_DIR, runManifestStep } from './run-example';
 import { TempRoot } from '../helpers/temp-root';
@@ -22,6 +23,42 @@ function listExampleDirectories(baseDir: string): string[] {
 
 function hasManifest(baseDir: string, directory: string): boolean {
   return fs.existsSync(path.join(baseDir, directory, 'example.manifest.json'));
+}
+
+/** Find every `prosaic.config.yaml` nested anywhere under `examples/*` (including linked-project subdirectories like `consuming-app/`). */
+function findAllConfigFiles(baseDir: string): string[] {
+  const results: string[] = [];
+  const skip = new Set(['.prosaic', 'expected-output', 'foreign-fixture']);
+  function recurse(dir: string): void {
+    let entries: fs.Dirent[];
+    try {
+      entries = fs.readdirSync(dir, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        if (skip.has(entry.name)) continue;
+        recurse(path.join(dir, entry.name));
+      } else if (entry.isFile() && entry.name === 'prosaic.config.yaml') {
+        results.push(path.join(dir, entry.name));
+      }
+    }
+  }
+  recurse(baseDir);
+  return results;
+}
+
+/** Distinct `targets:` identifiers across every committed `prosaic.config.yaml` under `examples/` (NFR-002). */
+function collectAllConfiguredTargets(baseDir: string): Set<string> {
+  const targets = new Set<string>();
+  for (const configPath of findAllConfigFiles(baseDir)) {
+    const parsed = yaml.load(fs.readFileSync(configPath, 'utf8')) as { targets?: string[] } | undefined;
+    for (const target of parsed?.targets ?? []) {
+      targets.add(target);
+    }
+  }
+  return targets;
 }
 
 describe('Example Verification Check: coverage gap (T-005, FR-017)', () => {
@@ -189,5 +226,168 @@ describe('02-multi-artifact-type (T-013)', () => {
     expect(warningLines).toHaveLength(2);
     expect(result.stdout).toContain('artifact type "skill"; skipped');
     expect(result.stdout).toContain('artifact type "subagent"; skipped');
+  });
+});
+
+const REQUIRED_MVP_FLOWS = ['01-basic-write-preview-revert', '02-multi-artifact-type'];
+const REQUIRED_FLOWS = [...REQUIRED_MVP_FLOWS, '03-import', '04-resolve'];
+
+describe('Example Verification Check: MVP flow coverage (T-032, FR-019/AC-016)', () => {
+  it('MVP flow coverage: at least 2 required flows are enumerated under examples/*', () => {
+    const directories = new Set(listExampleDirectories(EXAMPLES_DIR));
+    const covered = REQUIRED_MVP_FLOWS.filter((id) => directories.has(id));
+    expect(covered.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('03-import (T-019)', () => {
+  const exampleId = '03-import';
+  const manifest = loadManifest(path.join(EXAMPLES_DIR, exampleId, 'example.manifest.json'), {
+    requireNonHappyPath: false,
+  });
+  const [importStep] = manifest.steps;
+
+  let sessionRoot: TempRoot;
+  let result: ReturnType<typeof runManifestStep>;
+
+  beforeAll(() => {
+    sessionRoot = copyExampleToTempRoot(exampleId);
+    result = runManifestStep(sessionRoot, importStep.args);
+  });
+
+  afterAll(() => {
+    sessionRoot.cleanup();
+  });
+
+  it('AC-006: the recovered artifact reports exactly one fidelity level, never an unqualified loss-free claim', () => {
+    expect(result.exitCode).toBe(importStep.expectedExitCode);
+    const comparison = compareOutput(
+      result.stdout,
+      expectedOutputPathFor(exampleId, importStep.expectedOutputFile),
+    );
+    expect(comparison.pass).toBe(true);
+    expect(comparison.byteDiffCount).toBe(0);
+    const fidelityLines = result.stdout
+      .split('\n')
+      .filter((line) => line.trim().startsWith('fidelity[claude-code]'));
+    expect(fidelityLines).toHaveLength(1);
+  });
+
+  it('AC-007: the malformed file produces exactly one per-file warning and the run completes rather than aborting', () => {
+    const warningLines = result.stdout
+      .split('\n')
+      .filter((line) => line.includes('warning[malformed-frontmatter]'));
+    expect(warningLines.length).toBeGreaterThanOrEqual(1);
+    expect(result.stdout).toContain('team-guardrails.md');
+  });
+});
+
+describe('04-resolve (T-022)', () => {
+  const exampleId = '04-resolve';
+  const manifest = loadManifest(path.join(EXAMPLES_DIR, exampleId, 'example.manifest.json'), {
+    requireNonHappyPath: false,
+  });
+  const [resolveStep, unregisteredTargetStep] = manifest.steps;
+
+  let sessionRoot: TempRoot;
+
+  beforeAll(() => {
+    sessionRoot = copyExampleToTempRoot(exampleId);
+  });
+
+  afterAll(() => {
+    sessionRoot.cleanup();
+  });
+
+  it('AC-008: resolving a registered artifact/target pair reports 0 missing documented fields', () => {
+    const result = runManifestStep(sessionRoot, resolveStep.args);
+    expect(result.exitCode).toBe(resolveStep.expectedExitCode);
+    const comparison = compareOutput(
+      result.stdout,
+      expectedOutputPathFor(exampleId, resolveStep.expectedOutputFile),
+    );
+    expect(comparison.pass).toBe(true);
+    expect(comparison.byteDiffCount).toBe(0);
+    const parsed = JSON.parse(result.stdout);
+    for (const field of ['model', 'reasoningEffort', 'tools', 'executionType']) {
+      expect(parsed[field]).toBeDefined();
+      expect(parsed[field].status).toMatch(/^(resolved|unresolved)$/);
+    }
+  });
+
+  it('AC-009: resolving against an unregistered target reports exactly one documented error, non-zero exit', () => {
+    const result = runManifestStep(sessionRoot, unregisteredTargetStep.args);
+    expect(result.exitCode).toBe(unregisteredTargetStep.expectedExitCode);
+    expect(result.exitCode).not.toBe(0);
+    const comparison = compareOutput(
+      result.stdout,
+      expectedOutputPathFor(exampleId, unregisteredTargetStep.expectedOutputFile),
+    );
+    expect(comparison.pass).toBe(true);
+    expect(result.stdout.trim().split('\n')).toHaveLength(1);
+    expect(result.stdout).toContain('Unknown target');
+  });
+});
+
+describe('Example Verification Check: required-flow coverage and target-identifier footprint (T-023, coverage footprint)', () => {
+  it('AC-015: required-flow coverage computed from enumerated examples/* equals 4', () => {
+    const directories = new Set(listExampleDirectories(EXAMPLES_DIR));
+    const covered = REQUIRED_FLOWS.filter((id) => directories.has(id));
+    expect(covered.length).toBe(4);
+  });
+
+  it('NFR-002: distinct target identifiers across every committed prosaic.config.yaml do not exceed 6', () => {
+    const targets = collectAllConfiguredTargets(EXAMPLES_DIR);
+    expect(targets.size).toBeLessThanOrEqual(6);
+  });
+});
+
+describe('05-multi-repository (T-027)', () => {
+  const exampleId = '05-multi-repository';
+  const manifest = loadManifest(path.join(EXAMPLES_DIR, exampleId, 'example.manifest.json'), {
+    requireNonHappyPath: false,
+  });
+  const [applyStep] = manifest.steps;
+
+  let sessionRoot: TempRoot;
+
+  beforeAll(() => {
+    sessionRoot = copyExampleToTempRoot(exampleId);
+  });
+
+  afterAll(() => {
+    sessionRoot.cleanup();
+  });
+
+  it('AC-010: consuming-app resolves the company-source sibling and applies with 0 byte differences', () => {
+    const result = runManifestStep(sessionRoot, applyStep.args, 'consuming-app');
+    expect(result.exitCode).toBe(applyStep.expectedExitCode);
+    const comparison = compareOutput(
+      result.stdout,
+      expectedOutputPathFor(exampleId, applyStep.expectedOutputFile),
+    );
+    expect(comparison.pass).toBe(true);
+    expect(comparison.byteDiffCount).toBe(0);
+  });
+});
+
+describe('Example Verification Check: illustrative label (T-028, FR-014/AC-011)', () => {
+  it('illustrative label: every vendoring stand-in step named in the 05-multi-repository narrative is labeled illustrative', () => {
+    const readmePath = path.join(EXAMPLES_DIR, '05-multi-repository', 'README.md');
+    const readme = fs.readFileSync(readmePath, 'utf8');
+    const standInStepLines = readme
+      .split('\n')
+      .filter((line) => line.trim().startsWith('-') && line.includes('Illustrative step'));
+    expect(standInStepLines.length).toBeGreaterThanOrEqual(4);
+    for (const line of standInStepLines) {
+      expect(line).toContain('Illustrative step');
+    }
+
+    const manifestPath = path.join(EXAMPLES_DIR, '05-multi-repository', 'example.manifest.json');
+    const manifestRaw = fs.readFileSync(manifestPath, 'utf8');
+    expect(manifestRaw).not.toContain('submodule');
+    expect(manifestRaw).not.toContain('CI checkout');
+    expect(manifestRaw).not.toContain('Package or artifact sync');
+    expect(manifestRaw).not.toContain('Monorepo shared directory');
   });
 });

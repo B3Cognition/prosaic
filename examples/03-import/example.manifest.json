@@ -1,0 +1,11 @@
+{
+  "exampleId": "03-import",
+  "steps": [
+    {
+      "args": ["import", "foreign-fixture", "--format", "claude-code"],
+      "expectedOutputFile": "expected-output/01-import.txt",
+      "expectedExitCode": 1,
+      "nonHappyPath": true
+    }
+  ]
+}

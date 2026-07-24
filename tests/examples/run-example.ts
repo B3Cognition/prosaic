@@ -34,11 +34,16 @@ export function copyExampleToTempRoot(exampleId: string): TempRoot {
   return copyDirToTempRoot(path.join(EXAMPLES_DIR, exampleId));
 }
 
-/** Run one manifest step's CLI invocation inside `tempRoot`, network-guarded. */
-export function runManifestStep(tempRoot: TempRoot, args: string[]): StepResult {
+/**
+ * Run one manifest step's CLI invocation inside `tempRoot`, network-guarded.
+ * `cwdRelPath` optionally scopes the invocation to a subdirectory of the temp
+ * root (e.g. the multi-repository example's `consuming-app/`), still nested
+ * inside the same disposable copy — never outside it.
+ */
+export function runManifestStep(tempRoot: TempRoot, args: string[], cwdRelPath?: string): StepResult {
   try {
     const stdout = execFileSync('node', [BIN, ...args], {
-      cwd: tempRoot.root,
+      cwd: cwdRelPath ? tempRoot.p(cwdRelPath) : tempRoot.root,
       encoding: 'utf8',
       env: {
         ...process.env,

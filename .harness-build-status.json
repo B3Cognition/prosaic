@@ -11,11 +11,28 @@
     "T-008",
     "T-009",
     "T-010",
-    "T-029",
     "T-011",
     "T-012",
     "T-013",
-    "T-014"
+    "T-014",
+    "T-015",
+    "T-016",
+    "T-017",
+    "T-018",
+    "T-019",
+    "T-020",
+    "T-021",
+    "T-022",
+    "T-023",
+    "T-024",
+    "T-025",
+    "T-026",
+    "T-027",
+    "T-028",
+    "T-029",
+    "T-030",
+    "T-031",
+    "T-032"
   ],
-  "notes": "Branch head had no ancestor commit for T-001-T-010 despite the ledger claiming them done; the checkpoint commits existed as dangling objects that were exact fast-forward descendants of this branch's HEAD, so recovered them via `git merge --ff-only` instead of redoing the work (verified: 63/63 suites, 666/666 tests passing after recovery). Then completed the assigned candidate rows: T-029 (coverage-gap/divergence-failure harness self-tests using disposable temp fixtures, no committed dummy example), T-011/T-012/T-013 (authored and wired in examples/02-multi-artifact-type covering all 4 artifact categories plus the capability-gating warning path for cursor), T-014 (added the '## Examples' README section linking to examples/README.md, outside the harness/906 diff region). npm test: 63 suites / 670 tests passing. npm run lint: 0 errors, pre-existing warnings only."
+  "notes": "Inner fix pass addressing fulfillment-gaps.md: implemented all remaining pending tasks (T-015 through T-032) — the 03-import, 04-resolve, and 05-multi-repository examples, the MVP/full-set flow-coverage and target-footprint suite assertions, examples/README.md index, CHANGELOG entry naming all 5 examples, and the narrative-to-manifest consistency audit (no mismatches found). Full npm test passes (63 suites, 679 tests, 0 failures); npx tsc -p tsconfig.test.json --noEmit and npm run lint are clean (only pre-existing warnings in files untouched by this change). This should resolve the MISSING/PARTIAL/UNVERIFIED fulfillment-report rows for AC-006 through AC-011, AC-015, AC-016, FR-004, FR-009 through FR-014, FR-019, and NFR-002. FR-003/NFR-004 remain UNVERIFIED per fulfillment-gaps.md's own note: the network-guard mechanism is real and already implemented, but proving the runtime-threshold bar with a measured call-count artifact (vs. absence-of-crash) is a proof-rigor policy question, not a code defect — no source change was made for it."
 }
