@@ -608,6 +608,58 @@ and lets a caller distinguish "known unsupported" from "not yet declared."
 `registry.runtimeCapability(id)` throws the same `UnknownTargetError` as
 `registry.get(id)` for an unregistered target id.
 
+## Inspect Full Artifact Data
+
+`prosaic inspect` returns one discovered artifact's full neutral data —
+identifier, type, frontmatter, body, bundle root, and bundled resources — as
+structured JSON, for an external runtime orchestrator (or a human operator)
+that wants to retrieve full artifact data without writing files, calling a
+network service, or parsing generated per-target output. Unlike `resolve`,
+`inspect` takes no `--target`: its output is target-neutral, pre-translation
+data.
+
+```bash
+prosaic inspect rules/style.md
+```
+
+```json
+{"id":"rules/style.md","type":"rule","frontmatter":{"description":"style"},"body":"Be concise.\n","bundleRoot":null,"resources":[]}
+```
+
+For a skill or subagent bundle, `bundleRoot` is the bundle's absolute
+filesystem path and `resources` lists each companion file's path relative to
+`bundleRoot` plus its full content — combining the two always resolves to a
+real file:
+
+```json
+{"id":"skills/greeter/SKILL.md","type":"skill","frontmatter":{"name":"greeter"},"body":"Greet the user.\n","bundleRoot":"/abs/path/.prosaic/skills/greeter","resources":[{"relPath":"reference.md","content":"# Reference\n"}]}
+```
+
+`resources` and `bundleRoot` are always present — an empty list and `null`,
+respectively, for a standalone (non-bundle) artifact — never omitted.
+
+An optional `--json` flag is accepted for compatibility but never changes the
+output, since inspect's output is unconditionally machine-readable JSON. An
+unresolvable `artifactId` causes exit code 1 with `error: <message>` on
+stderr, e.g.:
+
+```bash
+prosaic inspect rules/does-not-exist.md
+# error: Unknown artifact: "rules/does-not-exist.md" was not found by discovery
+```
+
+Node.js/TypeScript consumers can call the library API directly instead of
+spawning the CLI: `inspectArtifact({ projectRoot, artifactId })` is exported
+from the `prosaic` package and returns an `InspectionResult` — `{ ok: true,
+data }` on success or `{ ok: false, errorKind, message }` on failure — and
+never throws. Callers branch on `errorKind`: `'artifact-not-found'` or
+`'internal'`.
+
+The not-found failure result does not yet distinguish an identifier that
+never existed from one whose source file was dropped during discovery due to
+a validation failure — both report the same `'artifact-not-found'` result in
+this release; distinguishing the two causes is deferred to a future revision.
+
 ## Command Reference
 
 ```bash
@@ -628,6 +680,10 @@ prosaic import <foreign-directory> --dry-run
 
 prosaic resolve <artifactId> --target <targetId>
 prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
+
+prosaic inspect <artifactId>
+prosaic inspect <artifactId> --json
+prosaic inspect <artifactId> --source ./ai-artifacts
 ```
 
 CLI flags override `prosaic.config.yaml` for that run.

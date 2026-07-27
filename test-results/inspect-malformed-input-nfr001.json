@@ -1,0 +1,20 @@
+{
+  "nfr": "NFR-001",
+  "requirements": [
+    "FR-007",
+    "FR-008",
+    "FR-017",
+    "NFR-001"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "inspectArtifact() driven over a broad, multi-axis corpus of malformed frontmatter, malformed prosaic.config.yaml, binary/NUL/huge/deeply-nested content, and adversarial artifact ids; records 0 uncaught crashes across every attempt (each yields either a structured errorKind or a valid inspection — never an uncaught throw).",
+  "malformedInputsTested": 40,
+  "crashes": 0,
+  "crashCases": [],
+  "handledNoCrash": 40,
+  "resolvedOk": 4,
+  "resolvedStructuredError": 36,
+  "measurableTarget": "100% of malformed-input inspection attempts in the corpus are handled without an uncaught crash.",
+  "pass": true,
+  "recordedAt": "2026-07-27T20:21:18.394Z"
+}
