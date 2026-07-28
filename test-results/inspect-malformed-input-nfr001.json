@@ -16,5 +16,5 @@
   "resolvedStructuredError": 36,
   "measurableTarget": "100% of malformed-input inspection attempts in the corpus are handled without an uncaught crash.",
   "pass": true,
-  "recordedAt": "2026-07-28T05:42:36.095Z"
+  "recordedAt": "2026-07-28T06:13:48.438Z"
 }

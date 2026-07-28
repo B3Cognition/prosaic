@@ -3,6 +3,13 @@ import * as path from 'path';
 import { inspectArtifact } from '../../src/inspect/lookup';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 
+const RESULTS_DIR = path.join(process.cwd(), 'test-results');
+const ARTIFACT_PATH = path.join(RESULTS_DIR, 'inspect-no-side-effects-nfr004.json');
+
+let trialsRun = 0;
+let writeCount = 0;
+const writeCases: string[] = [];
+
 /** Recursive, sorted snapshot of every file's relative path + byte size. */
 function snapshot(root: string): string[] {
   const out: string[] = [];
@@ -30,6 +37,33 @@ describe('T-006: 0 filesystem writes across success and every failure path (NFR-
     t.write('.prosaic/skills/greeter/reference.md', '# Reference\n');
   });
   afterEach(() => t.cleanup());
+
+  afterAll(() => {
+    fs.mkdirSync(RESULTS_DIR, { recursive: true });
+    fs.writeFileSync(
+      ARTIFACT_PATH,
+      JSON.stringify(
+        {
+          nfr: 'NFR-004',
+          requirements: ['NFR-004'],
+          evidenceKind: 'measured_runtime',
+          description:
+            'Before/after directory snapshots (relative path + byte size) taken around ' +
+            'inspectArtifact() across 4 code paths (standalone-success, bundle-success, not-found, ' +
+            'internal-error) repeated 5 times each; records the trial count and the number of ' +
+            'trials where the source root snapshot changed.',
+          trialsRun,
+          writeCount,
+          writeCases,
+          measurableTarget: '0 filesystem writes across the automated test suite',
+          pass: trialsRun > 0 && writeCount === 0,
+          recordedAt: new Date().toISOString(),
+        },
+        null,
+        2,
+      ),
+    );
+  });
 
   const runs: Array<{ label: string; call: () => void }> = [
     {
@@ -61,6 +95,12 @@ describe('T-006: 0 filesystem writes across success and every failure path (NFR-
         const before = snapshot(t.root);
         run.call();
         const after = snapshot(t.root);
+        trialsRun += 1;
+        const changed = JSON.stringify(after) !== JSON.stringify(before);
+        if (changed) {
+          writeCount += 1;
+          writeCases.push(`${run.label}#${i}`);
+        }
         expect(after).toEqual(before);
       }
     });
