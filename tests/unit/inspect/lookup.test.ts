@@ -58,6 +58,18 @@ describe('inspectArtifact', () => {
     expect(dropped.errorKind).toBe(nonexistent.errorKind);
   });
 
+  it('FR-020: the not-found failure result never surfaces a drop-reason field', () => {
+    t.write('.prosaic/rules/broken.md', '---\ndescription: [unterminated\n---\nBody.\n');
+
+    const dropped = inspectArtifact({ projectRoot: t.root, artifactId: 'rules/broken.md' });
+    const nonexistent = inspectArtifact({ projectRoot: t.root, artifactId: 'rules/never-existed.md' });
+
+    expect(dropped.ok).toBe(false);
+    expect(nonexistent.ok).toBe(false);
+    expect(dropped).not.toHaveProperty('dropReason');
+    expect(nonexistent).not.toHaveProperty('dropReason');
+  });
+
   it('AC-021: an id differing only in letter case from a real discovered id is never treated as a match', () => {
     t.write('.prosaic/rules/style.md', '---\ndescription: style\n---\nBe concise.\n');
 
