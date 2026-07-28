@@ -1,15 +1,5 @@
 {
   "status": "done",
-  "completed_task_ids": [
-    "T-001",
-    "T-002",
-    "T-003",
-    "T-004",
-    "T-005",
-    "T-006",
-    "T-007",
-    "T-008",
-    "T-009",
-    "T-010"
-  ]
+  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010"],
+  "note": "Fixed fulfillment-gaps: NFR-002, NFR-005, NFR-006, NFR-009 were UNVERIFIED (threshold_assertion_only) in fulfillment-report.md — existing coverage in tests/unit/inspect/lookup.test.ts only asserted the thresholds inline without persisting measured-runtime evidence. Added four dedicated measured-runtime test files (tests/unit/inspect/runtime-benchmark-nfr002.test.ts, determinism-nfr005.test.ts, body-completeness-nfr006.test.ts, resource-completeness-nfr009.test.ts) that each persist a measured_runtime evidence JSON to test-results/, matching the existing inspect-malformed-input-nfr001.json pattern. NFR-006/NFR-009 use the exact largest fixture-corpus body (55 bytes) and bundled-resource (33 bytes) values identified in evidence-resolution.md ER-002. Full suite: 69 suites / 731 tests passing; tsc build and eslint clean on the new files."
 }

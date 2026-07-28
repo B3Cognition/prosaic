@@ -1,0 +1,13 @@
+{
+  "nfr": "NFR-005",
+  "requirements": [
+    "NFR-005"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "5 consecutive inspectArtifact() invocations for the same bundle artifact id against an unchanged source root, each serialized and compared byte-for-byte against the first.",
+  "invocations": 5,
+  "divergentCount": 0,
+  "measurableTarget": "100% identical output across at least 2 consecutive invocations with no source changes",
+  "pass": true,
+  "recordedAt": "2026-07-28T05:42:36.023Z"
+}
