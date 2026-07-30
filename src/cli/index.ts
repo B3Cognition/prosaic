@@ -11,6 +11,7 @@ import { LossyTransformError } from '../vocabulary/lossy';
 import { importRun } from '../import/run';
 import { formatPortabilityReport, formatRunSummary } from '../import/report';
 import { resolveExecutionData } from '../resolve/lookup';
+import { inspectArtifact } from '../inspect/lookup';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../../package.json') as { version: string };
@@ -168,6 +169,33 @@ export async function main(args: string[]): Promise<number> {
           projectRoot: process.cwd(),
           artifactId: argv.artifactId as string,
           targetId: argv.target as string,
+          cli: toOverrides(argv as any),
+        });
+        if (result.ok) {
+          process.stdout.write(JSON.stringify(result.data) + '\n');
+        } else {
+          process.stderr.write(`error: ${result.message}\n`);
+          exitCode = 1;
+        }
+      },
+    )
+    .command(
+      'inspect <artifactId>',
+      "Return full data for one discovered artifact (identifier, type, frontmatter, body, bundle root, resources) as JSON",
+      (y) =>
+        y
+          .positional('artifactId', {
+            type: 'string',
+            describe: 'Artifact id to inspect (source-relative path)',
+          })
+          .option('json', {
+            type: 'boolean',
+            describe: 'Accepted for compatibility; output is always machine-readable JSON regardless of this flag',
+          }),
+      (argv) => {
+        const result = inspectArtifact({
+          projectRoot: process.cwd(),
+          artifactId: argv.artifactId as string,
           cli: toOverrides(argv as any),
         });
         if (result.ok) {

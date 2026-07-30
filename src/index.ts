@@ -17,3 +17,5 @@ export { resolveExecutionData } from './resolve/lookup';
 export { resolveExecution } from './resolve/resolve-execution';
 export type { ResolvedExecutionData, ResolveExecutionResult, ResolveOptions } from './resolve/types';
 export { ArtifactNotFoundError } from './resolve/errors';
+export { inspectArtifact } from './inspect/lookup';
+export type { InspectedArtifact, InspectedResource, InspectionResult, InspectOptions } from './inspect/types';

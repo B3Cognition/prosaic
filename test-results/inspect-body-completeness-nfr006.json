@@ -1,0 +1,15 @@
+{
+  "nfr": "NFR-006",
+  "requirements": [
+    "NFR-006"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "inspectArtifact() driven against the largest artifact-body value present in the existing test fixture corpus (tests/helpers/representative.ts's command/deploy body, per evidence-resolution.md ER-002); confirms the returned body is byte-for-byte identical, not truncated.",
+  "fixtureSourceBytes": 55,
+  "returnedBytes": 55,
+  "byteForByte": true,
+  "truncated": false,
+  "measurableTarget": "100% byte-for-byte body-content completeness with 0 truncation, for content up to 55 bytes",
+  "pass": true,
+  "recordedAt": "2026-07-28T06:13:48.616Z"
+}

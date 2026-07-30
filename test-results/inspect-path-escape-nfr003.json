@@ -1,0 +1,16 @@
+{
+  "nfr": "NFR-003",
+  "requirements": [
+    "FR-006",
+    "FR-018",
+    "NFR-003"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "inspectArtifact() driven over a corpus of adversarial artifact ids (path traversal, absolute paths, NUL-byte injection, URL-encoded traversal, a planted symlink escaping the project root) and a cross-check that no adversarial id ever returns a different artifact's data; records the trial count and the number of successful escapes.",
+  "trialsRun": 21,
+  "escapeCount": 0,
+  "escapeCases": [],
+  "measurableTarget": "0 successful escapes across all adversarial-id trials",
+  "pass": true,
+  "recordedAt": "2026-07-28T06:13:48.551Z"
+}
