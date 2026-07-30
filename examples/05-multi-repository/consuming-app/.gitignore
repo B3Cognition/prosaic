@@ -1,0 +1,5 @@
+# Generated output a reader produces by running this example locally.
+.claude/
+.cursor/
+.github/
+.prosaic-manifest.json

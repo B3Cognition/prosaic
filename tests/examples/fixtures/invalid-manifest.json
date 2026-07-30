@@ -1,0 +1,10 @@
+{
+  "exampleId": "00-fixture-invalid",
+  "steps": [
+    {
+      "args": ["apply", "--dry-run"],
+      "expectedExitCode": "zero",
+      "nonHappyPath": false
+    }
+  ]
+}

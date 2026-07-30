@@ -1,0 +1,29 @@
+{
+  "exampleId": "01-basic-write-preview-revert",
+  "steps": [
+    {
+      "args": ["apply", "--dry-run"],
+      "expectedOutputFile": "expected-output/01-preview.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["apply"],
+      "expectedOutputFile": "expected-output/02-apply.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["apply"],
+      "expectedOutputFile": "expected-output/03-reapply-noop.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["revert"],
+      "expectedOutputFile": "expected-output/04-revert-refused.txt",
+      "expectedExitCode": 1,
+      "nonHappyPath": true
+    }
+  ]
+}

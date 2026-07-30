@@ -1,0 +1,17 @@
+{
+  "exampleId": "02-multi-artifact-type",
+  "steps": [
+    {
+      "args": ["apply", "--targets", "claude-code", "--dry-run"],
+      "expectedOutputFile": "expected-output/01-apply.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["apply", "--targets", "cursor", "--dry-run"],
+      "expectedOutputFile": "expected-output/02-capability-gating-warning.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    }
+  ]
+}

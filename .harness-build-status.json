@@ -1,4 +1,10 @@
 {
   "status": "done",
-  "completed_task_ids": ["T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010", "T-011", "T-012", "T-013", "T-014"]
+  "completed_task_ids": [
+    "T-001", "T-002", "T-003", "T-004", "T-005", "T-006", "T-007", "T-008", "T-009", "T-010",
+    "T-011", "T-012", "T-013", "T-014", "T-015", "T-016", "T-017", "T-018", "T-019", "T-020",
+    "T-021", "T-022", "T-023", "T-024", "T-025", "T-026", "T-027", "T-028", "T-029", "T-030",
+    "T-031", "T-032"
+  ],
+  "notes": "Inner fix 3: resolved 'documentation-coverage-incomplete: NFR-001 must cite at least one README section'. NFR-001 requires the example check to execute within the standard verification process holding manual-only paths at exactly zero. Dispatched TECH WRITER to update specs/908-add-examples-prosaic-that/documentation-impact-report.md: the existing README ## Examples section already states each example is 'verified automatically against a captured Expected-Output Record' and ## Develop Prosaic already documents npm test as the standard verification command, so no new README prose was needed -- only the NFR-001 entry's citation was incomplete. Changed its readme_sections from [] to [Examples], added README.md to evidence_paths, and added a matching Updates Made bullet. DOCS VERIFIER's first re-validation pass caught a self-consistency defect this edit exposed: the FR-004 bullet's narrative still listed FR-016/FR-017/NFR-002/NFR-004 as entries that 'correctly keep readme_sections: []', but FR-016/FR-017 actually carry readme_sections: [Examples] per the report's own frontmatter and prior Updates Made bullets. Dispatched TECH WRITER again to make the minimal correction (parenthetical now names only NFR-002/NFR-004). Final DOCS VERIFIER pass confirmed the fix, spot-checked all cited README section names against real headings, verified CHANGELOG unchanged/accurate, and returned verdict PASS with 0 blocking findings. README.md, CHANGELOG.md, spec.md, and tasks.md were not touched by this fix. No task-scope changes; all 32 tasks remain complete."
 }

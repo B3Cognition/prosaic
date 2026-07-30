@@ -1,0 +1,1 @@
+error: Manifest absent: .prosaic-manifest.json

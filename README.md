@@ -221,6 +221,20 @@ revert: 4 file(s) removed.
 
 Hand-authored files not recorded in `.prosaic-manifest.json` are not deleted.
 
+## Examples
+
+Runnable, self-contained walkthroughs covering write/preview/revert,
+multi-artifact-type distribution, and more, each verified automatically
+against a captured Expected-Output Record. If a code change makes an
+example's live output diverge from its recorded output, the check fails
+and names that specific example rather than passing silently. An example
+that lacks a verification entry is reported as a coverage gap rather than
+a pass. The first two examples (basic write/preview/revert and
+multi-artifact-type distribution) already cover the minimum two (2) required
+flows on their own, before the full set below extends that to four or more,
+including import and resolve. See [`examples/README.md`](examples/README.md)
+for the full index.
+
 ## Company-Managed Prose Repository
 
 Yes: Prosaic can be used with a company-managed repository that owns the

@@ -1,0 +1,7 @@
+# Copy this file to examples/<id>/.gitignore.
+# Ignores generated tool-output directories and files a reader produces by
+# running this example locally; none of this is part of the example's
+# committed content.
+.claude/
+.cursor/
+.prosaic-manifest.json
