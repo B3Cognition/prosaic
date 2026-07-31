@@ -55,3 +55,25 @@ describe('NFR-005 measured determinism: repeated inspect calls are byte-identica
     expect(divergentCount).toBe(0);
   });
 });
+
+describe('NFR-005/AC-010: repeated inspect calls return an identical model_tier result', () => {
+  let t: TempRoot;
+  beforeAll(() => {
+    t = makeTempRoot();
+    t.write('.prosaic/commands/deploy.md', '---\nmodel_tier: balanced\n---\nDeploy.\n');
+  });
+  afterAll(() => t.cleanup());
+
+  it(`AC-010: ${INVOCATIONS} consecutive inspect calls on the same unmutated artifact return an identical model_tier result`, () => {
+    const outputs: string[] = [];
+    for (let i = 0; i < INVOCATIONS; i++) {
+      const result = inspectArtifact({ projectRoot: t.root, artifactId: 'commands/deploy.md' });
+      outputs.push(JSON.stringify(result.ok ? result.data.frontmatter.model_tier : null));
+    }
+
+    const divergentCount = outputs.filter((o) => o !== outputs[0]).length;
+
+    expect(divergentCount).toBe(0);
+    expect(outputs[0]).toBe(JSON.stringify('balanced'));
+  });
+});

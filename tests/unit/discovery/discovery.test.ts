@@ -3,6 +3,7 @@ import { classify } from '../../../src/discovery/classify';
 import { validateFrontmatter } from '../../../src/discovery/schemas';
 import { discover } from '../../../src/discovery/discover';
 import { makeTempRoot, TempRoot } from '../../helpers/temp-root';
+import { ArtifactType } from '../../../src/domain/types';
 
 describe('parse (T-006, FR-002)', () => {
   it('splits frontmatter map and body', () => {
@@ -98,5 +99,78 @@ describe('discover integration (T-009/T-010, FR-004/FR-005/FR-053/NFR-010)', () 
     const r = discover(t.p('.prosaic'), t.root);
     const sub = r.artifacts.find((a) => a.type === 'subagent');
     expect(sub?.resources?.map((x) => x.relPath)).toEqual(['tpl/prompt.md']);
+  });
+
+  it('drops an artifact with a non-string model_tier and warns exactly once, naming the artifact and field (FR-014, FR-015)', () => {
+    t.write('.prosaic/commands/bad.md', '---\nmodel_tier: 42\n---\nBody\n');
+    const r = discover(t.p('.prosaic'), t.root);
+    expect(r.artifacts).toHaveLength(0);
+    expect(r.warnings).toHaveLength(1);
+    expect(r.warnings[0].kind).toBe('schema-invalid');
+    expect(r.warnings[0].artifact).toBe('commands/bad.md');
+    expect(r.warnings[0].message).toContain('model_tier');
+  });
+});
+
+describe('model_tier field (T-002, FR-001..FR-006, FR-014..FR-016, NFR-002, NFR-005)', () => {
+  const baseFrontmatter: Record<ArtifactType, Record<string, unknown>> = {
+    rule: {},
+    skill: { name: 'x', description: 'y' },
+    subagent: { name: 'x', description: 'y' },
+    command: {},
+  };
+
+  const types: ArtifactType[] = ['rule', 'skill', 'subagent', 'command'];
+
+  describe.each(types)('%s', (type) => {
+    it.each([
+      ['a suggested tier value', 'strong'],
+      ['a non-suggested string', 'frontier'],
+      ['an empty string', ''],
+    ])('accepts model_tier set to %s', (_label, value) => {
+      const result = validateFrontmatter(type, { ...baseFrontmatter[type], model_tier: value });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.frontmatter.model_tier).toBe(value);
+    });
+
+    it('accepts omission of model_tier, producing 0 changes to prior behavior', () => {
+      const result = validateFrontmatter(type, { ...baseFrontmatter[type] });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.frontmatter.model_tier).toBeUndefined();
+    });
+
+    it('rejects a non-string model_tier value with exactly 1 schema-invalid outcome', () => {
+      const result = validateFrontmatter(type, { ...baseFrontmatter[type], model_tier: 42 });
+      expect(result.ok).toBe(false);
+      if (!result.ok) expect(result.field).toBe('model_tier');
+    });
+  });
+
+  it('stores "strong" and "Strong" as distinct, unequal values with 0 normalization', () => {
+    const lower = validateFrontmatter('rule', { model_tier: 'strong' });
+    const upper = validateFrontmatter('rule', { model_tier: 'Strong' });
+    expect(lower.ok).toBe(true);
+    expect(upper.ok).toBe(true);
+    if (lower.ok && upper.ok) {
+      expect(lower.frontmatter.model_tier).toBe('strong');
+      expect(upper.frontmatter.model_tier).toBe('Strong');
+      expect(lower.frontmatter.model_tier).not.toBe(upper.frontmatter.model_tier);
+    }
+  });
+
+  it('accepts the identical value domain as effort, with 0 divergent outcomes (NFR-002)', () => {
+    for (const value of ['strong', 'frontier', '']) {
+      const effortResult = validateFrontmatter('rule', { effort: value });
+      const tierResult = validateFrontmatter('rule', { model_tier: value });
+      expect(tierResult.ok).toBe(effortResult.ok);
+      expect(tierResult.ok).toBe(true);
+    }
+  });
+
+  it('rejects the identical value domain as effort, with 0 divergent outcomes (NFR-005)', () => {
+    const effortResult = validateFrontmatter('rule', { effort: 42 });
+    const tierResult = validateFrontmatter('rule', { model_tier: 42 });
+    expect(tierResult.ok).toBe(effortResult.ok);
+    expect(tierResult.ok).toBe(false);
   });
 });
