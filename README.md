@@ -604,6 +604,14 @@ prosaic resolve rules/style.md --target no-such-target
 # error: Unknown target: "no-such-target" is not in the target registry
 ```
 
+An artifact's optional `model_tier` frontmatter field (a permissive string
+such as `fast`, `balanced`, `strong`, `ultra`, or any other value) is never
+used to populate `model` — Prosaic defines no tier-to-model mapping.
+`model_tier` is visible verbatim via `inspect` and passed through unchanged
+into every target's rendered output; see [Target On-Disk
+Contracts](docs/target-contracts.md) for the full neutral-adjacent
+frontmatter vocabulary.
+
 Node.js/TypeScript consumers can call the library API directly instead of
 spawning the CLI: `resolveExecutionData({ projectRoot, artifactId, targetId })`
 is exported from the `prosaic` package and returns a `ResolveExecutionResult`

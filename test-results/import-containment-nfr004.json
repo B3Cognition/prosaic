@@ -54,5 +54,5 @@
   "referencedPathsRefusedOrWarned": 3,
   "measurableTarget": "100% of writes asserted contained; every out-of-root path refused or warned (symlink-aware)",
   "pass": true,
-  "recordedAt": "2026-07-31T20:41:55.217Z"
+  "recordedAt": "2026-07-31T21:20:24.660Z"
 }

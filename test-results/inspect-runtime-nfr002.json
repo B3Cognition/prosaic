@@ -6,11 +6,11 @@
   "evidenceKind": "measured_runtime",
   "description": "25 back-to-back trials pairing a resolveExecutionData() call with an inspectArtifact() call against the same unchanged source root and artifact id, each measured with process.hrtime.bigint(); records whether every inspect trial stayed within 2x of that trial's resolve runtime (floored to avoid sub-ms timer noise).",
   "trials": 25,
-  "resolveNanosMedian": 241583,
-  "inspectNanosMedian": 201417,
+  "resolveNanosMedian": 221708,
+  "inspectNanosMedian": 187000,
   "floorNanos": 2000000,
   "violations": 0,
   "measurableTarget": "within 2x of resolve's measured runtime baseline for the same source size, on every trial",
   "pass": true,
-  "recordedAt": "2026-07-31T20:41:56.865Z"
+  "recordedAt": "2026-07-31T21:20:24.605Z"
 }
