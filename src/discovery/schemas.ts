@@ -23,6 +23,7 @@ const commonNeutral = {
   color: z.string().optional(),
   tools: z.union([z.string(), z.array(z.string())]).optional(),
   effort: z.string().optional(),
+  model_tier: z.string().optional(),
   invocation: z.string().optional(),
   capability: z.union([z.string(), z.array(z.string())]).optional(),
   overrides: z.record(z.string(), z.record(z.string(), z.unknown())).optional(),

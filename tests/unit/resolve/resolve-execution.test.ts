@@ -103,4 +103,36 @@ describe('resolveExecution', () => {
 
     expect(data.tools).toEqual({ status: 'resolved', value: ['override-wins'] });
   });
+
+  it('AC-021: model_tier is never derived into a modelTier-shaped field anywhere in the resolved result (T-006, FR-013)', () => {
+    const descriptor = makeDescriptor({ translations: { capability: { toKey: 'model' } } });
+    const artifact = {
+      ...REPRESENTATIVE.rule,
+      frontmatter: { ...REPRESENTATIVE.rule.frontmatter, model_tier: 'strong', capability: 'opus' },
+    };
+
+    const data = resolveExecution(artifact, descriptor);
+
+    expect(Object.keys(data)).not.toContain('modelTier');
+    expect(Object.keys(data)).not.toContain('model_tier');
+    expect(JSON.stringify(data)).not.toContain('modelTier');
+  });
+
+  it("AC-020: capability's resolved model value is unaffected by model_tier's presence or value (T-010, FR-018)", () => {
+    const descriptor = makeDescriptor({ translations: { capability: { toKey: 'model' } } });
+    const withTier = {
+      ...REPRESENTATIVE.rule,
+      frontmatter: { ...REPRESENTATIVE.rule.frontmatter, model_tier: 'strong', capability: 'opus' },
+    };
+    const withoutTier = {
+      ...REPRESENTATIVE.rule,
+      frontmatter: { ...REPRESENTATIVE.rule.frontmatter, capability: 'opus' },
+    };
+
+    const dataWithTier = resolveExecution(withTier, descriptor);
+    const dataWithoutTier = resolveExecution(withoutTier, descriptor);
+
+    expect(dataWithTier.model).toEqual(dataWithoutTier.model);
+    expect(dataWithTier.model).toEqual({ status: 'resolved', value: 'opus' });
+  });
 });
