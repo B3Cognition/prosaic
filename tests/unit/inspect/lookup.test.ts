@@ -157,4 +157,39 @@ describe('inspectArtifact', () => {
     expect(result.data.body).toBe(body);
     expect(result.data.resources[0].content).toBe(resourceContent);
   });
+
+  describe('model_tier passthrough (T-003, FR-007, FR-008)', () => {
+    it('AC-007: a command artifact declaring model_tier: balanced returns it unchanged', () => {
+      t.write('.prosaic/commands/deploy.md', '---\nmodel_tier: balanced\n---\nDeploy.\n');
+
+      const result = inspectArtifact({ projectRoot: t.root, artifactId: 'commands/deploy.md' });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.frontmatter.model_tier).toBe('balanced');
+    });
+
+    it('AC-008: a subagent artifact declaring model_tier: strong returns it unchanged', () => {
+      t.write(
+        '.prosaic/subagents/reviewer/AGENT.md',
+        '---\nname: reviewer\ndescription: d\nmodel_tier: strong\n---\nReview.\n',
+      );
+
+      const result = inspectArtifact({ projectRoot: t.root, artifactId: 'subagents/reviewer/AGENT.md' });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.frontmatter.model_tier).toBe('strong');
+    });
+
+    it('AC-009: an artifact omitting model_tier returns a frontmatter with 0 model_tier fields', () => {
+      t.write('.prosaic/rules/style.md', '---\ndescription: style\n---\nBe concise.\n');
+
+      const result = inspectArtifact({ projectRoot: t.root, artifactId: 'rules/style.md' });
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+      expect(result.data.frontmatter).not.toHaveProperty('model_tier');
+    });
+  });
 });

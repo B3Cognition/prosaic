@@ -49,3 +49,28 @@ describe('per-target conformance fixtures (T-044..T-048, FR-009/AC-024/AC-025)',
     }
   }
 });
+
+describe('model_tier passthrough per built-in target (T-008, spec 910-add-model-tier-as)', () => {
+  // T-004 fixture-safety sweep: `grep -rn "toEqual\|toStrictEqual"
+  // tests/conformance/*.test.ts tests/examples/fixtures/` found 0 matches — no
+  // exact-key-set assertion pins a full frontmatter object in either location,
+  // so this block adds a new targeted assertion rather than updating an
+  // existing one.
+  const registry = builtinRegistry();
+  const descriptors = registry.all();
+
+  for (const desc of descriptors) {
+    for (const type of ALL_TYPES) {
+      if (!supports(desc, type)) continue;
+
+      it(`${desc.id} · ${type} renders model_tier: frontier unchanged`, () => {
+        const withTier = {
+          ...REPRESENTATIVE[type],
+          frontmatter: { ...REPRESENTATIVE[type].frontmatter, model_tier: 'frontier' },
+        };
+        const out = runPipeline(withTier, desc, { lossyPolicy: 'warn' });
+        expect(out.content).toMatch(/model_tier\s*[:=]\s*"?frontier"?/);
+      });
+    }
+  }
+});

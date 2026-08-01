@@ -94,4 +94,14 @@ describe('T-003: CLI `inspect` subcommand integration', () => {
     expect(t.read('.prosaic/rules/style.md')).toBe(before);
     expect(t.exists('.claude')).toBe(false);
   });
+
+  it('T-003/FR-007: model_tier round-trips through the CLI unchanged', () => {
+    t.write('.prosaic/commands/deploy.md', '---\nmodel_tier: balanced\n---\nDeploy.\n');
+
+    const r = runCli(t.root, ['inspect', 'commands/deploy.md']);
+
+    expect(r.status).toBe(0);
+    const parsed = JSON.parse(r.stdout);
+    expect(parsed.frontmatter.model_tier).toBe('balanced');
+  });
 });

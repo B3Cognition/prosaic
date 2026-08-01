@@ -20,4 +20,18 @@ Because these contracts are undocumented upstream and drift over time
 `conformance-fixtures/`. A drift in a tool's contract surfaces as a fixture diff
 rather than a silent breakage.
 
+## Neutral-adjacent frontmatter vocabulary
+
+Every artifact type accepts the 7 Neutral Behavior Vocabulary keys — `execution`,
+`capability`, `effort`, `tools`, `invocation`, `visibility`, `color` — each
+translated per target (`translations`) and stripped from the emitted frontmatter.
+
+`model_tier` is a permissive-string frontmatter field validated the same way as
+`effort`, but it is **not** a member of the Neutral Behavior Vocabulary and is
+**excluded from translation**: it is never stripped, never mapped through a
+target's `translations`, and always passes through unchanged into the rendered
+output. Prosaic defines no mapping from a `model_tier` value (for example
+`fast`, `balanced`, `strong`, `ultra`) to a concrete model identifier — that
+resolution is left to the AI-tool runtime reading the rendered file.
+
 See [add-a-target.md](add-a-target.md) to add or update a target.
