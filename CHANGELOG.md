@@ -29,10 +29,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example Verification Check (`tests/examples/examples.test.ts`, auto-discovered by the existing Jest `testMatch`): runs every example's declared CLI steps and byte-diffs live output against a committed Expected-Output Record, reporting a coverage gap (never a silent pass) for any example missing its `example.manifest.json`, and naming exactly one divergence-failure per byte-mismatched step.
 - `prosaic inspect <artifactId>` CLI subcommand and library API export `inspectArtifact(opts: InspectOptions): InspectionResult`, both newly exported from the package root: a supported, machine-readable "inspect" capability that returns one discovered artifact's full neutral data (identifier, type, frontmatter, body, bundle root, bundled resources) as structured JSON, without writing any file or invoking a network call. Follows the same never-throws, discover-then-find, JSON-on-stdout pattern as `resolve`; an optional `--json` CLI flag is accepted for compatibility but never changes output, since output is unconditionally machine-readable. `resources`/`bundleRoot` are always present (`[]`/`null` for a standalone artifact), never omitted. Identifier lookup is exact case-sensitive comparison; a nonexistent identifier and a discovery-validation-dropped identifier both report the same `errorKind: 'artifact-not-found'` result in this release — distinguishing the two causes is deferred to a future revision. New exported types: `InspectedArtifact`, `InspectedResource`, `InspectionResult`, `InspectOptions`. No `--target` option exists on this command; inspect returns target-neutral, pre-translation data only.
 - `model_tier` optional frontmatter field (rule, skill, subagent, command): a permissive-string field for declaring a coarse capability tier (e.g. `fast`, `balanced`, `strong`, `ultra`, or any other string) without naming a concrete model. Validated at Discovery identically to `effort`; visible verbatim via `inspect`; passed through unchanged into every target's rendered output with no Prosaic-defined tier-to-model mapping — deliberately excluded from the Neutral Behavior Vocabulary (`NEUTRAL_KEYS`), so it is never translated or stripped. See [Target On-Disk Contracts](docs/target-contracts.md) for the full neutral-adjacent frontmatter vocabulary.
+- Global `--color` / `--no-color` CLI flag to force terminal color on or off (auto-detected by default), accepted by `apply`, `import`, and `revert`.
+- Standard `NO_COLOR` and `FORCE_COLOR` environment support, including `FORCE_COLOR=0` (disable) and `NO_COLOR`-wins-over-`FORCE_COLOR` precedence.
+- Per-stream TTY-gated ANSI color styling of previews, run summaries, warnings, and errors (stdout and stderr resolved independently) via a plain-by-default, zero-runtime-dependency ANSI helper.
+- Per-state color coding (created / overwrite / error / unchanged) plus an underlined path style, each paired with a non-color text/glyph signal for accessibility.
+- ASCII glyph fallback (`[ok]`, `[drop]`, `->`) so non-interactive and legacy/non-UTF terminals stay ASCII-only.
+- Aligned run-summary counts and a grouped portability report with one remediation line per warning, deterministic at any terminal width.
 
 ### Changed
 
 - README "Existing Repositories" adoption guide now points at the shipped `prosaic import` command for reverse-importing native tool directories, replacing the earlier "no import command yet" / "reverse import is not in the current CLI" notes that predated the import feature.
+- Warning lines now use the structured format `warning[<kind>] <artifact> → <target>: <message>` (the arrow is `->` in plain mode); error lines consistently begin with `error: `.
 
 ### Performance
 
@@ -43,6 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Measured-runtime crash-resilience evidence for inspect (NFR-001): `inspectArtifact()` driven over a 40-case multi-axis malformed-input corpus (malformed frontmatter YAML, malformed `prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial artifact ids, an unreadable-config fault) with 0 uncaught crashes — every attempt yields either a valid inspection or a structured `errorKind` — captured to `test-results/inspect-malformed-input-nfr001.json`.
 - Benchmark artifacts committed to `test-results/` for auditable CI history across iterations.
 - Full `test-results/` suite re-verified with no regressions; all NFR/SC evidence artifacts refreshed with new `recordedAt` timestamps and unchanged pass outcomes.
+- Verified styled-run wall-clock stays within 5% of the plain baseline (NFR-006).
 
 ## [0.1.0] - 2026-07-09
 

@@ -699,6 +699,8 @@ prosaic revert --targets cursor
 prosaic import <foreign-directory>
 prosaic import <foreign-directory> --format <tool-id>
 prosaic import <foreign-directory> --dry-run
+prosaic apply --no-color
+prosaic import <foreign-directory> --color
 
 prosaic resolve <artifactId> --target <targetId>
 prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
@@ -708,7 +710,37 @@ prosaic inspect <artifactId> --json
 prosaic inspect <artifactId> --source ./ai-artifacts
 ```
 
-CLI flags override `prosaic.config.yaml` for that run.
+CLI flags override `prosaic.config.yaml` for that run. `--color` / `--no-color`
+controls human-readable output from `apply`, `import`, and `revert`. The
+machine-readable JSON emitted by `resolve` and `inspect` is never styled, so its
+bytes remain stable.
+
+## Terminal Output & Color
+
+Prosaic styles previews, run summaries, warnings, and errors with ANSI color
+when it detects an interactive terminal, and falls back to plain, ASCII-only
+text otherwise. Color never changes the bytes of generated artifact files — it
+only affects what Prosaic prints to the terminal.
+
+- **Auto-detected by default:** color is on for an interactive terminal and off
+  when output is piped or redirected. stdout and stderr are evaluated
+  independently, so redirecting one stream does not affect the other.
+- **`--color` / `--no-color`:** force color on or off for the run. The flag
+  overrides every environment convention below.
+- **`NO_COLOR`:** if set to any value (even empty), color is disabled regardless
+  of TTY. See <https://no-color.org>.
+- **`FORCE_COLOR`:** enables color even on a non-interactive stream;
+  `FORCE_COLOR=0` disables color.
+- **Precedence when both are set:** `NO_COLOR` wins and output stays plain.
+
+Piped or non-interactive human-readable output is always plain and ASCII-only,
+so `grep`, log parsers, and snapshot tests keep working. In plain mode, outcome
+markers are `[ok]`, `[drop]`, and `->`; in styled mode they may render as `✓`,
+`✗`, and `→`.
+
+Warning lines use the structured format
+`warning[<kind>] <artifact> → <target>: <message>` (the arrow is `->` in plain
+mode), and error lines begin with `error: `.
 
 ## Safety Model
 
@@ -764,6 +796,14 @@ want to keep more overwrite history.
 Some targets cannot represent every neutral frontmatter key. With
 `lossyPolicy: warn`, Prosaic writes the file and reports the dropped intent. With
 `lossyPolicy: error` or `--lossy error`, the run fails instead.
+
+### Colored output in logs or CI
+
+If captured output contains ANSI escape codes, or a legacy terminal shows
+garbled glyphs, force the plain, ASCII-only path with `--no-color` or by setting
+`NO_COLOR=1`. Piped output is already plain by default; the flag is only needed
+when a stream is a TTY or `FORCE_COLOR` is set. See
+[Terminal Output & Color](#terminal-output--color).
 
 ## Develop Prosaic
 

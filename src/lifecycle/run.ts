@@ -15,6 +15,7 @@ import { executeApply } from './executor';
 import { previewPlan } from './dry-run';
 import { changedFileCount } from './no-op-detect';
 import { RunPlan } from './plan';
+import { Theme, plainTheme } from '../cli/theme';
 
 export interface RunOptions {
   projectRoot: string;
@@ -23,6 +24,8 @@ export interface RunOptions {
   globalDir?: string;
   /** Injectable registry (defaults to the built-in set); used by tests. */
   registry?: Registry;
+  /** Stream theme for previewing (defaults to plain); set by the CLI per stream. */
+  theme?: Theme;
 }
 
 export interface ApplyReport {
@@ -103,7 +106,7 @@ export function apply(opts: RunOptions): ApplyReport {
       ...base,
       empty: discovery.report.empty,
       warnings,
-      preview: previewPlan(plan, 'apply'),
+      preview: previewPlan(plan, 'apply', opts.theme ?? plainTheme),
       changedFiles,
       plan,
     };
@@ -141,7 +144,7 @@ export function revert(opts: RunOptions): RevertReport {
   const plan = planRevert(manifest, config.targets);
 
   if (opts.dryRun) {
-    return { dryRun: true, removed: 0, preview: previewPlan(plan, 'revert'), plan };
+    return { dryRun: true, removed: 0, preview: previewPlan(plan, 'revert', opts.theme ?? plainTheme), plan };
   }
 
   const removed = executeRevert(plan, fsGate, manifest);

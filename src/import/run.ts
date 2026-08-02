@@ -264,12 +264,16 @@ export function importRun(
     });
   }
 
-  const report = buildImportReport(fileReports, {
-    resolvedFormat: resolvedTargetId,
-    resolutionMethod,
-    dryRun: opts.dryRun ?? false,
-    overriddenCandidates,
-  });
+  const report = buildImportReport(
+    fileReports,
+    {
+      resolvedFormat: resolvedTargetId,
+      resolutionMethod,
+      dryRun: opts.dryRun ?? false,
+      overriddenCandidates,
+    },
+    opts.theme,
+  );
 
   return report;
 }

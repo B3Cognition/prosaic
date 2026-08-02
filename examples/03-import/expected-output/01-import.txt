@@ -1,7 +1,10 @@
 format: claude-code (explicitly-specified)
-  ✗ foreign-fixture/.claude/broken-notes.md: frontmatter block is not closed with a terminating "---"
+  [drop] foreign-fixture/.claude/broken-notes.md: frontmatter block is not closed with a terminating "---"
     warning[malformed-frontmatter]: frontmatter block is not closed with a terminating "---"
-  ✓ foreign-fixture/.claude/team-guardrails.md → rules/team-guardrails.md [fully-invertible]
-import: format=claude-code (explicitly-specified), 1 imported, 1 dropped, 1 round-trip verified
+  [ok] foreign-fixture/.claude/team-guardrails.md -> rules/team-guardrails.md [fully-invertible]
+import: format=claude-code (explicitly-specified)
+  imported             1
+  dropped              1
+  round-trip verified  1
   fidelity[claude-code]: fully-invertible (lossless-where-invertible with overrides fallback)
 warning[malformed-frontmatter] foreign-fixture/.claude/broken-notes.md: frontmatter block is not closed with a terminating "---"

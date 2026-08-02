@@ -2,7 +2,7 @@
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import { apply, revert } from '../lifecycle/run';
-import { surfaceWarnings } from '../lifecycle/warnings';
+import { surfaceWarnings, formatWarningLine } from '../lifecycle/warnings';
 import { CliOverrides } from '../config/cli-override';
 import { ConfigError } from '../config/load';
 import { UnknownTargetError } from '../registry/registry';
@@ -12,6 +12,8 @@ import { importRun } from '../import/run';
 import { formatPortabilityReport, formatRunSummary } from '../import/report';
 import { resolveExecutionData } from '../resolve/lookup';
 import { inspectArtifact } from '../inspect/lookup';
+import { resolvePresentation } from './presentation';
+import { Theme, themeFor } from './theme';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const pkg = require('../../package.json') as { version: string };
@@ -30,17 +32,48 @@ function toOverrides(argv: {
   return cli;
 }
 
-function reportError(e: unknown): number {
+/** The theme resolved independently for each output stream (FR-005, FR-016). */
+interface StreamThemes {
+  /** Theme for stdout — where previews, summaries, and apply warnings print. */
+  out: Theme;
+  /** Theme for stderr — where errors and import warnings print. */
+  err: Theme;
+}
+
+/**
+ * Resolve stdout and stderr presentation independently so exactly one of two
+ * mixed-interactivity streams carries ANSI (FR-005). `colorFlag` comes from the
+ * global `--color` / `--no-color` option and overrides the environment.
+ */
+function resolveThemes(colorFlag?: boolean): StreamThemes {
+  return {
+    out: themeFor(
+      resolvePresentation({ isTTY: process.stdout.isTTY, env: process.env, colorFlag }),
+    ),
+    err: themeFor(
+      resolvePresentation({ isTTY: process.stderr.isTTY, env: process.env, colorFlag }),
+    ),
+  };
+}
+
+/**
+ * Report a caught error on stderr with the consistent `error: ` prefix (FR-009).
+ * The severity token is colored red only when stderr is styled; under the plain
+ * theme the line begins with the literal prefix `error: ` and returns exit 1
+ * (FR-030).
+ */
+function reportError(e: unknown, errTheme: Theme): number {
+  const prefix = errTheme.errorPrefix('error:');
   if (
     e instanceof ConfigError ||
     e instanceof UnknownTargetError ||
     e instanceof ManifestError ||
     e instanceof LossyTransformError
   ) {
-    process.stderr.write(`error: ${e.message}\n`);
+    process.stderr.write(`${prefix} ${e.message}\n`);
     return 1;
   }
-  process.stderr.write(`error: ${(e as Error).message}\n`);
+  process.stderr.write(`${prefix} ${(e as Error).message}\n`);
   return 1;
 }
 
@@ -62,19 +95,28 @@ export async function main(args: string[]): Promise<number> {
     })
     .option('source', { type: 'string', describe: 'Source-of-truth directory' })
     .option('lossy', { choices: ['warn', 'error'], describe: 'Lossy-transform policy' })
+    .option('color', {
+      type: 'boolean',
+      describe: 'Force colored output on, or off with --no-color (auto-detected by default)',
+    })
     .command(
       ['apply', '$0'],
       'Render and write selected artifacts to every selected supporting target',
       (y) => y.option('dry-run', { type: 'boolean', default: false }),
       (argv) => {
+        const themes = resolveThemes((argv as any).color as boolean | undefined);
         try {
           const report = apply({
             projectRoot: process.cwd(),
             cli: toOverrides(argv as any),
             dryRun: argv['dry-run'] as boolean,
+            theme: themes.out,
           });
           for (const line of report.preview) process.stdout.write(line + '\n');
-          for (const line of surfaceWarnings(report.warnings)) process.stdout.write(line + '\n');
+          // Apply warnings stay on stdout (A-005): preserve the pre-enhancement stream.
+          for (const line of surfaceWarnings(report.warnings, themes.out)) {
+            process.stdout.write(line + '\n');
+          }
           if (report.zeroTargets) {
             process.stdout.write('0 targets selected; nothing to do.\n');
           } else if (!report.dryRun) {
@@ -85,7 +127,7 @@ export async function main(args: string[]): Promise<number> {
             );
           }
         } catch (e) {
-          exitCode = reportError(e);
+          exitCode = reportError(e, themes.err);
         }
       },
     )
@@ -105,6 +147,7 @@ export async function main(args: string[]): Promise<number> {
           .option('dry-run', { type: 'boolean', default: false })
           .option('overwrite', { type: 'boolean', default: false }),
       (argv) => {
+        const themes = resolveThemes((argv as any).color as boolean | undefined);
         try {
           const report = importRun({
             projectRoot: process.cwd(),
@@ -113,20 +156,21 @@ export async function main(args: string[]): Promise<number> {
             sourceDir: (argv as any).source as string | undefined,
             dryRun: argv['dry-run'] as boolean,
             overwrite: argv['overwrite'] as boolean,
+            theme: themes.out,
           });
           for (const line of report.preview) process.stdout.write(line + '\n');
-          for (const line of formatRunSummary(report)) process.stdout.write(line + '\n');
-          for (const line of formatPortabilityReport(report)) process.stdout.write(line + '\n');
+          for (const line of formatRunSummary(report, themes.out)) process.stdout.write(line + '\n');
+          for (const line of formatPortabilityReport(report, themes.out)) {
+            process.stdout.write(line + '\n');
+          }
+          // Import warnings stay on stderr (A-005): preserve the pre-enhancement stream.
           for (const w of report.allWarnings) {
-            const where = [w.artifact, w.target].filter(Boolean).join(' → ');
-            process.stderr.write(
-              `warning[${w.kind}]${where ? ' ' + where : ''}: ${w.message}\n`,
-            );
+            process.stderr.write(formatWarningLine(w, themes.err) + '\n');
           }
           const hasErrors = report.files.some((f) => !f.outcome.ok);
           if (hasErrors) exitCode = 1;
         } catch (e) {
-          exitCode = reportError(e);
+          exitCode = reportError(e, themes.err);
         }
       },
     )
@@ -135,18 +179,20 @@ export async function main(args: string[]): Promise<number> {
       'Remove previously distributed tool-generated files',
       (y) => y.option('dry-run', { type: 'boolean', default: false }),
       (argv) => {
+        const themes = resolveThemes((argv as any).color as boolean | undefined);
         try {
           const report = revert({
             projectRoot: process.cwd(),
             cli: toOverrides(argv as any),
             dryRun: argv['dry-run'] as boolean,
+            theme: themes.out,
           });
           for (const line of report.preview) process.stdout.write(line + '\n');
           if (!report.dryRun) {
             process.stdout.write(`revert: ${report.removed} file(s) removed.\n`);
           }
         } catch (e) {
-          exitCode = reportError(e);
+          exitCode = reportError(e, themes.err);
         }
       },
     )

@@ -64,6 +64,8 @@ export interface ImportRunOptions {
   sourceDir?: string;
   dryRun?: boolean;
   overwrite?: boolean;
+  /** Stdout stream theme used to style the pre-rendered preview (defaults to plain). */
+  theme?: import('../cli/theme').Theme;
 }
 
 /** Neutralized representation of a single imported file, ready for source write. */
