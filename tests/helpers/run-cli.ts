@@ -6,7 +6,8 @@ import * as path from 'path';
  * separate fields (T-001). The pre-existing runCli concatenated stdout+stderr on
  * the error path, which hid stream assignment; this helper keeps them separate so
  * the styling matrix can assert per-stream escape counts. A per-case `env`
- * override is merged over `process.env` so tests can force NO_COLOR / FORCE_COLOR.
+ * override replaces inherited NO_COLOR / FORCE_COLOR values so host defaults
+ * cannot leak into explicit color-convention cases.
  */
 
 /** Absolute path to the compiled CLI entrypoint. */
@@ -23,10 +24,16 @@ export function runCli(
   args: string[],
   env?: NodeJS.ProcessEnv,
 ): CliResult {
+  const childEnv = { ...process.env };
+  if (env) {
+    delete childEnv.NO_COLOR;
+    delete childEnv.FORCE_COLOR;
+    Object.assign(childEnv, env);
+  }
   const r = spawnSync('node', [CLI_BIN, ...args], {
     cwd,
     encoding: 'utf8',
-    env: env ? { ...process.env, ...env } : process.env,
+    env: childEnv,
   });
   return {
     stdout: r.stdout ?? '',

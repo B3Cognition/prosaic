@@ -2,6 +2,8 @@ import { plainTheme, styledTheme, themeFor, Theme } from '../../../src/cli/theme
 import { stripAnsi, countEscapes, isAscii } from '../../helpers/strip-ansi';
 import { REQUIRED_TOKENS, FIDELITY_LABELS } from '../../helpers/tokens';
 
+const OPENING_SGR = new RegExp(String.raw`\x1b\[(\d+)m`);
+
 /**
  * T-013 (INFRA): the injected theme seam. Substring invariance is the correctness
  * firewall — stripping ANSI from any styled wrapper output returns the input, and
@@ -31,10 +33,10 @@ describe('injected theme seam (T-013)', () => {
 
   it('each styled outcome wrapper emits one unique color code', () => {
     const outcomeWrappers = [styledTheme.created, styledTheme.overwrite, styledTheme.error, styledTheme.unchanged];
-    const codes = outcomeWrappers.map((w) => w('x').match(/\x1b\[(\d+)m/)![1]);
+    const codes = outcomeWrappers.map((w) => w('x').match(OPENING_SGR)![1]);
     expect(new Set(codes).size).toBe(codes.length);
     // The path style is disjoint from every outcome-state color (FR-025).
-    const pathCode = styledTheme.path('x').match(/\x1b\[(\d+)m/)![1];
+    const pathCode = styledTheme.path('x').match(OPENING_SGR)![1];
     expect(codes).not.toContain(pathCode);
   });
 

@@ -1,6 +1,8 @@
 import { wrap, green, yellow, red, gray, dim, underline } from '../../../src/cli/style';
 import { stripAnsi, countSGR } from '../../helpers/strip-ansi';
 
+const OPENING_SGR = new RegExp(String.raw`\x1b\[(\d+)m`);
+
 /**
  * T-010 (FR-001, NFR-001): the zero-dependency ANSI helper emits exactly one
  * opening SGR plus one reset per wrapper and never alters the wrapped string.
@@ -34,7 +36,7 @@ describe('zero-dependency ANSI SGR helper (T-010)', () => {
   });
 
   it('the color wrappers use distinct opening codes', () => {
-    const codes = Object.values(wrappers).map((fn) => fn('x').match(/\x1b\[(\d+)m/)![1]);
+    const codes = Object.values(wrappers).map((fn) => fn('x').match(OPENING_SGR)![1]);
     expect(new Set(codes).size).toBe(codes.length);
   });
 });

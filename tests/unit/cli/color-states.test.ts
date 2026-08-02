@@ -5,9 +5,11 @@ import { RunPlan } from '../../../src/lifecycle/plan';
 import { FileReport } from '../../../src/import/types';
 import { isAscii, stripAnsi } from '../../helpers/strip-ansi';
 
+const OPENING_SGR = new RegExp(String.raw`\x1b\[(\d+)m`, 'g');
+
 /** All SGR opening codes present in a string, in order. */
 function codes(s: string): string[] {
-  return [...s.matchAll(/\x1b\[(\d+)m/g)].map((m) => m[1]);
+  return [...s.matchAll(OPENING_SGR)].map((m) => m[1]);
 }
 
 const plan: RunPlan = {

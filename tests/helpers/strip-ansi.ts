@@ -7,7 +7,7 @@
  */
 
 /** Matches one SGR sequence: ESC `[` params `m`. Global so it counts every hit. */
-export const ANSI_SGR = /\x1b\[[0-9;]*m/g;
+export const ANSI_SGR = new RegExp(String.raw`\x1b\[[0-9;]*m`, 'g');
 
 /** Remove every ANSI SGR sequence, leaving the underlying text intact. */
 export function stripAnsi(s: string): string {
