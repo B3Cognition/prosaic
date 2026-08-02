@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import { GuardedFs } from '../../src/write/guarded-fs';
 import { BackupManager } from '../../src/write/backup';
-import { isBackupPath } from '../../src/write/backup-location';
+import { isBackupPath } from '../../src/domain/backup-location';
 import { makeTempRoot, TempRoot } from '../helpers/temp-root';
 
 describe('BackupManager (T-003, FR-025/FR-049/FR-055)', () => {

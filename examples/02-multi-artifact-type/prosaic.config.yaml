@@ -1,0 +1,5 @@
+targets:
+  - claude-code
+  - cursor
+artifactTypes: [rule, command, skill, subagent]
+lossyPolicy: warn

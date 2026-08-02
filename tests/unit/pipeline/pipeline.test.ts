@@ -2,6 +2,7 @@ import { Artifact } from '../../../src/domain/types';
 import { resolveDeploymentType } from '../../../src/pipeline/stages/stage0-resolve';
 import { runPipeline, PIPELINE_STAGES } from '../../../src/pipeline/runner';
 import { makeDescriptor } from '../../helpers/descriptor-factory';
+import { NEUTRAL_KEYS, NeutralKey } from '../../../src/registry/descriptor';
 
 function artifact(over: Partial<Artifact> = {}): Artifact {
   return {
@@ -112,6 +113,66 @@ describe('stage 6 frontmatter rewrite (T-024, FR-043)', () => {
     expect(out.content).toContain('keepme: 1');
     expect(out.content).not.toContain('dropme');
     expect(out.content).toContain('injected: x');
+  });
+});
+
+describe('model_tier render pipeline non-interaction (T-005, FR-009/FR-010/FR-011/FR-017, NFR-004)', () => {
+  it('AC-011: model_tier appears unchanged in rendered output', () => {
+    const a = artifact({ frontmatter: { model_tier: 'ultra' } });
+    const out = runPipeline(a, makeDescriptor());
+    expect(out.content).toContain('model_tier: ultra');
+  });
+
+  it('AC-012/AC-014: 0 fields are derived from model_tier and 0 lossy-intent findings are recorded for it', () => {
+    const a = artifact({ frontmatter: { model_tier: 'ultra' } });
+    const desc = makeDescriptor({ id: 'nocaps', translations: {} });
+    const out = runPipeline(a, desc, { lossyPolicy: 'warn' });
+    const occurrences = out.content.split('model_tier').length - 1;
+    expect(occurrences).toBe(1);
+    expect(out.warnings.some((w) => w.message.includes('model_tier'))).toBe(false);
+    expect(out.warnings.some((w) => w.kind === 'lossy-intent' && w.message.includes('model_tier'))).toBe(false);
+  });
+
+  it('an artifact omitting model_tier renders unaffected by this feature (NFR-004)', () => {
+    const a = artifact({ frontmatter: { color: 'red' } });
+    const desc = makeDescriptor({ id: 't', translations: { color: { toKey: 'theme' } } });
+    const out = runPipeline(a, desc, { lossyPolicy: 'warn' });
+    expect(out.content).not.toMatch(/model_tier/);
+    expect(out.content).toContain('theme: red');
+  });
+});
+
+describe('model_tier co-presence with the 7 existing neutral keys (T-009, FR-012, AC-013)', () => {
+  const KEY_FIXTURES: Record<NeutralKey, { frontmatter: Record<string, unknown>; translations?: Record<string, unknown> }> = {
+    execution: { frontmatter: { execution: 'skill' } },
+    capability: { frontmatter: { capability: 'opus' }, translations: { capability: { toKey: 'model' } } },
+    effort: { frontmatter: { effort: 'high' }, translations: { effort: { toKey: 'reasoning_effort' } } },
+    tools: { frontmatter: { tools: ['bash', 'read'] }, translations: { tools: { toKey: 'tools' } } },
+    invocation: { frontmatter: { invocation: 'manual' }, translations: { invocation: { toKey: 'invocation' } } },
+    visibility: {
+      frontmatter: { visibility: 'hidden' },
+      translations: { visibility: { toKey: 'hidden', valueMap: { hidden: true, user: false } } },
+    },
+    color: { frontmatter: { color: 'red' }, translations: { color: { toKey: 'theme' } } },
+  };
+
+  describe.each(NEUTRAL_KEYS)('%s', (key) => {
+    it("the key's translate/strip output is byte-identical with and without model_tier present", () => {
+      const fixture = KEY_FIXTURES[key];
+      const desc = makeDescriptor({ id: 'co-presence-target', translations: fixture.translations ?? {} });
+      const withoutTier = artifact({ frontmatter: { ...fixture.frontmatter } });
+      const withTier = artifact({ frontmatter: { ...fixture.frontmatter, model_tier: 'strong' } });
+
+      const outWithout = runPipeline(withoutTier, desc, { lossyPolicy: 'warn' });
+      const outWith = runPipeline(withTier, desc, { lossyPolicy: 'warn' });
+
+      if (key === 'execution') {
+        expect(outWith.path).toBe(outWithout.path);
+        return;
+      }
+      const strippedWith = outWith.content.replace(/\nmodel_tier: strong/, '');
+      expect(strippedWith).toBe(outWithout.content);
+    });
   });
 });
 

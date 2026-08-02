@@ -1,0 +1,17 @@
+{
+  "exampleId": "00-fixture-valid",
+  "steps": [
+    {
+      "args": ["apply", "--dry-run"],
+      "expectedOutputFile": "expected-output/01-preview.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["revert"],
+      "expectedOutputFile": "expected-output/02-revert-refused.txt",
+      "expectedExitCode": 1,
+      "nonHappyPath": true
+    }
+  ]
+}

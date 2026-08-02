@@ -1,0 +1,1 @@
+error: Unknown target: "no-such-target" is not in the target registry

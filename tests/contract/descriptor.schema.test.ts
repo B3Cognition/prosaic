@@ -1,6 +1,7 @@
-import { validateDescriptor, supports } from '../../src/registry/descriptor';
+import { validateDescriptor, supports, runtimeCapabilityFor } from '../../src/registry/descriptor';
 import { builtinRegistry } from '../../src/registry/builtin';
 import { ARTIFACT_TYPES } from '../../src/domain/types';
+import { makeDescriptor } from '../helpers/descriptor-factory';
 
 describe('every built-in descriptor validates (T-014, FR-044..FR-047)', () => {
   const registry = builtinRegistry();
@@ -40,5 +41,31 @@ describe('every built-in descriptor validates (T-014, FR-044..FR-047)', () => {
   it('all target ids are unique', () => {
     const ids = registry.ids();
     expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('every built-in descriptor with no declared runtimeCapability queries as all-unknown (FR-012, AC-011)', () => {
+    for (const desc of registry.all()) {
+      if (desc.runtimeCapability) continue;
+      expect(runtimeCapabilityFor(desc)).toEqual({
+        model: 'unknown',
+        reasoningEffort: 'unknown',
+        tools: 'unknown',
+        executionType: 'unknown',
+      });
+    }
+  });
+});
+
+describe('runtimeCapability schema field (FR-012)', () => {
+  it('rejects an invalid flag value', () => {
+    const bad = { ...makeDescriptor(), runtimeCapability: { model: 'maybe' } } as unknown;
+    expect(validateDescriptor(bad).ok).toBe(false);
+  });
+
+  it('accepts a fully declared runtimeCapability', () => {
+    const desc = makeDescriptor({
+      runtimeCapability: { model: 'accepts', reasoningEffort: 'rejects', tools: 'accepts', executionType: 'accepts' },
+    });
+    expect(validateDescriptor(desc).ok).toBe(true);
   });
 });

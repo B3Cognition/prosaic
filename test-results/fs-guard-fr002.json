@@ -1,0 +1,9 @@
+{
+  "fr": "FR-002",
+  "description": "Measured fs-guard external-file-access count across every example manifest-step invocation in this suite run",
+  "invocationCount": 11,
+  "totalExternalFileAccesses": 0,
+  "thresholdExternalFileAccesses": 0,
+  "pass": true,
+  "recordedAt": "2026-08-01T11:31:06.351Z"
+}

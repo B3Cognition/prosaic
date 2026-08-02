@@ -65,6 +65,15 @@ A target is **conformance-verified** only when its pinning test passes (FR-009,
 NFR-004). The parity gate asserts at least 35 conformance-verified targets
 (NFR-008). No core module changes; the registry grew as data.
 
+## `model_tier` requires no translation rule
+
+`model_tier` is a permissive-string frontmatter field, deliberately excluded
+from the Neutral Behavior Vocabulary (see
+[target-contracts.md](target-contracts.md#neutral-adjacent-frontmatter-vocabulary)).
+It passes through unchanged into every target's rendered output, so a new
+target's descriptor needs no `translations` entry for it and no `strip` rule to
+suppress it.
+
 ## Update the matrix
 
 Regenerate `src/registry/adapters/contract-matrix.md` (a target row is required)

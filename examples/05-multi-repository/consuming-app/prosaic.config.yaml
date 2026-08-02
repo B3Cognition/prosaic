@@ -1,0 +1,5 @@
+source: ../company-source/.prosaic
+targets:
+  - github-copilot
+artifactTypes: [rule]
+lossyPolicy: warn

@@ -1,0 +1,5 @@
+# Generated output a reader produces by running this example locally.
+# Anchored to this directory's own root so `foreign-fixture/.claude/` (the
+# committed foreign-tool input this example imports from) is never matched.
+/.prosaic/
+/.prosaic-manifest.json

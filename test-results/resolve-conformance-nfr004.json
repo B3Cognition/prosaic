@@ -1,0 +1,15 @@
+{
+  "nfr": "NFR-004",
+  "requirements": [
+    "FR-010",
+    "NFR-004"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Each runtime-capable target (every registered target × supported artifact type providing resolved execution data under FR-002) gains at least 1 automated fixture test pinning its expected resolved output.",
+  "runtimeCapableTargetsTotal": 51,
+  "runtimeCapableTargetsCovered": 51,
+  "coverage": 1,
+  "measurableTarget": "100% of runtime-capable targets have at least 1 passing fixture test.",
+  "pass": true,
+  "recordedAt": "2026-08-01T11:31:13.444Z"
+}

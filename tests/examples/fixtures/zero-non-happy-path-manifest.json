@@ -1,0 +1,17 @@
+{
+  "exampleId": "00-fixture-zero-non-happy-path",
+  "steps": [
+    {
+      "args": ["apply", "--dry-run"],
+      "expectedOutputFile": "expected-output/01-preview.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    },
+    {
+      "args": ["apply"],
+      "expectedOutputFile": "expected-output/02-apply.txt",
+      "expectedExitCode": 0,
+      "nonHappyPath": false
+    }
+  ]
+}

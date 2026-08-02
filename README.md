@@ -221,6 +221,20 @@ revert: 4 file(s) removed.
 
 Hand-authored files not recorded in `.prosaic-manifest.json` are not deleted.
 
+## Examples
+
+Runnable, self-contained walkthroughs covering write/preview/revert,
+multi-artifact-type distribution, and more, each verified automatically
+against a captured Expected-Output Record. If a code change makes an
+example's live output diverge from its recorded output, the check fails
+and names that specific example rather than passing silently. An example
+that lacks a verification entry is reported as a coverage gap rather than
+a pass. The first two examples (basic write/preview/revert and
+multi-artifact-type distribution) already cover the minimum two (2) required
+flows on their own, before the full set below extends that to four or more,
+including import and resolve. See [`examples/README.md`](examples/README.md)
+for the full index.
+
 ## Company-Managed Prose Repository
 
 Yes: Prosaic can be used with a company-managed repository that owns the
@@ -558,6 +572,116 @@ Import recognizes multi-file skill and subagent bundles, re-associates resource
 files, and rewrites internal references. Tool companion metadata files are
 consumed and their data recovered into the neutral artifact.
 
+## Resolve Execution Settings for an Orchestrator
+
+`prosaic resolve` returns the model, reasoning effort, tools, and execution
+type Prosaic would use for a given artifact/target pair, as structured JSON —
+for an external runtime orchestrator (e.g. Echelon) that wants to invoke the
+right AI coding tool without parsing generated provider files or
+reimplementing Prosaic's translation logic.
+
+```bash
+prosaic resolve rules/style.md --target claude-code
+```
+
+```json
+{"artifactId":"rules/style.md","targetId":"claude-code","model":{"status":"unresolved"},"reasoningEffort":{"status":"unresolved"},"tools":{"status":"resolved","value":"Read, Edit"},"executionType":{"status":"resolved","value":"agent"}}
+```
+
+The response always has four fields — `model`, `reasoningEffort`, `tools`,
+`executionType` — each reporting `status: "resolved"` or `status:
+"unresolved"`; a property is marked `unresolved` rather than omitted when the
+target has no translation rule for it.
+
+Resolution never writes a file to any target's destination directory and
+never makes a network call or invokes an LLM; repeated resolution of the same
+artifact/target with unchanged source returns identical results. An
+unregistered `--target` or an unresolvable `artifactId` causes exit code 1
+with `error: <message>` on stderr, e.g.:
+
+```bash
+prosaic resolve rules/style.md --target no-such-target
+# error: Unknown target: "no-such-target" is not in the target registry
+```
+
+An artifact's optional `model_tier` frontmatter field (a permissive string
+such as `fast`, `balanced`, `strong`, `ultra`, or any other value) is never
+used to populate `model` — Prosaic defines no tier-to-model mapping.
+`model_tier` is visible verbatim via `inspect` and passed through unchanged
+into every target's rendered output; see [Target On-Disk
+Contracts](docs/target-contracts.md) for the full neutral-adjacent
+frontmatter vocabulary.
+
+Node.js/TypeScript consumers can call the library API directly instead of
+spawning the CLI: `resolveExecutionData({ projectRoot, artifactId, targetId })`
+is exported from the `prosaic` package and returns a `ResolveExecutionResult`
+— `{ ok: true, data }` on success or `{ ok: false, errorKind, message }` on
+failure — and never throws. Callers branch on `errorKind`:
+`'unregistered-target'`, `'artifact-not-found'`, or `'internal'`.
+
+Before invoking a target, a library consumer can check what it declares
+support for: `runtimeCapabilityFor(descriptor)` (or
+`registry.runtimeCapability(targetId)`) returns a `RuntimeCapabilityDeclaration`
+with four fields — `model`, `reasoningEffort`, `tools`, `executionType` — each
+`'accepts'`, `'rejects'`, or `'unknown'`. No built-in target currently
+declares a `runtimeCapability` value, so every built-in target reports
+all-`'unknown'` today; this is the correct default, not a missing feature,
+and lets a caller distinguish "known unsupported" from "not yet declared."
+`registry.runtimeCapability(id)` throws the same `UnknownTargetError` as
+`registry.get(id)` for an unregistered target id.
+
+## Inspect Full Artifact Data
+
+`prosaic inspect` returns one discovered artifact's full neutral data —
+identifier, type, frontmatter, body, bundle root, and bundled resources — as
+structured JSON, for an external runtime orchestrator (or a human operator)
+that wants to retrieve full artifact data without writing files, calling a
+network service, or parsing generated per-target output. Unlike `resolve`,
+`inspect` takes no `--target`: its output is target-neutral, pre-translation
+data.
+
+```bash
+prosaic inspect rules/style.md
+```
+
+```json
+{"id":"rules/style.md","type":"rule","frontmatter":{"description":"style"},"body":"Be concise.\n","bundleRoot":null,"resources":[]}
+```
+
+For a skill or subagent bundle, `bundleRoot` is the bundle's absolute
+filesystem path and `resources` lists each companion file's path relative to
+`bundleRoot` plus its full content — combining the two always resolves to a
+real file:
+
+```json
+{"id":"skills/greeter/SKILL.md","type":"skill","frontmatter":{"name":"greeter"},"body":"Greet the user.\n","bundleRoot":"/abs/path/.prosaic/skills/greeter","resources":[{"relPath":"reference.md","content":"# Reference\n"}]}
+```
+
+`resources` and `bundleRoot` are always present — an empty list and `null`,
+respectively, for a standalone (non-bundle) artifact — never omitted.
+
+An optional `--json` flag is accepted for compatibility but never changes the
+output, since inspect's output is unconditionally machine-readable JSON. An
+unresolvable `artifactId` causes exit code 1 with `error: <message>` on
+stderr, e.g.:
+
+```bash
+prosaic inspect rules/does-not-exist.md
+# error: Unknown artifact: "rules/does-not-exist.md" was not found by discovery
+```
+
+Node.js/TypeScript consumers can call the library API directly instead of
+spawning the CLI: `inspectArtifact({ projectRoot, artifactId })` is exported
+from the `prosaic` package and returns an `InspectionResult` — `{ ok: true,
+data }` on success or `{ ok: false, errorKind, message }` on failure — and
+never throws. Callers branch on `errorKind`: `'artifact-not-found'` or
+`'internal'`.
+
+The not-found failure result does not yet distinguish an identifier that
+never existed from one whose source file was dropped during discovery due to
+a validation failure — both report the same `'artifact-not-found'` result in
+this release; distinguishing the two causes is deferred to a future revision.
+
 ## Command Reference
 
 ```bash
@@ -575,13 +699,21 @@ prosaic revert --targets cursor
 prosaic import <foreign-directory>
 prosaic import <foreign-directory> --format <tool-id>
 prosaic import <foreign-directory> --dry-run
+prosaic apply --no-color
+prosaic import <foreign-directory> --color
 
-prosaic apply --no-color      # force plain output for any command
-prosaic import ./.claude --color   # force colored output for any command
+prosaic resolve <artifactId> --target <targetId>
+prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
+
+prosaic inspect <artifactId>
+prosaic inspect <artifactId> --json
+prosaic inspect <artifactId> --source ./ai-artifacts
 ```
 
 CLI flags override `prosaic.config.yaml` for that run. `--color` / `--no-color`
-is a global option accepted by every command (`apply`, `import`, `revert`).
+controls human-readable output from `apply`, `import`, and `revert`. The
+machine-readable JSON emitted by `resolve` and `inspect` is never styled, so its
+bytes remain stable.
 
 ## Terminal Output & Color
 
@@ -601,9 +733,10 @@ only affects what Prosaic prints to the terminal.
   `FORCE_COLOR=0` disables color.
 - **Precedence when both are set:** `NO_COLOR` wins and output stays plain.
 
-Piped or non-interactive output is always plain and ASCII-only, so `grep`, log
-parsers, and snapshot tests keep working. In plain mode, outcome markers are
-`[ok]`, `[drop]`, and `->`; in styled mode they may render as `✓`, `✗`, and `→`.
+Piped or non-interactive human-readable output is always plain and ASCII-only,
+so `grep`, log parsers, and snapshot tests keep working. In plain mode, outcome
+markers are `[ok]`, `[drop]`, and `->`; in styled mode they may render as `✓`,
+`✗`, and `→`.
 
 Warning lines use the structured format
 `warning[<kind>] <artifact> → <target>: <message>` (the arrow is `->` in plain
@@ -637,6 +770,14 @@ Also check that your config selects at least one target and one artifact type.
 The target ID in `prosaic.config.yaml` or `--targets` is not registered. Check
 [Target On-Disk Contracts](docs/target-contracts.md) or
 `src/registry/adapters/contract-matrix.md` for known IDs.
+
+### `prosaic resolve` fails
+
+`prosaic resolve` reports the same "unregistered target" failure as
+`apply`/`revert` (exit 1, `error: Unknown target: ...`) rather than a silent
+empty result. An `artifactId` that does not match any discovered artifact
+fails with a distinct `error: ...` message (`artifact-not-found`) rather than
+being conflated with the target-lookup failure.
 
 ### Revert refuses to run
 
@@ -697,13 +838,38 @@ Main source directories:
 
 Targets are declarative adapter descriptors plus conformance fixtures. Start
 with [Adding a Target](docs/add-a-target.md), then review
-[Target On-Disk Contracts](docs/target-contracts.md).
+[Target On-Disk Contracts](docs/target-contracts.md). A descriptor may
+optionally declare a `runtimeCapability` block (per-field
+`accepts`/`rejects`/`unknown` for `model`, `reasoningEffort`, `tools`,
+`executionType`) so callers can query acceptance via `runtimeCapabilityFor`/
+`registry.runtimeCapability` before invoking the target; omitted fields
+default to `unknown`.
 
 ## Performance and Verification
 
 The delivery benchmark distributed 100 artifacts across 30 targets in about
 816 ms, under the 30 second threshold. Deterministic rendering and
 cross-environment byte identity are covered by the test commands above.
+
+Resolve conformance and coverage are backed by measured-runtime evidence
+(NFR-002, NFR-004), not just assertion-based pass/fail: a full conformance
+run compares resolved execution data against the presentation translation
+outcome for every registered target (0 divergent field values across all
+compared fields), and every runtime-capable target carries at least 1 passing
+fixture test. Both results are recorded in `test-results/resolve-presentation-parity-nfr002.json`
+and `test-results/resolve-conformance-nfr004.json`.
+
+Resolve is also covered by measured-runtime crash-resilience evidence
+(NFR-001): `resolveExecutionData()` is driven over a 39-case multi-axis
+malformed-input corpus (malformed frontmatter YAML, malformed
+`prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial
+target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes —
+every attempt yields either a valid resolution or a structured `errorKind`.
+Recorded in `test-results/resolve-malformed-input-nfr001.json`.
+
+All `test-results/` evidence artifacts have been re-verified end-to-end with
+no regressions; each `recordedAt` timestamp reflects the latest run and every
+pass/fail outcome is unchanged from prior verification.
 
 ## Changelog
 

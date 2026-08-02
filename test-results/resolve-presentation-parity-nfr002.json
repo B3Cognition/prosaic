@@ -1,0 +1,16 @@
+{
+  "nfr": "NFR-002",
+  "requirements": [
+    "FR-003",
+    "AC-008",
+    "NFR-002"
+  ],
+  "evidenceKind": "measured_runtime",
+  "description": "Conformance comparison run covering every registered target: resolved execution data compared field-by-field against the FR-003 presentation translation outcome for the same artifact-target pair.",
+  "targetsCompared": 51,
+  "fieldComparisons": 153,
+  "divergentFieldValues": 0,
+  "measurableTarget": "Exactly 0 divergent field values across a conformance comparison run covering every registered target.",
+  "pass": true,
+  "recordedAt": "2026-08-01T11:31:13.765Z"
+}
