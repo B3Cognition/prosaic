@@ -706,6 +706,12 @@ prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
 prosaic inspect <artifactId>
 prosaic inspect <artifactId> --json
 prosaic inspect <artifactId> --source ./ai-artifacts
+
+prosaic package deploy <packageId>
+prosaic package deploy <packageId> --dry-run
+
+prosaic package revert <packageId>
+prosaic package revert <packageId> --dry-run
 ```
 
 CLI flags override `prosaic.config.yaml` for that run.
@@ -793,6 +799,7 @@ Main source directories:
 - `src/registry/` - target descriptors and conformance status
 - `src/lifecycle/` - apply, dry-run, reconcile, and revert flows
 - `src/write/` - guarded filesystem, containment, and backups
+- `src/package/` - package deployment (validate, enumerate, plan, stage, commit); see [Package Deployment](docs/packages.md)
 
 ## Add or Update a Target
 

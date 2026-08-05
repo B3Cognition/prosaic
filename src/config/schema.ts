@@ -2,6 +2,18 @@ import { z } from 'zod';
 import { ARTIFACT_TYPES } from '../domain/types';
 
 /**
+ * One declared package (FR-001, FR-036): a package id, source root, and
+ * deployment destination root, with no additional fields (FR-002, AC-053).
+ */
+const packageDeclarationSchema = z
+  .object({
+    id: z.string().min(1),
+    sourceRoot: z.string().min(1),
+    destinationRoot: z.string().min(1),
+  })
+  .strict();
+
+/**
  * Strict configuration schema. `.strict()` makes any unknown key a hard error so
  * a typo is rejected and reported rather than silently ignored (FR-030, AC-023).
  */
@@ -17,6 +29,23 @@ export const configSchema = z
     lossyPolicy: z.enum(['warn', 'error']).optional(),
     /** Backups retained per overwritten file (FR-049 default 3). */
     backupRetention: z.number().int().min(0).optional(),
+    /** Declared packages (FR-001); fully optional (FR-004). */
+    packages: z
+      .array(packageDeclarationSchema)
+      .superRefine((packages, ctx) => {
+        const seen = new Set<string>();
+        packages.forEach((pkg, index) => {
+          if (seen.has(pkg.id)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: `duplicate package id: "${pkg.id}"`,
+              path: [index, 'id'],
+            });
+          }
+          seen.add(pkg.id);
+        });
+      })
+      .optional(),
   })
   .strict();
 

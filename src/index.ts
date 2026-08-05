@@ -19,3 +19,12 @@ export type { ResolvedExecutionData, ResolveExecutionResult, ResolveOptions } fr
 export { ArtifactNotFoundError } from './resolve/errors';
 export { inspectArtifact } from './inspect/lookup';
 export type { InspectedArtifact, InspectedResource, InspectionResult, InspectOptions } from './inspect/types';
+export { deployPackage, revertPackage } from './package/run';
+export type {
+  PackageDeployOptions,
+  PackageDeployReport,
+  PackageRevertOptions,
+  PackageRevertReport,
+} from './package/run';
+export type { PackageDeclaration } from './package/types';
+export { PackageValidationError, UnknownPackageError } from './package/errors';

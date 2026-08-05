@@ -1,8 +1,8 @@
 import * as crypto from 'crypto';
 
-/** Stable SHA-256 hex digest of a UTF-8 string (content provenance + integrity). */
-export function sha256(content: string): string {
-  return crypto.createHash('sha256').update(content, 'utf8').digest('hex');
+/** Stable SHA-256 hex digest of UTF-8 text or raw bytes (content provenance + integrity). */
+export function sha256(content: string | Buffer): string {
+  return crypto.createHash('sha256').update(content as string, 'utf8').digest('hex');
 }
 
 /**

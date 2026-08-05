@@ -5,11 +5,18 @@ export interface PlannedWrite {
   targetId: string;
   /** Project-relative POSIX path. */
   path: string;
-  content: string;
+  /** Rendered text for a render-target write; raw bytes for a package deployment write. */
+  content: string | Buffer;
   hash: string;
   changeType: 'create' | 'overwrite' | 'unchanged';
   /** True when a content-changing overwrite of a managed file needs a backup (FR-025). */
   backupNeeded: boolean;
+  /**
+   * Source POSIX mode bits to apply after commit (FR-013, Should-Have,
+   * package deployment's Package Runtime Tree only); absent for every
+   * render-target write and for Neutral Artifact Tree writes.
+   */
+  mode?: number;
 }
 
 /** A single planned removal (reconcile orphan or revert). */

@@ -1,5 +1,6 @@
 import { ArtifactType, ARTIFACT_TYPES } from '../domain/types';
 import { RawConfig } from './schema';
+import { PackageDeclaration } from '../package/types';
 
 /** The fully-resolved, effective run configuration (FR-029). */
 export interface EffectiveConfig {
@@ -9,6 +10,8 @@ export interface EffectiveConfig {
   artifactTypes: ArtifactType[];
   lossyPolicy: 'warn' | 'error';
   backupRetention: number;
+  /** Declared packages (FR-001); empty when the project declares none (FR-004). */
+  packages: PackageDeclaration[];
 }
 
 export const DEFAULT_SOURCE = '.prosaic';
@@ -26,6 +29,7 @@ export function toEffective(merged: RawConfig): EffectiveConfig {
     artifactTypes: (merged.artifactTypes as ArtifactType[]) ?? [...ARTIFACT_TYPES],
     lossyPolicy: merged.lossyPolicy ?? 'warn',
     backupRetention: merged.backupRetention ?? DEFAULT_BACKUP_RETENTION,
+    packages: (merged.packages as PackageDeclaration[] | undefined) ?? [],
   };
 }
 
