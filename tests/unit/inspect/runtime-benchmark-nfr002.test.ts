@@ -38,6 +38,19 @@ describe('NFR-002 measured runtime: inspect stays within 2x of resolve baseline'
     t = makeTempRoot();
     t.write('.prosaic/rules/style.md', '---\ndescription: style\n---\nBe concise.\n');
 
+    // Warm up JIT/module-cache effects on both call paths before timing begins, so a
+    // one-off cold-start cost doesn't land on a single measured trial and skew it past
+    // the 2x bound (both functions share most of their code path via discover()/resolveConfig()).
+    for (let i = 0; i < 3; i++) {
+      resolveExecutionData({
+        projectRoot: t.root,
+        artifactId: 'rules/style.md',
+        targetId: 'known-target',
+        registry: testRegistry(),
+      });
+      inspectArtifact({ projectRoot: t.root, artifactId: 'rules/style.md' });
+    }
+
     for (let i = 0; i < TRIALS; i++) {
       const resolveStart = process.hrtime.bigint();
       resolveExecutionData({
