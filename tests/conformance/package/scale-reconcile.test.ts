@@ -21,7 +21,12 @@ describe('conformance: 500-file fixture reconcile-to-empty-source (T-025, NFR-00
     fs.rmSync(t.p('pkg'), { recursive: true, force: true });
     fs.mkdirSync(t.p('pkg'), { recursive: true });
 
+    const startedAt = performance.now();
     const second = deployPackage({ projectRoot: t.root, packageId: 'scale-pkg' });
+    const elapsedMs = performance.now() - startedAt;
+
     expect(second.removed).toBe(500);
+    // NFR-007: measured against an explicit numeric budget, well inside the 60s Jest testTimeout.
+    expect(elapsedMs).toBeLessThan(30000);
   });
 });

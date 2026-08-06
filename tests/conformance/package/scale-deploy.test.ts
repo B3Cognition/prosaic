@@ -19,7 +19,12 @@ describe('conformance: 500-file fixture deploy at scale (T-020, NFR-007)', () =>
     expect(enumerated.neutralFiles.length + enumerated.runtimeFiles.length).toBe(500);
     expect(enumerated.warnings).toHaveLength(0);
 
+    const startedAt = performance.now();
     const report = deployPackage({ projectRoot: t.root, packageId: 'scale-pkg' });
+    const elapsedMs = performance.now() - startedAt;
+
     expect(report.created).toBe(500);
+    // NFR-007: measured against an explicit numeric budget, well inside the 60s Jest testTimeout.
+    expect(elapsedMs).toBeLessThan(30000);
   });
 });

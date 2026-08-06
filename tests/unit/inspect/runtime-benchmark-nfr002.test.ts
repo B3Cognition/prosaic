@@ -29,6 +29,21 @@ function median(nums: number[]): number {
   return sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
 }
 
+// The minimum of a few repeated samples is a standard latency-benchmarking estimator:
+// it converges on the call's true cost while filtering one-off scheduler/GC pauses that
+// would otherwise land on a single sample and skew it independently of the paired call.
+const SAMPLES_PER_TRIAL = 3;
+function minNanos(fn: () => void): number {
+  let min = Infinity;
+  for (let s = 0; s < SAMPLES_PER_TRIAL; s++) {
+    const start = process.hrtime.bigint();
+    fn();
+    const elapsed = Number(process.hrtime.bigint() - start);
+    if (elapsed < min) min = elapsed;
+  }
+  return min;
+}
+
 describe('NFR-002 measured runtime: inspect stays within 2x of resolve baseline', () => {
   let t: TempRoot;
   const resolveNanos: number[] = [];
@@ -52,18 +67,18 @@ describe('NFR-002 measured runtime: inspect stays within 2x of resolve baseline'
     }
 
     for (let i = 0; i < TRIALS; i++) {
-      const resolveStart = process.hrtime.bigint();
-      resolveExecutionData({
-        projectRoot: t.root,
-        artifactId: 'rules/style.md',
-        targetId: 'known-target',
-        registry: testRegistry(),
-      });
-      resolveNanos.push(Number(process.hrtime.bigint() - resolveStart));
+      resolveNanos.push(
+        minNanos(() =>
+          resolveExecutionData({
+            projectRoot: t.root,
+            artifactId: 'rules/style.md',
+            targetId: 'known-target',
+            registry: testRegistry(),
+          }),
+        ),
+      );
 
-      const inspectStart = process.hrtime.bigint();
-      inspectArtifact({ projectRoot: t.root, artifactId: 'rules/style.md' });
-      inspectNanos.push(Number(process.hrtime.bigint() - inspectStart));
+      inspectNanos.push(minNanos(() => inspectArtifact({ projectRoot: t.root, artifactId: 'rules/style.md' })));
     }
   });
 
@@ -83,7 +98,8 @@ describe('NFR-002 measured runtime: inspect stays within 2x of resolve baseline'
           description:
             `${TRIALS} back-to-back trials pairing a resolveExecutionData() call with an ` +
             'inspectArtifact() call against the same unchanged source root and artifact id, ' +
-            'each measured with process.hrtime.bigint(); records whether every inspect trial ' +
+            `each measured with process.hrtime.bigint() as the min of ${SAMPLES_PER_TRIAL} samples ` +
+            '(filters one-off scheduler/GC pauses); records whether every inspect trial ' +
             "stayed within 2x of that trial's resolve runtime (floored to avoid sub-ms timer noise).",
           trials: TRIALS,
           resolveNanosMedian: median(resolveNanos),

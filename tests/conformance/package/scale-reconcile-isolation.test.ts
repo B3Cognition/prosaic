@@ -22,9 +22,14 @@ describe('conformance: 500-file-scale reconcile touches 0 foreign paths (T-028, 
     fs.rmSync(t.p('pkg'), { recursive: true, force: true });
     fs.mkdirSync(t.p('pkg'), { recursive: true });
 
+    const startedAt = performance.now();
     const report = deployPackage({ projectRoot: t.root, packageId: 'scale-pkg' });
+    const elapsedMs = performance.now() - startedAt;
+
     expect(report.removed).toBe(500);
     expect(t.exists('dest/foreign/keep-me.txt')).toBe(true);
     expect(t.read('dest/foreign/keep-me.txt')).toBe('not managed by this package');
+    // NFR-007: measured against an explicit numeric budget, well inside the 60s Jest testTimeout.
+    expect(elapsedMs).toBeLessThan(30000);
   });
 });
