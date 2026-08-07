@@ -53,6 +53,12 @@ export class GuardedFs {
     return fs.readFileSync(resolved, 'utf8');
   }
 
+  /** Read a contained file as raw bytes (binary-safe); throws if it escapes the root. */
+  readFileBuffer(target: string): Buffer {
+    const resolved = resolveContained(target, this.projectRoot);
+    return fs.readFileSync(resolved);
+  }
+
   /**
    * Write `content` to `target`, creating parent directories as needed. The
    * path is resolved and asserted contained first (FR-026); an escaping path is
@@ -106,6 +112,26 @@ export class GuardedFs {
   mkdirp(target: string): void {
     const resolved = resolveContained(target, this.projectRoot);
     fs.mkdirSync(resolved, { recursive: true });
+  }
+
+  /** Recursively remove a contained directory (and its contents), if present. */
+  removeDir(target: string): void {
+    const resolved = resolveContained(target, this.projectRoot);
+    fs.rmSync(resolved, { recursive: true, force: true });
+  }
+
+  /**
+   * Move a contained source to a contained destination via a single, same-
+   * filesystem `fs.renameSync` — an atomic, single-syscall commit (ADR-006/007).
+   * Both sides are containment-checked, mirroring every other Prosaic mutation
+   * (FR-025, FR-043, FR-045), including a destination symlink resolving outside
+   * the project root (AC-057).
+   */
+  moveFileAtomic(source: string, dest: string): void {
+    const resolvedSrc = resolveContained(source, this.projectRoot);
+    const resolvedDest = resolveContained(dest, this.projectRoot);
+    fs.mkdirSync(path.dirname(resolvedDest), { recursive: true });
+    fs.renameSync(resolvedSrc, resolvedDest);
   }
 }
 

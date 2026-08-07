@@ -11,7 +11,13 @@ export interface WalkedFile {
 }
 
 /** Directories never descended during discovery. */
-const ALWAYS_SKIP_DIRS = new Set(['.git', 'node_modules', 'dist', '.prosaic-backups']);
+const ALWAYS_SKIP_DIRS = new Set([
+  '.git',
+  'node_modules',
+  'dist',
+  '.prosaic-backups',
+  '.prosaic-package-staging',
+]);
 
 /**
  * Walk the source of truth, returning every Markdown file. The backup location

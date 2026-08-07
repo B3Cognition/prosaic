@@ -18,7 +18,8 @@ export type WarningKind =
   | 'defaulted-choice'
   | 'override-recovered'
   | 'round-trip-mismatch'
-  | 'unverified-target';
+  | 'unverified-target'
+  | 'package-path-rejected';
 
 export interface Warning {
   kind: WarningKind;

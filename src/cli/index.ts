@@ -12,6 +12,8 @@ import { importRun } from '../import/run';
 import { formatPortabilityReport, formatRunSummary } from '../import/report';
 import { resolveExecutionData } from '../resolve/lookup';
 import { inspectArtifact } from '../inspect/lookup';
+import { deployPackage, revertPackage } from '../package/run';
+import { PackageValidationError, UnknownPackageError } from '../package/errors';
 import { resolvePresentation } from './presentation';
 import { Theme, themeFor } from './theme';
 
@@ -68,7 +70,9 @@ function reportError(e: unknown, errTheme: Theme): number {
     e instanceof ConfigError ||
     e instanceof UnknownTargetError ||
     e instanceof ManifestError ||
-    e instanceof LossyTransformError
+    e instanceof LossyTransformError ||
+    e instanceof PackageValidationError ||
+    e instanceof UnknownPackageError
   ) {
     process.stderr.write(`${prefix} ${e.message}\n`);
     return 1;
@@ -251,6 +255,76 @@ export async function main(args: string[]): Promise<number> {
           exitCode = 1;
         }
       },
+    )
+    .command(
+      'package',
+      'Package deployment commands (generic, application-agnostic)',
+      (y) =>
+        y
+          .command(
+            'deploy <packageId>',
+            'Deploy a declared package into its configured destination',
+            (yy) =>
+              yy
+                .positional('packageId', {
+                  type: 'string',
+                  describe: 'Declared package id to deploy',
+                })
+                .option('dry-run', { type: 'boolean', default: false }),
+            (argv) => {
+              const themes = resolveThemes((argv as any).color as boolean | undefined);
+              try {
+                const report = deployPackage({
+                  projectRoot: process.cwd(),
+                  packageId: argv.packageId as string,
+                  dryRun: argv['dry-run'] as boolean,
+                });
+                for (const line of report.preview) process.stdout.write(line + '\n');
+                for (const line of surfaceWarnings(report.warnings, themes.out)) {
+                  process.stdout.write(line + '\n');
+                }
+                if (!report.dryRun) {
+                  process.stdout.write(
+                    `package deploy ${report.packageId}: ${report.created} created, ` +
+                      `${report.overwritten} overwritten, ${report.unchanged} unchanged, ` +
+                      `${report.removed} removed, ${report.backedUp} backed up.\n`,
+                  );
+                }
+              } catch (e) {
+                exitCode = reportError(e, themes.err);
+              }
+            },
+          )
+          .command(
+            'revert <packageId>',
+            'Remove exactly the files recorded as belonging to a declared package',
+            (yy) =>
+              yy
+                .positional('packageId', {
+                  type: 'string',
+                  describe: 'Declared package id to revert',
+                })
+                .option('dry-run', { type: 'boolean', default: false }),
+            (argv) => {
+              const themes = resolveThemes((argv as any).color as boolean | undefined);
+              try {
+                const report = revertPackage({
+                  projectRoot: process.cwd(),
+                  packageId: argv.packageId as string,
+                  dryRun: argv['dry-run'] as boolean,
+                });
+                for (const line of report.preview) process.stdout.write(line + '\n');
+                if (!report.dryRun) {
+                  process.stdout.write(
+                    `package revert ${report.packageId}: ${report.removed} file(s) removed.\n`,
+                  );
+                }
+              } catch (e) {
+                exitCode = reportError(e, themes.err);
+              }
+            },
+          )
+          .demandCommand(1),
     )
     .demandCommand(0)
     .strict()
