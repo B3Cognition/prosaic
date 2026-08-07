@@ -32,10 +32,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `prosaic package deploy <packageId> [--dry-run]` CLI subcommand: a generic, application-agnostic package deployment mechanism, distinct from and coexisting unmodified alongside `apply`/`render`/`inspect`/`import`/`revert`. An application maintainer declares one or more named packages (`id`, `sourceRoot`, `destinationRoot`) under a new optional `packages:` config array; `packages` is fully optional and a project declaring none behaves identically to a project without this feature. Deployment copies a declared package's Neutral Artifact Tree (`commands/`, `subagents/`) byte-identical with no render-pipeline translation, and its Package Runtime Tree (every other top-level entry, any file type) verbatim, never parsed or classified as a Prosaic artifact. Provenance-tracked via the existing manifest (package-specific identifier), idempotent, dry-run previewable, reconciles obsolete files on redeploy without ever touching an unmanaged Foreign Path, and backs up content-changing overwrites (up to 3 prior versions, matching render-target retention). Every filesystem mutation is containment-checked and destination-isolated from sibling packages and existing render targets. See [Package Deployment](docs/packages.md).
 - `prosaic package revert <packageId> [--dry-run]` CLI subcommand (Should-Have): mirrors the provenance-guarded revert behavior already provided for render-target output, removing exactly the files recorded as belonging to the declared package while never touching a Foreign Path; `--dry-run` previews the removal, writing 0 files.
 - Library API export `deployPackage(opts: PackageDeployOptions): PackageDeployReport` and `revertPackage(opts: PackageRevertOptions): PackageRevertReport`, both from `src/package/run.ts`, plus the `PackageDeclaration`, `PackageDeployOptions`, `PackageDeployReport`, `PackageRevertOptions`, `PackageRevertReport`, `PackageValidationError`, and `UnknownPackageError` types/classes, for programmatic package deployment and revert.
+- Global `--color` / `--no-color` CLI flag to force terminal color on or off (auto-detected by default), accepted by `apply`, `import`, and `revert`.
+- Standard `NO_COLOR` and `FORCE_COLOR` environment support, including `FORCE_COLOR=0` (disable) and `NO_COLOR`-wins-over-`FORCE_COLOR` precedence.
+- Per-stream TTY-gated ANSI color styling of previews, run summaries, warnings, and errors (stdout and stderr resolved independently) via a plain-by-default, zero-runtime-dependency ANSI helper.
+- Per-state color coding (created / overwrite / error / unchanged) plus an underlined path style, each paired with a non-color text/glyph signal for accessibility.
+- ASCII glyph fallback (`[ok]`, `[drop]`, `->`) so non-interactive and legacy/non-UTF terminals stay ASCII-only.
+- Aligned run-summary counts and a grouped portability report with one remediation line per warning, deterministic at any terminal width.
 
 ### Changed
 
 - README "Existing Repositories" adoption guide now points at the shipped `prosaic import` command for reverse-importing native tool directories, replacing the earlier "no import command yet" / "reverse import is not in the current CLI" notes that predated the import feature.
+- Warning lines now use the structured format `warning[<kind>] <artifact> → <target>: <message>` (the arrow is `->` in plain mode); error lines consistently begin with `error: `.
 
 ### Performance
 
@@ -46,6 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Measured-runtime crash-resilience evidence for inspect (NFR-001): `inspectArtifact()` driven over a 40-case multi-axis malformed-input corpus (malformed frontmatter YAML, malformed `prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial artifact ids, an unreadable-config fault) with 0 uncaught crashes — every attempt yields either a valid inspection or a structured `errorKind` — captured to `test-results/inspect-malformed-input-nfr001.json`.
 - Benchmark artifacts committed to `test-results/` for auditable CI history across iterations.
 - Full `test-results/` suite re-verified with no regressions; all NFR/SC evidence artifacts refreshed with new `recordedAt` timestamps and unchanged pass outcomes.
+- Verified styled-run wall-clock stays within 5% of the plain baseline (NFR-006).
 
 ## [0.1.0] - 2026-07-09
 

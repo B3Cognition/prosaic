@@ -1,0 +1,40 @@
+{
+  "nfr": "NFR-001",
+  "ac": "AC-017",
+  "evidenceKind": "measured_runtime",
+  "description": "CLI output-styling enhancement adds 0 new third-party runtime dependencies beyond the baseline",
+  "measuredPackageJsonPath": "/Users/michalbachorik/work/md_distribution/.echelon/runtime/recovery/906-prosaic-worktree/package.json",
+  "measuredNodeModulesPath": "/Users/michalbachorik/work/md_distribution/.echelon/runtime/recovery/906-prosaic-worktree/node_modules",
+  "stylingModules": [
+    "src/cli/style.ts",
+    "src/cli/theme.ts",
+    "src/cli/presentation.ts"
+  ],
+  "baselineDependencies": [
+    "@iarna/toml",
+    "js-yaml",
+    "yargs",
+    "zod"
+  ],
+  "addedDependencies": [],
+  "addedInstalledDeps": [],
+  "moduleScans": [
+    {
+      "module": "src/cli/style.ts",
+      "thirdPartyImports": []
+    },
+    {
+      "module": "src/cli/theme.ts",
+      "thirdPartyImports": []
+    },
+    {
+      "module": "src/cli/presentation.ts",
+      "thirdPartyImports": []
+    }
+  ],
+  "stylingThirdPartyImports": [],
+  "addedCount": 0,
+  "pass": true,
+  "measurableTarget": "0 new runtime dependencies added by the styling enhancement",
+  "recordedAt": "2026-08-02T11:49:47.170Z"
+}

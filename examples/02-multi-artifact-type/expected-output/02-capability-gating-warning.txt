@@ -1,5 +1,5 @@
 Dry run (apply): 2 create, 0 overwrite, 0 backup, 0 remove, 0 unchanged. 0 files written, 0 files deleted.
 create  .cursor/commands/changelog.md [cursor]
 create  .cursor/rules/api-conventions.mdc [cursor]
-warning[unsupported-pair] skills/onboarding.md → cursor: target "cursor" does not natively support artifact type "skill"; skipped
-warning[unsupported-pair] subagents/reviewer.md → cursor: target "cursor" does not natively support artifact type "subagent"; skipped
+warning[unsupported-pair] skills/onboarding.md -> cursor: target "cursor" does not natively support artifact type "skill"; skipped
+warning[unsupported-pair] subagents/reviewer.md -> cursor: target "cursor" does not natively support artifact type "subagent"; skipped
