@@ -2,13 +2,14 @@
   "name": "prosaic",
   "version": "0.1.0",
   "description": "MD-Prose Distribution Engine — author once, distribute canonical Markdown-with-YAML artifacts to many AI coding tools.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "bin": {
     "prosaic": "dist/cli/index.js"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
+    "NOTICE",
     "dist",
     "src/registry/adapters"
   ],

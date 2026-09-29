@@ -881,3 +881,8 @@ pass/fail outcome is unchanged from prior verification.
 ## Changelog
 
 See [CHANGELOG.md](CHANGELOG.md) for release history.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE). See [NOTICE](NOTICE).
+Third-party dependencies retain their own licenses.
