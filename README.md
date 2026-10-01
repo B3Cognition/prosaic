@@ -572,6 +572,29 @@ Import recognizes multi-file skill and subagent bundles, re-associates resource
 files, and rewrites internal references. Tool companion metadata files are
 consumed and their data recovered into the neutral artifact.
 
+## Neutral Custom CLI-Tool Catalogue
+
+Prosaic v0.2.0 adds `prosaic tools --source .prosaic`, which lists
+YAML/YML manifests in `.prosaic/tools` as JSON. `--directory <path>` inspects an
+explicit manifest directory instead. The library exports `discoverTools` and
+`ToolManifest`. Discovery is sorted, non-recursive and read-only: it does not
+resolve executables, execute version probes, install tools or grant permissions.
+A missing default directory yields an empty catalogue; malformed contracts,
+duplicate names, oversized files and symlinked manifests fail closed.
+
+Manifests describe a name, description, `tool_version`, closed JSON parameter
+schema, fixed executable/argv, JSON output and bounded execution settings. Neutral
+prose references them with `tools: [analyze_spec]`. Runtime independently loads
+only operator-configured `tool_directories`, checks host/config grants and offers
+offline preflight. Its first CLI adapter supports string arguments and declared
+read-file path parameters; no general shell or MCP server is required.
+
+See the companion Runtime's
+[CLI-tool guide and runnable examples](https://github.com/B3Cognition/prosaic-runtime/blob/main/docs/cli-tools.md).
+These companion features require Runtime v0.5.0+ and Harness v0.4.0+.
+Tool manifests are executable configuration: inspect and trust
+them explicitly before allowing Runtime to execute their application commands.
+
 ## Resolve Execution Settings for an Orchestrator
 
 `prosaic resolve` returns the model, reasoning effort, tools, and execution

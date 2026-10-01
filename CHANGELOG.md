@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-01
+
+### Added
+
+- Read-only neutral CLI-tool catalogue: `prosaic tools`, `discoverTools` and
+  `ToolManifest`; bounded YAML manifests, closed string-argument schemas,
+  deterministic discovery and fail-closed duplicate/symlink checks. Discovery
+  never installs, probes, executes or grants tool access.
+
+### Changed
+
+- Apache-2.0 licensing, with third-party attribution retained.
+- CI uses the installed default Jest reporter rather than an unavailable reporter.
+- Refreshed the tracked verification receipts with the full release test suite.
+
+The earlier entries below describe features already included in v0.1.0; they
+were previously left in the Unreleased section.
+
 ### Added
 
 - `prosaic import` CLI command for reverse-engineering existing tool-specific prose files into neutral source.

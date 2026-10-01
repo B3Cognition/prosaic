@@ -12,6 +12,9 @@ import { importRun } from '../import/run';
 import { formatPortabilityReport, formatRunSummary } from '../import/report';
 import { resolveExecutionData } from '../resolve/lookup';
 import { inspectArtifact } from '../inspect/lookup';
+import { discoverTools } from '../tools/catalog';
+import { resolveConfig } from '../config/resolve';
+import * as path from 'path';
 import { deployPackage, revertPackage } from '../package/run';
 import { PackageValidationError, UnknownPackageError } from '../package/errors';
 import { resolvePresentation } from './presentation';
@@ -253,6 +256,20 @@ export async function main(args: string[]): Promise<number> {
         } else {
           process.stderr.write(`error: ${result.message}\n`);
           exitCode = 1;
+        }
+      },
+    )
+    .command(
+      'tools',
+      'List neutral CLI tool manifests as JSON without executing anything',
+      (y) => y.option('directory', { type: 'string', describe: 'Explicit manifest directory (default: <source>/tools)' }),
+      (argv) => {
+        try {
+          const config = resolveConfig(process.cwd(), toOverrides(argv as any)).effective;
+          const directory = argv.directory as string | undefined;
+          process.stdout.write(JSON.stringify(discoverTools(directory ?? path.resolve(process.cwd(), config.source, 'tools'))) + '\n');
+        } catch (e) {
+          exitCode = reportError(e, resolveThemes((argv as any).color).err);
         }
       },
     )

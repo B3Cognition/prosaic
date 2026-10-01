@@ -28,10 +28,7 @@ jobs:
         run: npm run build
 
       - name: Test
-        run: npm test -- --reporters=default --reporters=jest-junit
-        env:
-          JEST_JUNIT_OUTPUT_DIR: test-results
-          JEST_JUNIT_OUTPUT_NAME: junit.xml
+        run: npm test -- --reporters=default
 
       - name: Upload test results and benchmark artifacts
         if: always()
