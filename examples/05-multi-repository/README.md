@@ -16,13 +16,13 @@ illustrative part is *how the bytes would get from one real repository onto
 another* in production, which is prose-only below.
 
 Run it from inside `consuming-app/` using the CLI you built locally
-(`node ../../../dist/cli/index.js`), or `prosaic` if you have it linked.
+(`prosaic`), or `prosaic` if it is installed.
 
 ## 1. Apply the consuming app's config
 
 ```bash
 cd consuming-app
-node ../../../dist/cli/index.js apply --dry-run
+prosaic apply --dry-run
 ```
 
 Expected output: [`expected-output/01-consuming-app-apply.txt`](expected-output/01-consuming-app-apply.txt).

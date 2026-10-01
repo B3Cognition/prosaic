@@ -7,12 +7,12 @@ revert a project that was never written.
 
 This example mirrors the root README's "First Run" walkthrough so the two
 stay consistent; run it from inside this directory using the CLI you built
-locally (`node ../../dist/cli/index.js`), or `prosaic` if you have it linked.
+locally (`prosaic`), or `prosaic` if it is installed.
 
 ## 1. Preview the write plan
 
 ```bash
-node ../../dist/cli/index.js apply --dry-run
+prosaic apply --dry-run
 ```
 
 Expected output: [`expected-output/01-preview.txt`](expected-output/01-preview.txt).
@@ -21,7 +21,7 @@ No files are written by a dry run.
 ## 2. Write the generated files
 
 ```bash
-node ../../dist/cli/index.js apply
+prosaic apply
 ```
 
 Expected output: [`expected-output/02-apply.txt`](expected-output/02-apply.txt).
@@ -31,7 +31,7 @@ Expected output: [`expected-output/02-apply.txt`](expected-output/02-apply.txt).
 Run `apply` again with no source changes:
 
 ```bash
-node ../../dist/cli/index.js apply
+prosaic apply
 ```
 
 Expected output: [`expected-output/03-reapply-noop.txt`](expected-output/03-reapply-noop.txt).
@@ -45,7 +45,7 @@ copy of this project that has never been applied, so no
 `.prosaic-manifest.json` exists yet.
 
 ```bash
-node ../../dist/cli/index.js revert
+prosaic revert
 ```
 
 Expected output: [`expected-output/04-revert-refused.txt`](expected-output/04-revert-refused.txt).

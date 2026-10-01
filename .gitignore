@@ -3,5 +3,16 @@ dist/
 coverage/
 *.log
 .DS_Store
+.venv/
+.wheel-test/
+__pycache__/
+*.egg-info/
+.pytest_cache/
+build/
+.reference/
+.cli-tests/
+.consumer-tests/
+parity-results/
+.prosaic-manifest.json
 # Per-run CI measurement artifacts (committed as build evidence for verify-spec)
 test-results/junit.xml

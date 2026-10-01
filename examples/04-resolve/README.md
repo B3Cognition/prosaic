@@ -8,12 +8,12 @@ rule and `claude-code` target the root README's own resolve walkthrough
 documents.
 
 Run it from inside this directory using the CLI you built locally
-(`node ../../dist/cli/index.js`), or `prosaic` if you have it linked.
+(`prosaic`), or `prosaic` if it is installed.
 
 ## 1. Resolve a registered artifact/target pair
 
 ```bash
-node ../../dist/cli/index.js resolve rules/style.md --target claude-code
+prosaic resolve rules/style.md --target claude-code
 ```
 
 Expected output: [`expected-output/01-resolve.txt`](expected-output/01-resolve.txt).
@@ -26,7 +26,7 @@ documented fields are ever missing from the result.
 ## 2. Resolve against an unregistered target
 
 ```bash
-node ../../dist/cli/index.js resolve rules/style.md --target no-such-target
+prosaic resolve rules/style.md --target no-such-target
 ```
 
 Expected output: [`expected-output/02-unregistered-target.txt`](expected-output/02-unregistered-target.txt).

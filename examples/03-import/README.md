@@ -7,7 +7,7 @@ recovering existing tool-specific content into neutral Prosaic source —
 without aborting the whole run when one file can't be recovered.
 
 Run it from inside this directory using the CLI you built locally
-(`node ../../dist/cli/index.js`), or `prosaic` if you have it linked.
+(`prosaic`), or `prosaic` if it is installed.
 
 ## 1. Import the foreign fixture
 
@@ -16,7 +16,7 @@ well-formed Claude Code rule) and `broken-notes.md` (frontmatter with no
 closing `---` delimiter, on purpose).
 
 ```bash
-node ../../dist/cli/index.js import foreign-fixture --format claude-code
+prosaic import foreign-fixture --format claude-code
 ```
 
 Expected output: [`expected-output/01-import.txt`](expected-output/01-import.txt).

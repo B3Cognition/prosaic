@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-01
+
+### Changed
+
+- Replaced the TypeScript implementation with Python 3.11+, retaining the
+  `prosaic` distribution, repository, import module, and CLI names.
+- Installation now uses pip, pipx, or uv; npm distribution and the JavaScript
+  library API are retired. Python APIs use snake_case; serialized contract keys,
+  Markdown/configuration formats, ownership manifests, and CLI commands remain.
+- Python CI, wheel/source distributions, frozen TypeScript differential checks,
+  original CLI suites, and installed-wheel checks replace the Node build.
+- Preserved the 0.2.0 read-only `tools` catalogue and its safety limits.
+- Reject dangling symlink escapes and bound cyclic package-directory traversal.
+
+### Migration evidence and limits
+
+- Fresh local checks: 432 Python tests, 55 original CLI tests across 13 suites,
+  265 Runtime tests, 107 Harness tests, and ten installed-wheel smoke checks.
+- Runtime/Harness offline and live workflow trials exercised Python Prosaic.
+- Echelon with Codex authored, reviewed, repaired, and validated the reverse-text
+  CLI spec, stopping at the expected semi-mode human approval checkpoint.
+- Full Echelon design/planning/publication and Claude remain untested. Local
+  forced-read tool-choice limitations occur with both TS and Python inspectors.
+- Previous TypeScript sources and releases remain recoverable in Git history
+  and the v0.2.0 tag; production consumer pins/installers are not changed here.
+
 ## [0.2.0] - 2026-10-01
 
 ### Added

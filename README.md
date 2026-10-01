@@ -1,911 +1,149 @@
 # Prosaic
 
-Prosaic distributes one canonical set of Markdown-with-frontmatter rules,
-commands, skills, and subagents into the on-disk formats expected by many AI
-coding tools.
-
-Use it when you want to keep `.prosaic/` as the source of truth and generate
-tool-specific files such as Claude Code commands or Cursor rules without
-hand-maintaining every copy.
-
-## Prerequisites
-
-- Node.js 20 or newer.
-- npm.
-- A project directory where Prosaic can read source artifacts and write generated
-  tool files.
-
-Prosaic does not require network access or service credentials at runtime. It
-reads local files and writes local files under the project root.
+Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
+targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
 
 ## Install
 
-### From a local clone
+Prosaic 0.3.0 is Python 3.11+. The repository, distribution, import module, and
+CLI remain `prosaic`. There is no Node.js runtime dependency.
 
-```bash
-cd prosaic
-npm install
-npm run build
-npm link
-prosaic --version
+```sh
+uv tool install git+https://github.com/B3Cognition/prosaic.git@v0.3.0
+# Alternative:
+pipx install git+https://github.com/B3Cognition/prosaic.git@v0.3.0
 ```
 
-`npm link` puts the local `prosaic` executable on your PATH. If you do not want a
-global link, run the built CLI directly from this repository:
+The GitHub release provides a wheel and source archive, not an npm package or
+a PyPI publication. npm installation and the JavaScript library API are retired.
+Existing consumer installers pinned to TS need an explicit update. When switching
+a global installation, explicitly uninstall its old npm CLI and check
+`command -v prosaic` so PATH does not select the old executable.
 
-```bash
-node dist/cli/index.js --version
-```
+## Quick start
 
-### From npm
-
-After the package is published, install it globally:
-
-```bash
-npm install -g prosaic
-prosaic --version
-```
-
-## First Run
-
-The smallest useful run needs:
-
-- one source directory, `.prosaic/`
-- one `prosaic.config.yaml`
-- at least one target
-- at least one source artifact
-
-The example below writes a rule and a command to Claude Code and Cursor.
-
-### 1. Create a project
-
-```bash
-mkdir prosaic-demo
-cd prosaic-demo
-mkdir -p .prosaic/rules .prosaic/commands
-```
-
-### 2. Add a rule
-
-Create `.prosaic/rules/style.md`:
+Create `.prosaic/commands/greet.md`:
 
 ```markdown
 ---
-description: Shared writing style for AI tools.
+description: Greet the user
 ---
-
-Be concise.
-Prefer concrete examples.
+Say hello to $ARGUMENTS.
 ```
 
-### 3. Add a command
+Then preview and distribute it:
 
-Create `.prosaic/commands/release.md`:
-
-```markdown
----
-description: Prepare a release checklist.
----
-
-Create a release checklist for {{args}}.
+```sh
+prosaic apply --targets claude-code --dry-run
+prosaic apply --targets claude-code
+prosaic inspect commands/greet.md
+prosaic resolve commands/greet.md --target claude-code
+prosaic revert --targets claude-code --dry-run
 ```
 
-### 4. Add configuration
+Canonical source directories are `rules/`, `skills/`, `subagents/`, and
+`commands/`. Skill/subagent bundles retain their companion resources and
+internal references.
 
-Create `prosaic.config.yaml`:
+## Configuration and commands
+
+Existing filenames and keys remain supported: `prosaic.config.yaml`,
+`prosaic.config.yml`, `.prosaic.yaml`, `source`, `targets`, `artifactTypes`,
+`lossyPolicy`, `backupRetention`, and `packages`. Markdown and manifest formats
+are unchanged.
 
 ```yaml
-targets:
-  - claude-code
-  - cursor
-artifactTypes: [rule, command]
-lossyPolicy: warn
-```
-
-Configuration is optional for defaults, but a first run should name explicit
-targets so the generated files are easy to inspect.
-
-Supported config files:
-
-- `prosaic.config.yaml`
-- `prosaic.config.yml`
-- `.prosaic.yaml`
-
-Common config keys:
-
-| Key | Meaning | Default |
-| --- | --- | --- |
-| `source` | Source-of-truth directory | `.prosaic` |
-| `targets` | `all` or a list of target IDs | `all` |
-| `artifactTypes` | Any of `rule`, `skill`, `subagent`, `command` | all four |
-| `lossyPolicy` | `warn` or `error` for non-representable intent | `warn` |
-| `backupRetention` | Backups retained before overwrites | `3` |
-
-See [Target On-Disk Contracts](docs/target-contracts.md) for target IDs and
-their output contracts.
-
-### 5. Preview the write plan
-
-Run the dry run from the project root, the directory containing
-`prosaic.config.yaml`:
-
-```bash
-prosaic apply --dry-run
-```
-
-Expected output for the starter project:
-
-```text
-Dry run (apply): 4 create, 0 overwrite, 0 backup, 0 remove, 0 unchanged. 0 files written, 0 files deleted.
-create  .claude/commands/release.md [claude-code]
-create  .claude/style.md [claude-code]
-create  .cursor/commands/release.md [cursor]
-create  .cursor/rules/style.mdc [cursor]
-```
-
-Dry runs do not write generated files or update the manifest.
-
-### 6. Apply the generated files
-
-```bash
-prosaic apply
-```
-
-Expected output:
-
-```text
-apply: 4 created, 0 overwritten, 0 unchanged, 0 removed, 0 backed up. 4 changed file(s).
-```
-
-Expected files:
-
-```text
-.claude/commands/release.md
-.claude/style.md
-.cursor/commands/release.md
-.cursor/rules/style.mdc
-.prosaic-manifest.json
-.prosaic/commands/release.md
-.prosaic/rules/style.md
-prosaic.config.yaml
-```
-
-`.prosaic-manifest.json` records the files Prosaic generated. Keep it if you want
-safe `revert` and reconciliation behavior.
-
-### 7. Re-run safely
-
-Run `apply` again after no source changes:
-
-```bash
-prosaic apply
-```
-
-Expected result:
-
-```text
-0 changed file(s)
-```
-
-Prosaic is designed to make no-op re-applies byte-identical.
-
-### 8. Revert generated files
-
-Preview removals:
-
-```bash
-prosaic revert --dry-run
-```
-
-Expected output:
-
-```text
-Dry run (revert): 4 remove. 0 files deleted.
-remove   .claude/commands/release.md [claude-code]
-remove   .claude/style.md [claude-code]
-remove   .cursor/commands/release.md [cursor]
-remove   .cursor/rules/style.mdc [cursor]
-```
-
-Then remove only Prosaic-managed files:
-
-```bash
-prosaic revert
-```
-
-Expected output:
-
-```text
-revert: 4 file(s) removed.
-```
-
-Hand-authored files not recorded in `.prosaic-manifest.json` are not deleted.
-
-## Examples
-
-Runnable, self-contained walkthroughs covering write/preview/revert,
-multi-artifact-type distribution, and more, each verified automatically
-against a captured Expected-Output Record. If a code change makes an
-example's live output diverge from its recorded output, the check fails
-and names that specific example rather than passing silently. An example
-that lacks a verification entry is reported as a coverage gap rather than
-a pass. The first two examples (basic write/preview/revert and
-multi-artifact-type distribution) already cover the minimum two (2) required
-flows on their own, before the full set below extends that to four or more,
-including import and resolve. See [`examples/README.md`](examples/README.md)
-for the full index.
-
-## Company-Managed Prose Repository
-
-Yes: Prosaic can be used with a company-managed repository that owns the
-canonical MD prose, then applied into one or many product repositories.
-
-The key idea is that Prosaic always reads from one source directory and writes
-generated tool files under the current project root. The company repository can
-own the source, while each consuming repository owns its generated outputs and
-its `.prosaic-manifest.json`.
-
-Example company source repository:
-
-```text
-company-ai-prose/
-  .prosaic/
-    rules/
-      engineering-style.md
-      security-review.md
-    commands/
-      release-checklist.md
-      triage-issue.md
-    skills/
-      code-review/
-        SKILL.md
-        checklist.md
-    subagents/
-      reviewer.md
-```
-
-Example consuming application repository:
-
-```text
-payments-api/
-  vendor/
-    company-ai-prose/          # submodule, subtree, package output, or CI checkout
-      .prosaic/
-  prosaic.config.yaml
-```
-
-`payments-api/prosaic.config.yaml`:
-
-```yaml
-source: vendor/company-ai-prose/.prosaic
-targets:
-  - claude-code
-  - cursor
-  - github-copilot
-artifactTypes: [rule, command, skill, subagent]
+source: .prosaic
+targets: [claude-code, codex-cli]
+artifactTypes: [rule, skill, subagent, command]
 lossyPolicy: warn
 backupRetention: 3
 ```
 
-Run Prosaic from the consuming repository root:
-
-```bash
-cd payments-api
+```sh
 prosaic apply --dry-run
 prosaic apply
-```
-
-Generated files are written into `payments-api`, not into
-`company-ai-prose`. For example, Claude Code files land under
-`payments-api/.claude/`, Cursor rules under `payments-api/.cursor/`, and the
-manifest under `payments-api/.prosaic-manifest.json`.
-
-Common ways to wire the company source into product repos:
-
-- **Git submodule or subtree:** keep `company-ai-prose` inside each repo under
-  `vendor/` or `tools/`, then point `source` at it.
-- **CI checkout:** in a workflow, check out both the product repo and the prose
-  repo, then run `prosaic apply --source ../company-ai-prose/.prosaic`.
-- **Package or artifact sync:** publish the `.prosaic/` directory as an internal
-  package or build artifact, unpack it into the product repo, then run Prosaic.
-- **Monorepo shared directory:** keep one shared `.prosaic/` tree at the monorepo
-  root and run Prosaic from each package with `--source ../../.prosaic` or an
-  equivalent config value.
-
-Recommended version-control policy for consuming repos:
-
-- Commit `prosaic.config.yaml` so each repo declares which targets it wants.
-- Commit `.prosaic-manifest.json` if you want later `revert` and reconciliation
-  to know exactly which files Prosaic owns.
-- Decide whether generated tool files should be committed. Commit them if the
-  tools need files present for every developer immediately after checkout; ignore
-  them if CI or a bootstrap script regenerates them.
-- Do not hand-edit generated tool files as the long-term source of truth. Edit
-  the company `.prosaic/` artifact instead, then re-run `prosaic apply`.
-
-Current limitation: Prosaic is a local filesystem CLI, not a central push
-service. A company-managed setup still needs Git, CI, submodules, package
-syncing, or another delivery mechanism to make the canonical `.prosaic/` tree
-available in each consuming repository.
-
-## Existing Repositories
-
-Yes: Prosaic can be introduced into an existing repository, including one that
-already has Claude, Cursor, Copilot, or other tool-specific files.
-
-Prosaic now ships a `prosaic import` command that reverse-engineers existing
-tool-specific files back into neutral `.prosaic/` source; see
-[Import from Existing Tool Directories](#import-from-existing-tool-directories).
-There is still no `prosaic init` or Ruler-style adoption command. Whichever path
-you choose, adoption stays deliberately conservative: Prosaic will not perform a
-content-changing overwrite of an existing target file unless that file is already
-recorded in `.prosaic-manifest.json` as Prosaic-managed.
-
-### Safe adoption flow
-
-1. Install or build Prosaic.
-
-   ```bash
-   prosaic --version
-   ```
-
-2. Create the Prosaic source tree in the existing repo.
-
-   ```bash
-   cd existing-repo
-   mkdir -p .prosaic/rules .prosaic/commands .prosaic/skills .prosaic/subagents
-   ```
-
-3. Copy or rewrite your canonical content into `.prosaic/`.
-
-   For example:
-
-   ```text
-   .prosaic/rules/team-style.md
-   .prosaic/commands/release.md
-   .prosaic/skills/reviewer/SKILL.md
-   .prosaic/subagents/security-reviewer.md
-   ```
-
-4. Add `prosaic.config.yaml` with a small target set first.
-
-   ```yaml
-   targets:
-     - claude-code
-     - cursor
-   artifactTypes: [rule, command]
-   lossyPolicy: warn
-   ```
-
-5. Preview without writing.
-
-   ```bash
-   prosaic apply --dry-run
-   ```
-
-   Review every planned `create`, `update`, and `remove` line. On a first run,
-   expect mostly `create` lines. If a generated path would collide with an
-   existing hand-authored file, the real apply refuses to overwrite it unless it
-   is already managed by Prosaic.
-
-6. Apply only after the dry run looks right.
-
-   ```bash
-   prosaic apply
-   ```
-
-7. Re-run to confirm idempotency.
-
-   ```bash
-   prosaic apply
-   ```
-
-   A clean adoption should report `0 changed file(s)` on the second run.
-
-8. Commit the source and ownership state.
-
-   ```text
-   .prosaic/
-   prosaic.config.yaml
-   .prosaic-manifest.json
-   ```
-
-   Commit generated target files only if your team wants them present in Git.
-
-### Handling files that already exist
-
-Existing repos often already contain files such as:
-
-```text
-.claude/commands/release.md
-.cursor/rules/team-style.mdc
-.github/instructions/team.instructions.md
-```
-
-The fastest way to adopt these is `prosaic import <tool-directory>`, which
-detects the source format and writes the neutralized artifacts into `.prosaic/`
-for you (see [Import from Existing Tool Directories](#import-from-existing-tool-directories)).
-To adopt them manually instead, choose the canonical version and place it under
-`.prosaic/`:
-
-| Existing file | Typical Prosaic source |
-| --- | --- |
-| `.claude/commands/<name>.md` | `.prosaic/commands/<name>.md` |
-| `.claude/skills/<name>/SKILL.md` | `.prosaic/skills/<name>/SKILL.md` |
-| `.claude/agents/<name>.md` | `.prosaic/subagents/<name>.md` |
-| `.cursor/rules/<name>.mdc` | `.prosaic/rules/<name>.md` |
-| `.github/instructions/<name>.instructions.md` | `.prosaic/rules/<name>.md` |
-| `.github/prompts/<name>.prompt.md` | `.prosaic/commands/<name>.md` |
-
-After that, run `prosaic apply --dry-run` and compare the planned generated
-output against the existing tool files. If the output path already exists and
-differs, choose one of these approaches:
-
-- move the hand-authored file aside, run `prosaic apply`, then compare and delete
-  the old file after review;
-- update the `.prosaic/` source until generated output matches what you want;
-- keep that target out of `targets` temporarily while you migrate the content.
-
-### Using Prosaic beside Ruler
-
-If the repository already uses Ruler, keep the tools' ownership boundaries clear.
-Do not have Ruler and Prosaic both manage the same generated path at the same
-time.
-
-A conservative migration is:
-
-1. Keep the existing Ruler setup untouched.
-2. Create `.prosaic/` with one or two artifacts copied from the current source
-   material.
-3. Configure Prosaic for one target, preferably a target/path not currently
-   managed by Ruler.
-4. Run `prosaic apply --dry-run`.
-5. Once the output is acceptable, stop generating that same path from Ruler and
-   let Prosaic own it.
-6. Commit `.prosaic-manifest.json` so Prosaic can safely reconcile and revert
-   only the paths it owns.
-
-Current limitation: migration from `.ruler/` or `.rulesync/` layouts is a
-Post-MVP item. Reverse/pull import from native target directories, by contrast,
-is now available through `prosaic import`.
-
-## Source Artifacts
-
-Prosaic classifies source files by directory or by explicit `type:` frontmatter.
-
-| Type | Default source directory | Typical output |
-| --- | --- | --- |
-| `rule` | `.prosaic/rules/` | Rules, memories, instructions |
-| `command` | `.prosaic/commands/` | Slash commands or command recipes |
-| `skill` | `.prosaic/skills/` | Skill bundles with resources |
-| `subagent` | `.prosaic/subagents/` | Agent definitions with resources |
-
-Skills and subagents can include bundled resource files. Prosaic rewrites
-internal references when distributing the bundle so generated outputs do not
-point back to stale source paths.
-
-## Import from Existing Tool Directories
-
-Prosaic can also reverse-engineer existing tool-specific files back into neutral
-source. The `import` command detects which tool produced a directory of prose
-files, un-translates the concrete frontmatter into the neutral vocabulary,
-writes prosaic source, and verifies fidelity by re-deploying and comparing to
-the original.
-
-### Quick Import
-
-```bash
-prosaic import .claude
-```
-
-Prosaic auto-detects that `.claude/` is Claude Code format, neutralizes every
-artifact, and writes neutral source files into `.prosaic/`.
-
-### Import with Explicit Format
-
-If the directory layout is ambiguous or hand-authored, specify the format:
-
-```bash
-prosaic import .claude --format claude-code
-prosaic import .cursor/rules --format cursor
-```
-
-### Dry Run & Preview
-
-Preview exactly what will be imported before writing:
-
-```bash
-prosaic import .claude --dry-run
-```
-
-### Round-Trip Verification
-
-Import automatically verifies that re-deploying the neutralized artifact to the
-same tool reproduces the original file byte-for-byte:
-
-```bash
-prosaic import .claude
-# Output includes round-trip verification results per file
-```
-
-If fidelity is not exact, import reports which keys or content differ. For
-targets whose forward translation is not fully invertible, import preserves
-non-invertible data under a per-target `overrides:` section and reports the
-fidelity level.
-
-Round-trip fidelity is guarded by two independent conformance oracles. The
-self-referential oracle re-imports the tool's own forward output. The
-genuine-foreign oracle round-trips against hand-authored/captured foreign files
-committed under `conformance-fixtures/import-foreign/` — one static artifact per
-import-stable target, in that tool's canonical on-disk form. Because these
-fixtures are decoupled from the live serializer, re-deploying the neutralized
-artifact must reproduce the committed original byte-for-byte, catching
-serializer drift the self-referential oracle cannot (SC-003, FR-036, FR-037).
-
-The same genuine-foreign corpus backs a set of measured-runtime safety checks
-under `tests/safety/import/`. Instead of hand-maintained counters, these tests
-run the real end-to-end `importRun` and observe the actual `fs` syscalls it
-makes (`fs-instrument.ts`) plus before/after sha256 tree snapshots. They record
-independent evidence that import is idempotent at the source level (NFR-002,
-SC-006), drops nothing silently across the full target registry (NFR-005,
-SC-002), imports with a single no-flag auto-detect command per target (SC-001),
-and that preview/dry-run runs mutate zero files (FR-069):
-
-```bash
-npm test -- tests/safety/import
-```
-
-### Portability Warnings
-
-Import warns about content that won't travel across tools, such as absolute
-filesystem paths or tool-only frontmatter keys:
-
-- Absolute path references are flagged with a suggestion to use project-relative paths
-- Unknown frontmatter keys are preserved in overrides with a warning
-- Tool-only keys injected at deploy time are stripped before reconstruction
-
-A consolidated portability report is presented at the end of the run.
-
-### Bundles and Companions
-
-Import recognizes multi-file skill and subagent bundles, re-associates resource
-files, and rewrites internal references. Tool companion metadata files are
-consumed and their data recovered into the neutral artifact.
-
-## Neutral Custom CLI-Tool Catalogue
-
-Prosaic v0.2.0 adds `prosaic tools --source .prosaic`, which lists
-YAML/YML manifests in `.prosaic/tools` as JSON. `--directory <path>` inspects an
-explicit manifest directory instead. The library exports `discoverTools` and
-`ToolManifest`. Discovery is sorted, non-recursive and read-only: it does not
-resolve executables, execute version probes, install tools or grant permissions.
-A missing default directory yields an empty catalogue; malformed contracts,
-duplicate names, oversized files and symlinked manifests fail closed.
-
-Manifests describe a name, description, `tool_version`, closed JSON parameter
-schema, fixed executable/argv, JSON output and bounded execution settings. Neutral
-prose references them with `tools: [analyze_spec]`. Runtime independently loads
-only operator-configured `tool_directories`, checks host/config grants and offers
-offline preflight. Its first CLI adapter supports string arguments and declared
-read-file path parameters; no general shell or MCP server is required.
-
-See the companion Runtime's
-[CLI-tool guide and runnable examples](https://github.com/B3Cognition/prosaic-runtime/blob/main/docs/cli-tools.md).
-These companion features require Runtime v0.5.0+ and Harness v0.4.0+.
-Tool manifests are executable configuration: inspect and trust
-them explicitly before allowing Runtime to execute their application commands.
-
-## Resolve Execution Settings for an Orchestrator
-
-`prosaic resolve` returns the model, reasoning effort, tools, and execution
-type Prosaic would use for a given artifact/target pair, as structured JSON —
-for an external runtime orchestrator (e.g. Echelon) that wants to invoke the
-right AI coding tool without parsing generated provider files or
-reimplementing Prosaic's translation logic.
-
-```bash
-prosaic resolve rules/style.md --target claude-code
-```
-
-```json
-{"artifactId":"rules/style.md","targetId":"claude-code","model":{"status":"unresolved"},"reasoningEffort":{"status":"unresolved"},"tools":{"status":"resolved","value":"Read, Edit"},"executionType":{"status":"resolved","value":"agent"}}
-```
-
-The response always has four fields — `model`, `reasoningEffort`, `tools`,
-`executionType` — each reporting `status: "resolved"` or `status:
-"unresolved"`; a property is marked `unresolved` rather than omitted when the
-target has no translation rule for it.
-
-Resolution never writes a file to any target's destination directory and
-never makes a network call or invokes an LLM; repeated resolution of the same
-artifact/target with unchanged source returns identical results. An
-unregistered `--target` or an unresolvable `artifactId` causes exit code 1
-with `error: <message>` on stderr, e.g.:
-
-```bash
-prosaic resolve rules/style.md --target no-such-target
-# error: Unknown target: "no-such-target" is not in the target registry
-```
-
-An artifact's optional `model_tier` frontmatter field (a permissive string
-such as `fast`, `balanced`, `strong`, `ultra`, or any other value) is never
-used to populate `model` — Prosaic defines no tier-to-model mapping.
-`model_tier` is visible verbatim via `inspect` and passed through unchanged
-into every target's rendered output; see [Target On-Disk
-Contracts](docs/target-contracts.md) for the full neutral-adjacent
-frontmatter vocabulary.
-
-Node.js/TypeScript consumers can call the library API directly instead of
-spawning the CLI: `resolveExecutionData({ projectRoot, artifactId, targetId })`
-is exported from the `prosaic` package and returns a `ResolveExecutionResult`
-— `{ ok: true, data }` on success or `{ ok: false, errorKind, message }` on
-failure — and never throws. Callers branch on `errorKind`:
-`'unregistered-target'`, `'artifact-not-found'`, or `'internal'`.
-
-Before invoking a target, a library consumer can check what it declares
-support for: `runtimeCapabilityFor(descriptor)` (or
-`registry.runtimeCapability(targetId)`) returns a `RuntimeCapabilityDeclaration`
-with four fields — `model`, `reasoningEffort`, `tools`, `executionType` — each
-`'accepts'`, `'rejects'`, or `'unknown'`. No built-in target currently
-declares a `runtimeCapability` value, so every built-in target reports
-all-`'unknown'` today; this is the correct default, not a missing feature,
-and lets a caller distinguish "known unsupported" from "not yet declared."
-`registry.runtimeCapability(id)` throws the same `UnknownTargetError` as
-`registry.get(id)` for an unregistered target id.
-
-## Inspect Full Artifact Data
-
-`prosaic inspect` returns one discovered artifact's full neutral data —
-identifier, type, frontmatter, body, bundle root, and bundled resources — as
-structured JSON, for an external runtime orchestrator (or a human operator)
-that wants to retrieve full artifact data without writing files, calling a
-network service, or parsing generated per-target output. Unlike `resolve`,
-`inspect` takes no `--target`: its output is target-neutral, pre-translation
-data.
-
-```bash
-prosaic inspect rules/style.md
-```
-
-```json
-{"id":"rules/style.md","type":"rule","frontmatter":{"description":"style"},"body":"Be concise.\n","bundleRoot":null,"resources":[]}
-```
-
-For a skill or subagent bundle, `bundleRoot` is the bundle's absolute
-filesystem path and `resources` lists each companion file's path relative to
-`bundleRoot` plus its full content — combining the two always resolves to a
-real file:
-
-```json
-{"id":"skills/greeter/SKILL.md","type":"skill","frontmatter":{"name":"greeter"},"body":"Greet the user.\n","bundleRoot":"/abs/path/.prosaic/skills/greeter","resources":[{"relPath":"reference.md","content":"# Reference\n"}]}
-```
-
-`resources` and `bundleRoot` are always present — an empty list and `null`,
-respectively, for a standalone (non-bundle) artifact — never omitted.
-
-An optional `--json` flag is accepted for compatibility but never changes the
-output, since inspect's output is unconditionally machine-readable JSON. An
-unresolvable `artifactId` causes exit code 1 with `error: <message>` on
-stderr, e.g.:
-
-```bash
-prosaic inspect rules/does-not-exist.md
-# error: Unknown artifact: "rules/does-not-exist.md" was not found by discovery
-```
-
-Node.js/TypeScript consumers can call the library API directly instead of
-spawning the CLI: `inspectArtifact({ projectRoot, artifactId })` is exported
-from the `prosaic` package and returns an `InspectionResult` — `{ ok: true,
-data }` on success or `{ ok: false, errorKind, message }` on failure — and
-never throws. Callers branch on `errorKind`: `'artifact-not-found'` or
-`'internal'`.
-
-The not-found failure result does not yet distinguish an identifier that
-never existed from one whose source file was dropped during discovery due to
-a validation failure — both report the same `'artifact-not-found'` result in
-this release; distinguishing the two causes is deferred to a future revision.
-
-## Command Reference
-
-```bash
-prosaic apply
-prosaic apply --dry-run
-prosaic apply --targets claude-code cursor
-prosaic apply --types rule command
-prosaic apply --source ./ai-artifacts
-prosaic apply --lossy error
-
-prosaic revert
 prosaic revert --dry-run
-prosaic revert --targets cursor
-
-prosaic import <foreign-directory>
-prosaic import <foreign-directory> --format <tool-id>
-prosaic import <foreign-directory> --dry-run
-prosaic apply --no-color
-prosaic import <foreign-directory> --color
-
-prosaic resolve <artifactId> --target <targetId>
-prosaic resolve <artifactId> --target <targetId> --source ./ai-artifacts
-
-prosaic inspect <artifactId>
-prosaic inspect <artifactId> --json
-prosaic inspect <artifactId> --source ./ai-artifacts
-
-prosaic package deploy <packageId>
-prosaic package deploy <packageId> --dry-run
-
-prosaic package revert <packageId>
-prosaic package revert <packageId> --dry-run
+prosaic revert
+prosaic import ./foreign --format claude-code --dry-run
+prosaic resolve commands/deploy.md --target claude-code
+prosaic inspect subagents/reviewer.md --json
+prosaic tools --source .prosaic
+prosaic package deploy my-package --dry-run
+prosaic package revert my-package --dry-run
 ```
 
-CLI flags override `prosaic.config.yaml` for that run. `--color` / `--no-color`
-controls human-readable output from `apply`, `import`, and `revert`. The
-machine-readable JSON emitted by `resolve` and `inspect` is never styled, so its
-bytes remain stable.
+`inspect`, `resolve`, and `tools` emit JSON. Import warnings go to stderr;
+apply warnings remain on stdout. Explicit `--color` / `--no-color`,
+`NO_COLOR`, and `FORCE_COLOR` retain the CLI presentation contract.
 
-## Terminal Output & Color
+See [package deployment](docs/packages.md), [target contracts](docs/target-contracts.md),
+[adding a target](docs/add-a-target.md), and [examples](examples/README.md).
 
-Prosaic styles previews, run summaries, warnings, and errors with ANSI color
-when it detects an interactive terminal, and falls back to plain, ASCII-only
-text otherwise. Color never changes the bytes of generated artifact files — it
-only affects what Prosaic prints to the terminal.
+## Neutral CLI-tool catalogue
 
-- **Auto-detected by default:** color is on for an interactive terminal and off
-  when output is piped or redirected. stdout and stderr are evaluated
-  independently, so redirecting one stream does not affect the other.
-- **`--color` / `--no-color`:** force color on or off for the run. The flag
-  overrides every environment convention below.
-- **`NO_COLOR`:** if set to any value (even empty), color is disabled regardless
-  of TTY. See <https://no-color.org>.
-- **`FORCE_COLOR`:** enables color even on a non-interactive stream;
-  `FORCE_COLOR=0` disables color.
-- **Precedence when both are set:** `NO_COLOR` wins and output stays plain.
+`prosaic tools` lists sorted YAML/YML manifests from `<source>/tools`;
+`--directory <path>` selects an explicit directory. Discovery is bounded,
+non-recursive and read-only. It never resolves executables, probes, installs,
+executes, or grants access. Malformed/duplicate/oversized/symlinked manifests
+fail closed. The Python API is `discover_tools(directory)`.
 
-Piped or non-interactive human-readable output is always plain and ASCII-only,
-so `grep`, log parsers, and snapshot tests keep working. In plain mode, outcome
-markers are `[ok]`, `[drop]`, and `->`; in styled mode they may render as `✓`,
-`✗`, and `→`.
+Execution belongs in Prosaic Runtime with operator-configured grants.
+See the [companion CLI-tool guide](https://github.com/B3Cognition/prosaic-runtime/blob/main/docs/cli-tools.md).
 
-Warning lines use the structured format
-`warning[<kind>] <artifact> → <target>: <message>` (the arrow is `->` in plain
-mode), and error lines begin with `error: `.
+## Python API
 
-## Safety Model
+```python
+from pathlib import Path
+from prosaic import apply, inspect_artifact, resolve_execution_data, discover_tools
 
-- **Contained writes:** every write and delete is confined to the project root;
-  symlink escapes are refused.
-- **Backups before overwrite:** existing target files are backed up before
-  Prosaic overwrites them.
-- **Manifest-based revert:** `revert` removes only files recorded in
-  `.prosaic-manifest.json`; a missing or corrupt manifest aborts deletion.
-- **Idempotent output:** repeated applies over unchanged sources produce
-  byte-identical files and `0 changed file(s)`.
-- **No silent loss:** lossy or skipped transformations emit warnings naming the
-  artifact and target. Use `--lossy error` to fail instead of warning.
-
-## Troubleshooting
-
-### `Dry run (apply): 0 create`
-
-Check that you ran Prosaic from the project root. Prosaic discovers
-`prosaic.config.yaml` and `.prosaic/` relative to the current working directory.
-
-Also check that your config selects at least one target and one artifact type.
-`targets: []` is a valid no-op.
-
-### `Unknown target`
-
-The target ID in `prosaic.config.yaml` or `--targets` is not registered. Check
-[Target On-Disk Contracts](docs/target-contracts.md) or
-`src/registry/adapters/contract-matrix.md` for known IDs.
-
-### `prosaic resolve` fails
-
-`prosaic resolve` reports the same "unregistered target" failure as
-`apply`/`revert` (exit 1, `error: Unknown target: ...`) rather than a silent
-empty result. An `artifactId` that does not match any discovered artifact
-fails with a distinct `error: ...` message (`artifact-not-found`) rather than
-being conflated with the target-lookup failure.
-
-### Revert refuses to run
-
-`revert` requires a valid `.prosaic-manifest.json`. If the manifest is missing or
-corrupt, Prosaic aborts instead of guessing which files it owns. Restore the
-manifest, or remove generated files manually after reviewing them.
-
-### Generated files overwrite something important
-
-Prosaic backs up files before overwriting them. Review the backup files in the
-project root and restore the one you need. Set `backupRetention` higher if you
-want to keep more overwrite history.
-
-### Lossy transform warnings
-
-Some targets cannot represent every neutral frontmatter key. With
-`lossyPolicy: warn`, Prosaic writes the file and reports the dropped intent. With
-`lossyPolicy: error` or `--lossy error`, the run fails instead.
-
-### Colored output in logs or CI
-
-If captured output contains ANSI escape codes, or a legacy terminal shows
-garbled glyphs, force the plain, ASCII-only path with `--no-color` or by setting
-`NO_COLOR=1`. Piped output is already plain by default; the flag is only needed
-when a stream is a TTY or `FORCE_COLOR` is set. See
-[Terminal Output & Color](#terminal-output--color).
-
-## Develop Prosaic
-
-From this repository:
-
-```bash
-npm install
-npm run build
-npm test
-npm run lint
+root = Path('/path/to/project')
+inspection = inspect_artifact(root, 'subagents/reviewer.md')
+preview = apply(root, cli={'targets': ['claude-code']}, dry_run=True)
+resolved = resolve_execution_data(root, 'commands/deploy.md', 'claude-code')
+catalogue = discover_tools(root / '.prosaic/tools')
 ```
 
-Focused test files can be passed through Jest:
+Python function names use snake_case; serialized contract keys retain camelCase.
+Registry injection, configuration precedence, target registration and pipeline
+operations remain available. This package distributes/inspects prose; it does
+not execute models or orchestrate application workflows.
 
-```bash
-npm test -- tests/e2e/perf-100x30.test.ts
-npm test -- tests/e2e/cross-env-byte-identity.test.ts
-npm test -- tests/e2e/deterministic-render.test.ts
+## Development and verification
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -e '.[test]'
+.venv/bin/python scripts/verify_migration.py
+.venv/bin/python -m pytest
+.venv/bin/python -m build
+python3 -m venv .wheel-test
+.wheel-test/bin/python -m pip install dist/prosaic-0.3.0-py3-none-any.whl
+.wheel-test/bin/python scripts/wheel_smoke.py
 ```
 
-Main source directories:
+The verifier restores immutable TS v0.2.0 from this repository's Git history,
+runs Python differential/golden tests and original CLI suites through Python,
+and records `parity-results/latest.json`. Node/npm are required only for the
+frozen oracle, never for installed usage. Python CI covers 3.11, 3.12 and 3.13.
+Use `--consumers ../prosaic-runtime ../prosaic-harness --freeze-consumers`
+for tests against immutable consumer snapshots.
 
-- `src/cli/` - CLI entry point and argument handling
-- `src/config/` - config loading, defaults, and CLI overrides
-- `src/discovery/` - source artifact discovery and classification
-- `src/pipeline/` - transformation stages
-- `src/registry/` - target descriptors and conformance status
-- `src/lifecycle/` - apply, dry-run, reconcile, and revert flows
-- `src/write/` - guarded filesystem, containment, and backups
-- `src/package/` - package deployment (validate, enumerate, plan, stage, commit); see [Package Deployment](docs/packages.md)
+[Validation history](docs/parity-status.md) and
+[0.3.0 migration notes](docs/release-0.3.0.md) distinguish completed trials
+from untested workflows. Runtime/Harness live staged/preloaded workflows passed.
+Echelon + Codex authored, reviewed, repaired, and validated a reverse-text CLI
+spec, stopping at its expected human approval checkpoint. Full design/planning/
+publication, Claude, and delivery remain untested. The local endpoint's direct
+forced-read limitation reproduced with TS and Python inspectors; see
+[diagnosis](docs/tool-choice-diagnosis.md).
 
-## Add or Update a Target
+## Safety and license
 
-Targets are declarative adapter descriptors plus conformance fixtures. Start
-with [Adding a Target](docs/add-a-target.md), then review
-[Target On-Disk Contracts](docs/target-contracts.md). A descriptor may
-optionally declare a `runtimeCapability` block (per-field
-`accepts`/`rejects`/`unknown` for `model`, `reasoningEffort`, `tools`,
-`executionType`) so callers can query acceptance via `runtimeCapabilityFor`/
-`registry.runtimeCapability` before invoking the target; omitted fields
-default to `unknown`.
+Ownership manifests, integrity checks, contained paths, bounded backups, and
+read-only dry runs protect application files. Python additionally rejects
+dangling symlink escapes and bounds cyclic package-directory traversal. No
+production consumer pin or global CLI installation is changed by this release.
+The previous TS implementation remains recoverable from `v0.2.0`.
 
-## Performance and Verification
-
-The delivery benchmark distributed 100 artifacts across 30 targets in about
-816 ms, under the 30 second threshold. Deterministic rendering and
-cross-environment byte identity are covered by the test commands above.
-
-Resolve conformance and coverage are backed by measured-runtime evidence
-(NFR-002, NFR-004), not just assertion-based pass/fail: a full conformance
-run compares resolved execution data against the presentation translation
-outcome for every registered target (0 divergent field values across all
-compared fields), and every runtime-capable target carries at least 1 passing
-fixture test. Both results are recorded in `test-results/resolve-presentation-parity-nfr002.json`
-and `test-results/resolve-conformance-nfr004.json`.
-
-Resolve is also covered by measured-runtime crash-resilience evidence
-(NFR-001): `resolveExecutionData()` is driven over a 39-case multi-axis
-malformed-input corpus (malformed frontmatter YAML, malformed
-`prosaic.config.yaml`, binary/NUL/huge/deeply-nested content, adversarial
-target/artifact ids, non-`Error` registry faults) with 0 uncaught crashes —
-every attempt yields either a valid resolution or a structured `errorKind`.
-Recorded in `test-results/resolve-malformed-input-nfr001.json`.
-
-All `test-results/` evidence artifacts have been re-verified end-to-end with
-no regressions; each `recordedAt` timestamp reflects the latest run and every
-pass/fail outcome is unchanged from prior verification.
-
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md) for release history.
-
-## License
-
-Licensed under the [Apache License, Version 2.0](LICENSE). See [NOTICE](NOTICE).
-Third-party dependencies retain their own licenses.
+Apache-2.0; original attribution is retained in LICENSE and NOTICE.

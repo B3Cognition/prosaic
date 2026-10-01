@@ -1,9 +1,9 @@
 # Target On-Disk Contracts
 
 The authoritative, generated per-target contract matrix lives at
-[`src/registry/adapters/contract-matrix.md`](../src/registry/adapters/contract-matrix.md),
+[`contract-matrix.md`](contract-matrix.md),
 with reference provenance in
-[`contract-matrix.sources.md`](../src/registry/adapters/contract-matrix.sources.md).
+[`contract-matrix.sources.md`](contract-matrix.sources.md).
 
 Each target declares:
 

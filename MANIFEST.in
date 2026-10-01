@@ -1,0 +1,6 @@
+include CHANGELOG.md AGENTS.md
+recursive-include docs *.md
+recursive-include scripts *.py *.cjs
+recursive-include conformance-fixtures *
+recursive-include examples *.md *.yaml *.yml *.json
+global-exclude __pycache__ *.py[cod] .DS_Store
