@@ -25,8 +25,8 @@ permission grant. `prosaic tools` only inspects manifests; it never installs,
 probes, executes, or authorizes their executables.
 
 For execution, use the
-[sandboxed Runtime walkthrough](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-development)
-or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-development).
+[sandboxed Runtime walkthrough](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-runtime-052)
+or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-harness-042).
 They cover installing the trusted CLI, Runtime allowlists, invocation/step read
 grants, required-mode OS setup, offline preflight and explicit live execution.
 Sandbox settings belong in operator-owned Runtime YAML, not Prosaic Markdown.

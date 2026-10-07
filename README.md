@@ -109,8 +109,8 @@ in **Runtime YAML, not Markdown**. This isolates custom CLI subprocesses/probes
 with macOS Seatbelt or Linux Bubblewrap, not Python callbacks or native coding
 providers. It defaults to off;
 upgrading Prosaic alone does not activate it. See the
-[sandboxed Runtime example](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-development)
-or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-development)
+[sandboxed Runtime example](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-runtime-052)
+or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-harness-042)
 for installation, all permission layers and offline verification.
 
 ## Python API
