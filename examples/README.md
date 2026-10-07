@@ -16,3 +16,19 @@ rendering parity is checked by `scripts/verify_migration.py`.
   execution settings for an external orchestrator.
 - [05-multi-repository](05-multi-repository/README.md) — a company-managed
   source repository consumed by a separate product repository.
+
+## Executing tools: use the companion Runtime/Harness examples
+
+The projects above demonstrate distribution and inspection, not model/tool
+execution. `tools: [analyze_spec]` in Markdown is a declaration, not a host
+permission grant. `prosaic tools` only inspects manifests; it never installs,
+probes, executes, or authorizes their executables.
+
+For execution, use the
+[sandboxed Runtime walkthrough](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-development)
+or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-development).
+They cover installing the trusted CLI, Runtime allowlists, invocation/step read
+grants, required-mode OS setup, offline preflight and explicit live execution.
+Sandbox settings belong in operator-owned Runtime YAML, not Prosaic Markdown.
+These sandbox examples require Runtime 0.5.2+ and Harness 0.4.2+; upgrading
+Prosaic alone does not enable sandboxing. See [permission ownership](../README.md#declarations-are-not-permission-grants).

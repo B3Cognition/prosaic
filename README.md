@@ -5,13 +5,13 @@ targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness
 
 ## Install
 
-Prosaic 0.3.0 is Python 3.11+. The repository, distribution, import module, and
+Prosaic 0.3.1 is Python 3.11+. The repository, distribution, import module, and
 CLI remain `prosaic`. There is no Node.js runtime dependency.
 
 ```sh
-uv tool install git+https://github.com/B3Cognition/prosaic.git@v0.3.0
+uv tool install git+https://github.com/B3Cognition/prosaic.git@v0.3.1
 # Alternative:
-pipx install git+https://github.com/B3Cognition/prosaic.git@v0.3.0
+pipx install git+https://github.com/B3Cognition/prosaic.git@v0.3.1
 ```
 
 The GitHub release provides a wheel and source archive, not an npm package or
@@ -91,6 +91,28 @@ fail closed. The Python API is `discover_tools(directory)`.
 Execution belongs in Prosaic Runtime with operator-configured grants.
 See the [companion CLI-tool guide](https://github.com/B3Cognition/prosaic-runtime/blob/main/docs/cli-tools.md).
 
+### Declarations are not permission grants
+
+When executing through the companion Runtime/Harness, an agent can declare
+`tools: [analyze_spec]` in Markdown frontmatter. That requests a tool; it does
+not install it, trust its manifest, grant filesystem/network access, or enable
+an OS sandbox. Installing an executable or listing it with `prosaic tools` also
+grants nothing.
+
+The operator must independently configure Runtime `allowed_tools` and trust
+the manifest directory via `tool_directories`. The host then grants the tool
+and narrow `read_roots` in a Runtime invocation or Harness agent step. Missing
+grants deny access. Markdown and model output cannot expand these permissions.
+
+Runtime 0.5.2+ and Harness 0.4.2+ support `cli_sandbox: {mode: required}`
+in **Runtime YAML, not Markdown**. This isolates custom CLI subprocesses/probes
+with macOS Seatbelt or Linux Bubblewrap, not Python callbacks or native coding
+providers. It defaults to off;
+upgrading Prosaic alone does not activate it. See the
+[sandboxed Runtime example](https://github.com/B3Cognition/prosaic-runtime/blob/main/examples/README.md#sandboxed-cli-tools-development)
+or [sandboxed Harness workflow](https://github.com/B3Cognition/prosaic-harness/blob/main/examples/README.md#sandboxed-cli-workflow-development)
+for installation, all permission layers and offline verification.
+
 ## Python API
 
 ```python
@@ -118,7 +140,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 .venv/bin/python -m build
 python3 -m venv .wheel-test
-.wheel-test/bin/python -m pip install dist/prosaic-0.3.0-py3-none-any.whl
+.wheel-test/bin/python -m pip install dist/prosaic-0.3.1-py3-none-any.whl
 .wheel-test/bin/python scripts/wheel_smoke.py
 ```
 

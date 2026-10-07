@@ -8,7 +8,7 @@ from .pipeline import run_pipeline, PIPELINE_STAGES, resolve_execution, LossyTra
 
 from .tools import discover_tools
 
-__version__ = '0.3.0'
+__version__ = '0.3.1'
 
 
 def apply(*args, **kwargs):
