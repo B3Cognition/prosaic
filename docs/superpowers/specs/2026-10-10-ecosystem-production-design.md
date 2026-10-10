@@ -1,7 +1,7 @@
 # Prosaic ecosystem production milestones
 
 Date: 2026-10-10
-Status: written design under review; implementation has not started.
+Status: approved by the user for autonomous planning and implementation on 2026-10-10.
 
 ## Purpose and authorization
 
@@ -308,6 +308,13 @@ is sealed in native binding identity. `CustomTool.version` explicitly versions
 the handler, authorizer and key resolver together; changing any of those
 semantics requires a version change. Enabled descriptor fields participate in
 identity; disabled fields remain omitted exactly as in existing releases.
+
+The journal declares plain scalar `identity` (an opaque stable logical ledger ID)
+and `contract_version='tool-journal-v1'`. Seal both with the operation namespace,
+without exposing a DSN/path/object ID. Admission inspects those declarations
+statically and rejects dynamic properties, so reading binding metadata cannot
+execute product callbacks. The host must ensure that the declared identity still
+corresponds to the same durable ledger across deployments and credential rotation.
 
 The claim is `new` (with fencing token), `replay` (with validated bounded outcome)
 or `uncertain`. The signature binds tool name/version and canonical argument hash.
