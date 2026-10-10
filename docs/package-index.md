@@ -4,7 +4,7 @@ Install the B3 distribution in a fresh Python 3.11+ environment:
 
 ```sh
 python -m venv .venv
-.venv/bin/python -m pip install 'b3-prosaic>=0.4,<0.5'
+.venv/bin/python -m pip install 'b3-prosaic>=0.4.1,<0.5'
 .venv/bin/prosaic --version
 ```
 
@@ -78,7 +78,7 @@ For local preparation:
 
 ```sh
 .venv/bin/python scripts/release_artifacts.py build --ref COMMIT \
-  --output /tmp/prosaic-release-COMMIT --expect b3-prosaic=0.4.0
+  --output /tmp/prosaic-release-COMMIT --expect b3-prosaic=0.4.1
 .venv/bin/python scripts/release_artifacts.py verify \
   --directory /tmp/prosaic-release-COMMIT/artifacts --commit COMMIT
 ```
@@ -89,7 +89,7 @@ Harness and its store adapter, then the lab. The train's final qualification
 must include its intended source, dependency floors and four architecture/PG
 cells; synthetic results do not certify live provider or staging capacity.
 
-Tag the same source commit `v0.4.0`. Tags prepare candidates; they do not
+Tag the same source commit `v0.4.1`. Tags prepare candidates; they do not
 automatically upload them. Dispatch **Publish SDK** on that tag with
 `candidate_run_id` pointing to its successful exact-source build and
 `publish=true`. Promotion downloads those original bytes and reruns the

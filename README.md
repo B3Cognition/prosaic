@@ -5,14 +5,14 @@ targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness
 
 ## Install
 
-Prosaic 0.4.0 is Python 3.11+. Its public distribution is `b3-prosaic`; the
+Prosaic 0.4.1 is a Python 3.11+ candidate. Its public distribution is `b3-prosaic`; the
 repository, Python import module and CLI remain `prosaic`. There is no Node.js
 runtime dependency. The normal package-index channel starts with this release.
 
 ```sh
-uv tool install 'b3-prosaic==0.4.0'
+uv tool install 'b3-prosaic==0.4.1'
 # Alternative:
-pipx install 'b3-prosaic==0.4.0'
+pipx install 'b3-prosaic==0.4.1'
 ```
 
 The GitHub release provides the same qualified wheel and source archive as the
@@ -156,7 +156,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 .venv/bin/python -m build
 python3 -m venv .wheel-test
-.wheel-test/bin/python -m pip install dist/prosaic-0.3.1-py3-none-any.whl
+.wheel-test/bin/python -m pip install dist/b3_prosaic-0.4.1-py3-none-any.whl
 .wheel-test/bin/python scripts/wheel_smoke.py
 ```
 
