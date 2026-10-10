@@ -17,7 +17,7 @@ Repository = "https://github.com/B3Cognition/prosaic"
 Issues = "https://github.com/B3Cognition/prosaic/issues"
 
 [project.optional-dependencies]
-test = ["pytest>=8", "build>=1"]
+test = ["pytest>=8", "build>=1", "setuptools>=77", "wheel>=0.45", "packaging>=24"]
 
 [project.scripts]
 prosaic = "prosaic.cli:main"
