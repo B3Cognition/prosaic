@@ -14,5 +14,6 @@ build/
 .consumer-tests/
 parity-results/
 .prosaic-manifest.json
+.prosaic-operation.lock
 # Per-run CI measurement artifacts (committed as build evidence for verify-spec)
 test-results/junit.xml

@@ -1,10 +1,12 @@
 """Opaque package deployment with isolated staging and provenance."""
 from pathlib import Path
+from contextlib import nullcontext
 import os
 import posixpath
 from .filesystem import GuardedFs, Manifest, BackupManager, ContainmentError, resolve_contained, is_inside, node_os_error
 from .lifecycle import empty_plan, classify_write, plan_reconcile, plan_revert, preview_plan, execute_apply, execute_revert
 from .compat import js_sort_key
+from .locking import project_mutation_lock
 
 PACKAGE_STAGING_ROOT = '.prosaic-package-staging'
 
@@ -129,6 +131,11 @@ def deploy_package(project_root, package_id, cli=None, dry_run=False, *, registr
                 target_dirs.append(dest)
     validate_packages(config['packages'], project_root, target_dirs)
     pkg = resolve_declared_package(config['packages'], package_id)
+    with nullcontext() if dry_run else project_mutation_lock(project_root):
+        return _deploy_unlocked(project_root, config, registry, pkg, fs_gate, dry_run)
+
+
+def _deploy_unlocked(project_root, config, registry, pkg, fs_gate, dry_run):
     enumeration = enumerate_package_source(Path(project_root) / pkg['sourceRoot'])
     manifest = Manifest.load_or_empty(fs_gate)
     manifest.registry_version = registry.version()['version']
@@ -145,6 +152,11 @@ def revert_package(project_root, package_id, cli=None, dry_run=False):
     config = resolve_config(project_root, cli)
     resolve_declared_package(config['packages'], package_id)
     fs_gate = GuardedFs(project_root)
+    with nullcontext() if dry_run else project_mutation_lock(project_root):
+        return _revert_unlocked(package_id, config, fs_gate, dry_run)
+
+
+def _revert_unlocked(package_id, config, fs_gate, dry_run):
     manifest = Manifest.load(fs_gate)
     plan = plan_revert(manifest, [package_id])
     return {'dryRun': bool(dry_run), 'packageId': package_id,

@@ -97,11 +97,25 @@ prosaic package revert <packageId> --dry-run
   is an explicit, ergonomic entry point rather than the only way to remove a
   package's output.
 
-**Concurrency limitation:** two simultaneous invocations that write to the
-same project's shared provenance record — whether two package deployments, or
-a package deployment running alongside an existing render-target operation
-(`apply`/`revert`) — is an unsupported, user-managed scenario. Do not run two
-such invocations against the same project at the same time.
+**Project ownership:** real `apply`, `revert`, package deployment and package
+revert acquire a nonblocking OS lock before discovery and provenance reads,
+and retain it through staging, output changes, manifest persistence and backup
+cleanup. A competing mutation fails with `ProjectBusyError` (CLI exit 1) and
+can be retried once the owner finishes. Root symlink aliases share ownership.
+The OS releases ownership when a process exits, including an abnormal exit;
+the next package deployment rebuilds its staging contents as usual.
+
+The empty `.prosaic-operation.lock` coordination file remains in the project.
+Do not delete or replace it: its inode coordinates competing processes. All
+Prosaic filesystem mutation helpers reserve this path, its aliases and its
+containing directory against replacement/removal. Configuration and invalid
+package declarations fail before this metadata is created. Dry runs and
+zero-target operations create no coordination file. Dry-run previews remain
+read-only observations, without a transactional snapshot of concurrent writes.
+
+This is cooperative filesystem locking. Other software that edits the project
+does not automatically participate, and shared/network filesystems must provide
+working OS advisory locks. It is not a distributed ownership protocol.
 
 ## Provenance and Ownership
 

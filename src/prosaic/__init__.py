@@ -8,6 +8,7 @@ from .registry import (Registry, StaticRegistrySource, BuiltinRegistrySource, Ca
 from .pipeline import run_pipeline, PIPELINE_STAGES, resolve_execution, LossyTransformError
 
 from .tools import discover_tools
+from .locking import ProjectBusyError, ProjectLockError
 
 __version__ = '0.3.2'
 

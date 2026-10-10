@@ -1,11 +1,14 @@
 """Plan and execute render-target apply and provenance-guarded revert."""
 from pathlib import Path
+from contextlib import nullcontext
 from .filesystem import GuardedFs, Manifest, BackupManager, sha256, to_rel_posix
+from .locking import project_mutation_lock
 
 def empty_plan():
     return {'writes': [], 'removals': [], 'warnings': []}
 
 def classify_write(fs_gate, manifest, target, path, content, mode=None, binary=False):
+    fs_gate.assert_mutable(path)
     base = {'targetId': target, 'path': path, 'content': content, 'hash': sha256(content)}
     if mode is not None:
         base['mode'] = mode
@@ -49,12 +52,16 @@ def preview_plan(plan, mode='apply', theme=None):
 
 def execute_revert(plan, fs_gate, manifest):
     for r in plan['removals']:
+        fs_gate.assert_mutable(r['path'])
+    for r in plan['removals']:
         fs_gate.delete_file(r['path'])
         manifest.remove(r['targetId'], r['path'])
     manifest.save()
     return len(plan['removals'])
 
 def execute_apply(plan, fs_gate, manifest, backups, staged_package=None):
+    for entry in [*plan['writes'], *plan['removals']]:
+        fs_gate.assert_mutable(entry['path'])
     result = dict.fromkeys(('created', 'overwritten', 'unchanged', 'removed', 'backedUp'), 0)
     for w in plan['writes']:
         if w['changeType'] == 'unchanged':
@@ -82,9 +89,7 @@ def execute_apply(plan, fs_gate, manifest, backups, staged_package=None):
 
 def apply(project_root, cli=None, dry_run=False, *, registry=None, global_dir=None, theme=None):
     from .config import resolve_config
-    from .core import discover
     from .registry import Registry
-    from .pipeline import run_pipeline
     fs_gate = GuardedFs(project_root)
     config = resolve_config(project_root, cli, global_dir)
     registry = registry if registry is not None else Registry()
@@ -93,6 +98,13 @@ def apply(project_root, cli=None, dry_run=False, *, registry=None, global_dir=No
             **dict.fromkeys(('created', 'overwritten', 'unchanged', 'removed', 'backedUp'), 0), 'plan': empty_plan()}
     if config['targets'] == []:
         return {**base, 'zeroTargets': True, 'preview': ['0 targets selected; no-op run. 0 files written.']}
+    with nullcontext() if dry_run else project_mutation_lock(project_root):
+        return _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, dry_run, theme)
+
+
+def _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, dry_run, theme):
+    from .core import discover
+    from .pipeline import run_pipeline
     discovery = discover(Path(project_root) / config['source'], project_root)
     manifest = Manifest.load_or_empty(fs_gate)
     manifest.registry_version = registry.version()['version']
@@ -130,7 +142,12 @@ def revert(project_root, cli=None, dry_run=False, *, registry=None, global_dir=N
     from .config import resolve_config
     fs_gate = GuardedFs(project_root)
     config = resolve_config(project_root, cli, global_dir)
+    with nullcontext() if dry_run or config['targets'] == [] else project_mutation_lock(project_root):
+        return _revert_unlocked(fs_gate, config, dry_run, theme)
+
+
+def _revert_unlocked(fs_gate, config, dry_run, theme):
     manifest = Manifest.load(fs_gate)
     plan = plan_revert(manifest, config['targets'])
-    return {'dryRun': bool(dry_run), 'removed': 0 if dry_run else execute_revert(plan, fs_gate, manifest),
+    return {'dryRun': bool(dry_run), 'removed': 0 if dry_run or config['targets'] == [] else execute_revert(plan, fs_gate, manifest),
             'preview': preview_plan(plan, 'revert', theme) if dry_run else [], 'plan': plan}

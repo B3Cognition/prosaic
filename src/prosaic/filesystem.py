@@ -213,6 +213,15 @@ class GuardedFs:
             raise ValueError(f'projectRoot must be absolute: {self.root}')
     def assert_contained(self, target):
         return resolve_contained(target, self.root)
+    def assert_mutable(self, target, removing_directory=False):
+        from .locking import LOCK_FILENAME, ProjectLockError, verify_project_lock
+        verify_project_lock(self.root)
+        p = self.assert_contained(target)
+        lock = Path(self.root).resolve(strict=True) / LOCK_FILENAME
+        same_inode = p.exists() and lock.exists() and os.path.samefile(p, lock)
+        if is_inside(p, lock) or same_inode or (removing_directory and is_inside(lock, p)):
+            raise ProjectLockError('Refused mutation of the reserved project lock path or inode.')
+        return p
     def contains(self, target):
         try:
             self.assert_contained(target)
@@ -226,36 +235,45 @@ class GuardedFs:
     def read_file_buffer(self, target):
         return self.assert_contained(target).read_bytes()
     def write_file(self, target, content):
-        p = self.assert_contained(target)
+        p = self.assert_mutable(target)
         p.parent.mkdir(parents=True, exist_ok=True)
         p.write_bytes(content.encode('utf-8') if isinstance(content, str) else content)
     def write_file_atomic(self, target, content):
-        p = self.assert_contained(target)
+        p = self.assert_mutable(target)
         p.parent.mkdir(parents=True, exist_ok=True)
-        temp = p.parent / f'.{p.name}.tmp-{os.getpid()}-{next(_counter)}'
-        temp.write_bytes(content.encode('utf-8') if isinstance(content, str) else content)
-        os.replace(temp, p)
+        temp = p.parent / f'.{p.name.lstrip(".")}.tmp-{os.getpid()}-{next(_counter)}'
+        self.assert_mutable(temp)
+        descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_NOFOLLOW', 0), 0o666)
+        try:
+            with os.fdopen(descriptor, 'wb') as stream:
+                stream.write(content.encode('utf-8') if isinstance(content, str) else content)
+            self.assert_mutable(p)
+            os.replace(temp, p)
+        finally:
+            if temp.exists():
+                self.assert_mutable(temp)
+                temp.unlink()
     def delete_file(self, target):
-        p = self.assert_contained(target)
+        p = self.assert_mutable(target)
         if p.exists():
             p.unlink()
     def copy_file(self, source, dest):
-        src, dst = self.assert_contained(source), self.assert_contained(dest)
+        src, dst = self.assert_contained(source), self.assert_mutable(dest)
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(src, dst)
     def list_dir(self, target):
         p = self.assert_contained(target)
         return sorted(x.name for x in p.iterdir()) if p.exists() else []
     def mkdirp(self, target):
-        self.assert_contained(target).mkdir(parents=True, exist_ok=True)
+        self.assert_mutable(target).mkdir(parents=True, exist_ok=True)
     def remove_dir(self, target):
-        p = self.assert_contained(target)
+        p = self.assert_mutable(target, removing_directory=True)
         if p.is_dir():
             shutil.rmtree(p)
         elif p.exists():
             p.unlink()
     def move_file_atomic(self, source, dest):
-        src, dst = self.assert_contained(source), self.assert_contained(dest)
+        src, dst = self.assert_mutable(source), self.assert_mutable(dest)
         dst.parent.mkdir(parents=True, exist_ok=True)
         os.replace(src, dst)
 

@@ -7,6 +7,24 @@ on:
   pull_request:
 
 jobs:
+  windows-project-lock:
+    runs-on: windows-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install Python test environment
+        run: python -m pip install -e '.[test]'
+      - name: Verify native Windows ownership and reserved-inode behavior
+        run: >-
+          python -m pytest tests/test_project_lock.py -q
+          -k "mutation_entrypoints or process_death or other_projects or zero_target
+          or cli_reports or all_mutators or atomic_temporary or old_manifest
+          or render_descriptor"
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
