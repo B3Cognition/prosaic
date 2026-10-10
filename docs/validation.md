@@ -31,12 +31,17 @@ issues, `targetId`. Fields are bounded; messages omit raw prose, rejected values
 and parser snippets. Ordering follows artifact/target/code/location. Each call
 returns independently owned data.
 
-Malformed frontmatter, invalid classification, invalid canonical schema and
-unresolved local references are errors. Canonical validation and bundle resource
+Missing, non-directory or unreadable canonical source and nested enumeration
+failures produce safe `source-unreadable` errors. A failed scan cannot pass as an
+empty project. Malformed frontmatter, invalid classification, invalid canonical
+schema and unresolved local references are errors. Canonical validation and bundle resource
 references run even with `targets: []`, with unsupported targets, or when an
 artifact type is excluded from target rendering. Bundle reference paths resolve
 relative to their containing Markdown document, including backlinks to the
 primary document; external URLs and fragment-only links are excluded.
+Validation parses actual CommonMark links and images, including titled and
+reference-style links; link syntax in code spans or blocks is an example, not a
+resource reference. The pure Python parser is [markdown-it-py](https://markdown-it-py.readthedocs.io/en/latest/using.html).
 
 Unsupported artifact/target pairs and lost intent are warnings by default.
 Project configuration `lossyPolicy: error` elevates losses to errors while

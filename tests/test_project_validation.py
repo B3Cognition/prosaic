@@ -87,6 +87,58 @@ def test_nested_bundle_links_use_containing_resource_and_allow_primary_backlinks
     assert validate_project(tmp_path, {'targets': []})['valid']
 
 
+@pytest.mark.parametrize('body,valid', [
+    ('[missing](missing.md "Title")', False),
+    ('[missing][guide]\n\n[guide]: missing.md', False),
+    ('![missing](missing.md "Title")', False),
+    ('`[example](missing.md)`', True),
+    ('```markdown\n[example](missing.md)\n```', True),
+    ('    [example](missing.md)\n', True),
+    ('\\[example](missing.md)', True),
+    ('[web](https://example.org "Title")', True),
+])
+def test_actual_markdown_links_exclude_examples_and_include_reference_syntax(tmp_path, body, valid):
+    from prosaic import validate_project
+    put(tmp_path, 'skills/check/SKILL.md',
+        '---\nname: Check\ndescription: Check\n---\n' + body + '\n')
+    report = validate_project(tmp_path, {'targets': []})
+    assert report['valid'] is valid
+    assert report['errorCount'] == (0 if valid else 1)
+
+
+def test_percent_encoded_bundle_link_resolves_literal_resource_filename(tmp_path):
+    from prosaic import validate_project
+    put(tmp_path, 'skills/check/SKILL.md',
+        '---\nname: Check\ndescription: Check\n---\n[guide](<my guide%23check.md> "Title")\n')
+    put(tmp_path, 'skills/check/my guide#check.md', 'Guide\n')
+    assert validate_project(tmp_path, {'targets': []})['valid']
+
+
+@pytest.mark.parametrize('source_kind', ['missing', 'file'])
+def test_missing_or_non_directory_source_cannot_pass_ci(tmp_path, source_kind):
+    from prosaic import validate_project
+    if source_kind == 'file':
+        (tmp_path / '.prosaic').write_text('not a canonical directory')
+    report = validate_project(tmp_path, {'targets': []}, strict=True)
+    assert not report['valid'] and report['errorCount'] == 1
+    assert report['issues'][0]['code'] == 'source-unreadable'
+
+
+def test_nested_enumeration_failure_is_a_safe_error(tmp_path, monkeypatch):
+    from prosaic import validate_project, core
+    put(tmp_path, 'commands/broken.md', '---\n[PRIVATE_PARSE\n---\nBroken\n')
+    enumerate_directory = core.os.scandir
+    def unreadable(directory):
+        if Path(directory) == tmp_path / '.prosaic/commands':
+            raise PermissionError('PRIVATE_DIRECTORY_CANARY')
+        return enumerate_directory(directory)
+    monkeypatch.setattr(core.os, 'scandir', unreadable)
+    report = validate_project(tmp_path, {'targets': []})
+    assert not report['valid'] and report['errorCount'] == 1
+    assert report['issues'][0]['code'] == 'source-unreadable'
+    assert 'PRIVATE' not in json.dumps(report) and str(tmp_path) not in json.dumps(report)
+
+
 def test_render_failure_collects_other_diagnostics_without_private_exception(tmp_path, monkeypatch):
     from prosaic import validate_project, validation
     command(tmp_path, effort='deep')

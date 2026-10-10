@@ -8,6 +8,7 @@ from .pipeline import rewrite_references, run_pipeline, translate_neutral
 from .registry import Registry
 
 _MESSAGES = {
+    'source-unreadable': 'Canonical source is missing, unreadable or not a directory.',
     'malformed-frontmatter': 'Canonical frontmatter cannot be parsed or read.',
     'classification': 'Artifact type is missing, invalid or ambiguous.',
     'schema-invalid': 'Canonical frontmatter does not satisfy the artifact schema.',
@@ -41,11 +42,11 @@ def validate_project(project_root, cli=None, *, strict=False, registry=None, glo
     config = resolve_config(project_root, cli, global_dir)
     registry = Registry() if registry is None else registry
     descriptors = registry.resolve_selection(config['targets'])
-    discovery = discover(Path(project_root) / config['source'], project_root)
+    discovery = discover(Path(project_root) / config['source'], project_root, strict_io=True)
     issues = []
     for warning in discovery['warnings']:
         code = warning['kind']
-        if code in ('malformed-frontmatter', 'classification', 'schema-invalid'):
+        if code in ('source-unreadable', 'malformed-frontmatter', 'classification', 'schema-invalid'):
             issues.append(_issue(code, warning['artifact']))
     for artifact in discovery['artifacts']:
         resources = artifact.get('resources', [])

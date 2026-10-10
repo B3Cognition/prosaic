@@ -126,10 +126,15 @@ def validate_artifact_definition(kind, frontmatter):
     return validate_frontmatter(kind, frontmatter)
 
 
-def walk_source(source_root, project_root):
+def walk_source(source_root, project_root, *, io_errors=None):
     source = Path(os.path.abspath(source_root))
     backup = Path(os.path.abspath(project_root)) / '.prosaic-backups'
+    def unreadable(path):
+        if io_errors is not None:
+            io_errors.append({'kind': 'source-unreadable', 'artifact': path.relative_to(source).as_posix(),
+                              'message': 'Canonical source cannot be enumerated.'})
     if not source.exists():
+        unreadable(source)
         return []
     files = []
     stack = [source]
@@ -138,26 +143,34 @@ def walk_source(source_root, project_root):
         try:
             entries = list(os.scandir(directory))
         except OSError:
+            unreadable(directory)
             continue
         for entry in entries:
             path = Path(entry.path)
             if path == backup or backup in path.parents:
                 continue
-            if entry.is_dir(follow_symlinks=False):
+            try:
+                is_dir = entry.is_dir(follow_symlinks=False)
+                is_file = entry.is_file(follow_symlinks=False)
+            except OSError:
+                unreadable(path)
+                continue
+            if is_dir:
                 if entry.name not in SKIP_DIRS:
                     stack.append(path)
                 continue
-            if not entry.is_file(follow_symlinks=False) or not path.name.lower().endswith('.md'):
+            if not is_file or not path.name.lower().endswith('.md'):
                 continue
             files.append({'abs': str(path), 'rel': path.relative_to(source).as_posix()})
     return sorted(files, key=lambda file: js_sort_key(file['rel']))
 
 
-def discover(source_root, project_root):
-    files = walk_source(source_root, project_root)
+def discover(source_root, project_root, *, strict_io=False):
+    enumeration_errors = []
+    files = walk_source(source_root, project_root, io_errors=enumeration_errors if strict_io else None)
     bundles = {}
     standalone = []
-    warnings, artifacts = [], []
+    warnings, artifacts = enumeration_errors, []
     for file in files:
         parts = file['rel'].split('/')
         if len(parts) >= 3 and parts[0].lower() in BUNDLE_FOLDERS:

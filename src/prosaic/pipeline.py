@@ -4,6 +4,7 @@ import posixpath
 import re
 import datetime
 from pathlib import Path
+from urllib.parse import unquote
 
 from .compat import dump_yaml, js_string
 from .registry import NEUTRAL_KEYS, UnknownTargetError, get_target, slot_for
@@ -84,14 +85,27 @@ def rewrite_references(text, resources, artifact_id, target_id, *, resource_path
     else:
         # Opt-in authoring validation follows Markdown's containing-document
         # paths. Existing rendering keeps its frozen reference semantics.
-        known = {posixpath.normpath(normalize(r['relPath'])) for r in resources}
+        known = {posixpath.normpath(r['relPath']) for r in resources}
         if primary_path is not None:
             known.add(posixpath.normpath(primary_path))
         def resolve(target):
-            return posixpath.normpath(posixpath.join(posixpath.dirname(resource_path), normalize(target)))
+            return posixpath.normpath(posixpath.join(posixpath.dirname(resource_path), unquote(normalize(target))))
     warnings = []
-    for match in re.finditer(r'(!?\[[^\]]*\]\()([^)' + _JS_SPACE + r']+)(\))', text):
-        target = match[2]
+    if resource_path is None:
+        destinations = [match[2] for match in re.finditer(r'(!?\[[^\]]*\]\()([^)' + _JS_SPACE + r']+)(\))', text)]
+    else:
+        from markdown_it import MarkdownIt
+        destinations = []
+        stack = list(MarkdownIt('commonmark').parse(text))
+        while stack:
+            token = stack.pop()
+            if token.type in ('link_open', 'image'):
+                destination = token.attrGet('href' if token.type == 'link_open' else 'src')
+                if destination is not None:
+                    destinations.append(destination)
+            if token.children:
+                stack.extend(token.children)
+    for target in destinations:
         if re.match(r'^[a-z][a-z0-9+.-]*:', target, re.I) or target.startswith(('/', '#')):
             continue
         if normalize(target) and resolve(target) not in known:
