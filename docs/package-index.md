@@ -80,6 +80,8 @@ as evidence of package-index availability.
 
 Before and after PyPI publication, fetch the index's release metadata and actual
 distribution files and compare their hashes. Matching existing bytes are an
-idempotent success; different bytes require a new version. GitHub receives the
+idempotent success. An interrupted upload can resume its missing files after
+every already present file is verified; the final check requires the complete
+set. Different bytes require a new version. GitHub receives the
 same distributions, checksums and qualification records, with no asset overwrite.
 Update the lab's exact-version manifest only from verified public downloads.

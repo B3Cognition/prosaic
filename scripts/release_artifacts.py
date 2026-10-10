@@ -26,6 +26,7 @@ from urllib.request import urlopen
 import zipfile
 
 from packaging.requirements import Requirement
+from packaging.utils import canonicalize_name
 
 
 MAX_TOTAL = 128 * 1024 * 1024
@@ -86,15 +87,36 @@ def zip_contents(path):
     return entries
 
 
+def normalized_requirement(value):
+    requirement = Requirement(value)
+    if requirement.url:
+        raise ReleaseError('package-index dependencies must not use direct URLs')
+    name = canonicalize_name(requirement.name)
+    extras = '[' + ','.join(sorted(canonicalize_name(extra) for extra in requirement.extras)) + ']' if requirement.extras else ''
+    return name + extras + str(requirement.specifier) + (
+        '; ' + str(requirement.marker) if requirement.marker else '')
+
+
+def declared_dependencies(project):
+    dependencies = [normalized_requirement(value) for value in project.get('dependencies', [])]
+    for extra, requirements in project.get('optional-dependencies', {}).items():
+        for value in requirements:
+            requirement = Requirement(value)
+            base = normalized_requirement(value).split(';', 1)[0]
+            marker = 'extra == "' + canonicalize_name(extra) + '"'
+            if requirement.marker:
+                marker = '(' + str(requirement.marker) + ') and ' + marker
+            dependencies.append(normalized_requirement(base + '; ' + marker))
+    return sorted(dependencies)
+
+
 def metadata_identity(content):
     metadata = BytesParser().parsebytes(content)
     for field in ('Name', 'Version', 'Requires-Python'):
         if len(metadata.get_all(field, [])) != 1:
             raise ReleaseError('missing or duplicate package metadata')
-    dependencies = sorted(str(Requirement(value)) for value in
+    dependencies = sorted(normalized_requirement(value) for value in
                           metadata.get_all('Requires-Dist', []))
-    if any(requirement.url for requirement in map(Requirement, dependencies)):
-        raise ReleaseError('package-index dependencies must not use direct URLs')
     return {'name': metadata['Name'], 'version': metadata['Version'],
             'requires_python': metadata['Requires-Python'],
             'dependencies': dependencies}
@@ -143,9 +165,8 @@ def audit_pair(source, wheel, sdist, expected):
     if wheel_identity != sdist_identity or any(wheel_identity[key] != value
                                               for key, value in identity.items()):
         raise ReleaseError('wheel and sdist identity mismatch')
-    required_dependencies = {str(Requirement(value)) for value in project.get('dependencies', [])}
-    if not required_dependencies.issubset(set(wheel_identity['dependencies'])):
-        raise ReleaseError('wheel omitted a required dependency')
+    if declared_dependencies(project) != wheel_identity['dependencies']:
+        raise ReleaseError('artifact dependencies differ from committed project metadata')
     allowed_info = {'METADATA', 'WHEEL', 'RECORD', 'entry_points.txt', 'top_level.txt'}
     entrypoints = configparser.ConfigParser(interpolation=None)
     entrypoints.optionxform = str
@@ -327,8 +348,13 @@ def check_index(directory, commit, *, allow_missing=False, fetch=fetch_public):
         stem = name.replace('-', '_') + '-' + version
         expected = {item['filename']: item['sha256'] for item in receipt['artifacts']
                     if item['filename'] in (stem + '-py3-none-any.whl', stem + '.tar.gz')}
-        if len(files) != 2 or {item['filename'] for item in files} != set(expected):
+        present = {item['filename'] for item in files}
+        if len(files) != len(present) or not present.issubset(expected):
             raise ReleaseError('existing index version has different artifacts; use a new version')
+        if present != set(expected):
+            if not allow_missing:
+                raise ReleaseError('published distribution is incomplete')
+            missing = True
         for item in files:
             if item['digests']['sha256'] != expected[item['filename']]:
                 raise ReleaseError('existing index version has different bytes; use a new version')
@@ -343,7 +369,7 @@ def check_index(directory, commit, *, allow_missing=False, fetch=fetch_public):
 
 
 def qualify(directory, commit, label, command):
-    if not re.fullmatch('[A-Za-z0-9_-]{1,64}', label) or not command:
+    if not re.fullmatch('[A-Za-z0-9_.-]{1,64}', label) or not command:
         raise ReleaseError('invalid qualification command or label')
     receipt = verify_receipt(directory, commit)
     record_path = directory / f'qualification-{label}.json'
@@ -363,7 +389,7 @@ def qualify(directory, commit, label, command):
 def require_qualification(directory, commit, labels):
     receipt = verify_receipt(directory, commit)
     for label in labels:
-        if not re.fullmatch('[A-Za-z0-9_-]{1,64}', label):
+        if not re.fullmatch('[A-Za-z0-9_.-]{1,64}', label):
             raise ReleaseError('invalid qualification label')
         path = directory / f'qualification-{label}.json'
         if not path.is_file():

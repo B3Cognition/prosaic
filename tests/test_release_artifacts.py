@@ -36,8 +36,11 @@ build-backend = "setuptools.build_meta"
 name = "b3-release-fixture"
 version = "1.0.0"
 requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0"]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
+[project.optional-dependencies]
+test = ["pytest>=8; python_version >= '3.11'"]
 [tool.setuptools.packages.find]
 where = ["src"]
 ''',
@@ -164,6 +167,60 @@ def test_same_version_different_bytes_cannot_be_reused(release_tool, built_relea
         release_tool.check_existing(receipt, existing)
 
 
+def test_all_real_workflow_labels_can_qualify_and_gate(release_tool, built_release):
+    import yaml
+    workflow = yaml.safe_load((SCRIPT.parents[1] / '.github/workflows/publish.yml').read_text())
+    linux = workflow['jobs']['linux']['strategy']['matrix']
+    labels = [f'linux-{os_name}-{version}-{kind}' for os_name in linux['os']
+              for version in linux['python'] for kind in ('source', 'wheel')]
+    labels += [f'windows-{version}' for version in
+               workflow['jobs']['windows']['strategy']['matrix']['python']]
+    assert len(labels) == 15
+    output, receipt = built_release
+    for label in labels:
+        release_tool.qualify(output / 'artifacts', receipt['source_commit'], label,
+                             [sys.executable, '-c', 'pass'])
+    release_tool.require_qualification(output / 'artifacts', receipt['source_commit'], labels)
+
+
+def test_audit_rejects_undeclared_dependency_in_matching_artifacts(release_tool, built_release):
+    output, _ = built_release
+    wheel = next((output / 'artifacts').glob('*.whl'))
+    with zipfile.ZipFile(wheel) as archive:
+        entries = {name: archive.read(name) for name in archive.namelist()}
+    info = next(name.rsplit('/', 1)[0] for name in entries if name.endswith('/METADATA'))
+    injected = b'Requires-Dist: prosaic>=0.1\n'
+    metadata_path = info + '/METADATA'
+    entries[metadata_path] = entries[metadata_path].replace(b'\n\n', b'\n' + injected + b'\n', 1)
+    if injected not in entries[metadata_path]:
+        entries[metadata_path] += injected
+    records = []
+    for name, content in entries.items():
+        if name.endswith('/RECORD'):
+            records.append(name + ',,\n')
+        else:
+            sha = base64.urlsafe_b64encode(hashlib.sha256(content).digest()).rstrip(b'=').decode()
+            records.append(f'{name},sha256={sha},{len(content)}\n')
+    entries[info + '/RECORD'] = ''.join(records).encode()
+    with zipfile.ZipFile(wheel, 'w') as archive:
+        for name, content in entries.items():
+            archive.writestr(name, content)
+    sdist = next((output / 'artifacts').glob('*.tar.gz'))
+    archive_files = release_tool.tar_contents(sdist.read_bytes())
+    with tarfile.open(sdist, 'w:gz') as archive:
+        for name, content in archive_files.items():
+            if name.endswith('/PKG-INFO'):
+                content = content.replace(b'\n\n', b'\n' + injected + b'\n', 1)
+                if injected not in content:
+                    content += injected
+            item = tarfile.TarInfo(name)
+            item.size = len(content)
+            archive.addfile(item, io.BytesIO(content))
+    with pytest.raises(release_tool.ReleaseError):
+        release_tool.audit_artifacts(output / 'source', output / 'artifacts',
+                                     {'b3-release-fixture': '1.0.0'})
+
+
 @pytest.mark.parametrize('change', ['source', 'unexpected', 'metadata'])
 def test_sdist_audit_rejects_mutation(release_tool, built_release, change):
     output, _ = built_release
@@ -207,6 +264,26 @@ def test_publication_rechecks_downloaded_index_bytes(release_tool, built_release
     with pytest.raises(release_tool.ReleaseError):
         release_tool.check_index(output / 'artifacts', receipt['source_commit'],
                                  fetch=lambda url: None)
+
+
+def test_matching_partial_index_release_can_resume(release_tool, built_release):
+    output, receipt = built_release
+    first = receipt['artifacts'][0]
+    url = 'https://files.pythonhosted.org/' + first['filename']
+    files = [{'filename': first['filename'], 'digests': {'sha256': first['sha256']}, 'url': url}]
+    responses = {'https://pypi.org/pypi/b3-release-fixture/1.0.0/json':
+                 json.dumps({'urls': files}).encode(),
+                 url: (output / 'artifacts' / first['filename']).read_bytes()}
+    fetch = lambda requested: responses.get(requested)
+    assert release_tool.check_index(output / 'artifacts', receipt['source_commit'],
+                                    allow_missing=True, fetch=fetch) == 'publish_required'
+    with pytest.raises(release_tool.ReleaseError):
+        release_tool.check_index(output / 'artifacts', receipt['source_commit'], fetch=fetch)
+    files[0]['digests']['sha256'] = '0' * 64
+    responses['https://pypi.org/pypi/b3-release-fixture/1.0.0/json'] = json.dumps({'urls': files}).encode()
+    with pytest.raises(release_tool.ReleaseError):
+        release_tool.check_index(output / 'artifacts', receipt['source_commit'],
+                                 allow_missing=True, fetch=fetch)
 
 
 def test_verified_artifacts_detect_missing_extra_and_changed_bytes(release_tool, built_release):
