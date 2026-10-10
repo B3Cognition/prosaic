@@ -3,6 +3,7 @@ from pathlib import Path
 from contextlib import nullcontext
 import os
 import posixpath
+import stat
 from .filesystem import GuardedFs, Manifest, BackupManager, ContainmentError, resolve_contained, is_inside, node_os_error
 from .lifecycle import empty_plan, classify_write, plan_reconcile, plan_revert, preview_plan, execute_apply, execute_revert
 from .compat import js_sort_key
@@ -58,12 +59,18 @@ def validate_packages(packages, project_root, render_target_dirs):
         raise PackageValidationError('\n'.join(errors))
 
 def enumerate_package_source(source_root):
+    return _enumerate_package_source(source_root)
+
+def _enumerate_package_source(source_root, *, fail_io=False):
+    """Deployment requires a complete scan before staging or reconciliation."""
     result = {'neutralFiles': [], 'runtimeFiles': [], 'warnings': []}
     root = Path(source_root)
     def walk(parent, prefix='', bucket=None, capture=True, ancestors=frozenset()):
         try:
             entries = sorted(parent.iterdir(), key=lambda p: js_sort_key(p.name))
         except OSError:
+            if fail_io:
+                raise
             return
         for entry in entries:
             rel = f'{prefix}/{entry.name}' if prefix else entry.name
@@ -74,21 +81,26 @@ def enumerate_package_source(source_root):
                     'message': f'rejected (path traversal or symlink escape outside the package source root): {rel}'})
                 continue
             try:
-                stat = entry.stat()
+                metadata = entry.stat()
             except OSError as e:
+                # A dangling source symlink is an intentionally rejected path;
+                # failures reading ordinary entries leave the scan incomplete.
+                if fail_io and not (isinstance(e, FileNotFoundError) and entry.is_symlink()):
+                    raise
                 result['warnings'].append({'kind': 'package-path-rejected', 'artifact': rel, 'message': f'unreadable entry: {rel} ({node_os_error(e, "stat", entry)})'})
                 continue
-            selected = bucket or ('neutralFiles' if entry.is_dir() and entry.name in ('commands', 'subagents') else 'runtimeFiles')
+            is_dir = stat.S_ISDIR(metadata.st_mode)
+            selected = bucket or ('neutralFiles' if is_dir and entry.name in ('commands', 'subagents') else 'runtimeFiles')
             preserve = capture if bucket else selected == 'runtimeFiles'
-            if entry.is_dir():
+            if is_dir:
                 # A cyclic in-root directory symlink cannot produce a finite tree.
                 if resolved in ancestors:
                     continue
                 walk(entry, rel, selected, preserve, ancestors | {resolved})
-            elif entry.is_file():
+            elif stat.S_ISREG(metadata.st_mode):
                 file = {'relPath': rel, 'absPath': str(resolved)}
                 if preserve:
-                    file['mode'] = stat.st_mode
+                    file['mode'] = metadata.st_mode
                 result[selected].append(file)
     walk(root, ancestors=frozenset({root.resolve()}))
     return result
@@ -136,7 +148,7 @@ def deploy_package(project_root, package_id, cli=None, dry_run=False, *, registr
 
 
 def _deploy_unlocked(project_root, config, registry, pkg, fs_gate, dry_run):
-    enumeration = enumerate_package_source(Path(project_root) / pkg['sourceRoot'])
+    enumeration = _enumerate_package_source(Path(project_root) / pkg['sourceRoot'], fail_io=True)
     manifest = Manifest.load_or_empty(fs_gate)
     manifest.registry_version = registry.version()['version']
     plan = plan_package_deploy(fs_gate, manifest, pkg['id'], pkg['destinationRoot'], enumeration['neutralFiles'], enumeration['runtimeFiles'])

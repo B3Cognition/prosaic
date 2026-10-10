@@ -7,6 +7,7 @@ import os
 import re
 import shutil
 import errno
+import stat
 from .compat import js_sort_key
 
 MANIFEST_FILENAME = '.prosaic-manifest.json'
@@ -246,6 +247,8 @@ class GuardedFs:
         descriptor = os.open(temp, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_NOFOLLOW', 0), 0o666)
         try:
             with os.fdopen(descriptor, 'wb') as stream:
+                if p.exists():
+                    os.chmod(temp, stat.S_IMODE(p.stat().st_mode))
                 stream.write(content.encode('utf-8') if isinstance(content, str) else content)
             self.assert_mutable(p)
             os.replace(temp, p)
@@ -336,8 +339,9 @@ class BackupManager:
     def __init__(self, fs_gate, max_backups=3):
         self.fs_gate, self.max_backups = fs_gate, max_backups
     def list_backups(self, managed_path):
-        rel = Path(os.path.relpath(managed_path, self.fs_gate.root))
-        parent = Path(self.fs_gate.root) / BACKUP_DIR_NAME / rel.parent
+        root = self.fs_gate.assert_contained('.')
+        rel = self.fs_gate.assert_contained(managed_path).relative_to(root)
+        parent = self.fs_gate.assert_contained(root / BACKUP_DIR_NAME / rel.parent)
         if not parent.exists():
             return []
         result = []
@@ -349,9 +353,11 @@ class BackupManager:
     def backup(self, managed_path):
         old = self.list_backups(managed_path)
         sequence = old[-1]['seq'] + 1 if old else 1
-        rel = os.path.relpath(managed_path, self.fs_gate.root)
-        dest = Path(self.fs_gate.root) / BACKUP_DIR_NAME / f'{rel}.bak.{sequence}'
-        self.fs_gate.write_file(dest, Path(managed_path).read_bytes())
+        root = self.fs_gate.assert_contained('.')
+        source = self.fs_gate.assert_contained(managed_path)
+        rel = source.relative_to(root)
+        dest = root / BACKUP_DIR_NAME / f'{rel}.bak.{sequence}'
+        self.fs_gate.write_file(dest, source.read_bytes())
         for entry in self.list_backups(managed_path)[:-self.max_backups or None]:
             self.fs_gate.delete_file(entry['abs'])
         return dest

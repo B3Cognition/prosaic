@@ -71,7 +71,7 @@ def execute_apply(plan, fs_gate, manifest, backups, staged_package=None):
                 backups.backup(fs_gate.assert_contained(w['path']))
                 result['backedUp'] += 1
             if staged_package is None:
-                fs_gate.write_file(w['path'], w['content'])
+                fs_gate.write_file_atomic(w['path'], w['content'])
             else:
                 import os
                 from .packages import staging_path_for
@@ -103,10 +103,14 @@ def apply(project_root, cli=None, dry_run=False, *, registry=None, global_dir=No
 
 
 def _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, dry_run, theme):
-    from .core import discover
+    from .core import _discover
     from .pipeline import run_pipeline
-    discovery = discover(Path(project_root) / config['source'], project_root)
     manifest = Manifest.load_or_empty(fs_gate)
+    source = Path(project_root) / config['source']
+    selected = {descriptor['id'] for descriptor in descriptors}
+    # A removed root is incomplete input when selected outputs are managed.
+    discovery = _discover(source, project_root, fail_io=True,
+        allow_missing_source=not any(entry['target'] in selected for entry in manifest.all()))
     manifest.registry_version = registry.version()['version']
     plan = empty_plan()
     produced = set()
@@ -129,7 +133,7 @@ def _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, 
                 else:
                     plan['warnings'].append({'kind': 'unsupported-pair', 'artifact': artifact['id'], 'target': target,
                         'message': f'refused to overwrite user-authored file "{file["path"]}" (not recorded as tool-generated)'})
-    plan['removals'] = plan_reconcile(manifest, produced, {d['id'] for d in descriptors})
+    plan['removals'] = plan_reconcile(manifest, produced, selected)
     base.update(empty=discovery['report']['empty'], warnings=[*discovery['warnings'], *plan['warnings']], plan=plan,
                 changedFiles=sum(w['changeType'] != 'unchanged' for w in plan['writes']) + len(plan['removals']))
     if dry_run:

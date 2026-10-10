@@ -127,13 +127,27 @@ def validate_artifact_definition(kind, frontmatter):
 
 
 def walk_source(source_root, project_root, *, io_errors=None):
+    return _walk_source(source_root, project_root, io_errors=io_errors)
+
+
+def _walk_source(source_root, project_root, *, io_errors=None, fail_io=False,
+                 allow_missing_source=True):
+    """Reject incomplete IO for mutation; retain diagnostic scan semantics."""
     source = Path(os.path.abspath(source_root))
     backup = Path(os.path.abspath(project_root)) / '.prosaic-backups'
     def unreadable(path):
         if io_errors is not None:
             io_errors.append({'kind': 'source-unreadable', 'artifact': path.relative_to(source).as_posix(),
                               'message': 'Canonical source cannot be enumerated.'})
-    if not source.exists():
+    if fail_io:
+        try:
+            source.stat()
+        except FileNotFoundError:
+            if not allow_missing_source:
+                raise
+            unreadable(source)
+            return []
+    elif not source.exists():
         unreadable(source)
         return []
     files = []
@@ -143,6 +157,8 @@ def walk_source(source_root, project_root, *, io_errors=None):
         try:
             entries = list(os.scandir(directory))
         except OSError:
+            if fail_io:
+                raise
             unreadable(directory)
             continue
         for entry in entries:
@@ -153,6 +169,8 @@ def walk_source(source_root, project_root, *, io_errors=None):
                 is_dir = entry.is_dir(follow_symlinks=False)
                 is_file = entry.is_file(follow_symlinks=False)
             except OSError:
+                if fail_io:
+                    raise
                 unreadable(path)
                 continue
             if is_dir:
@@ -166,8 +184,15 @@ def walk_source(source_root, project_root, *, io_errors=None):
 
 
 def discover(source_root, project_root, *, strict_io=False):
+    return _discover(source_root, project_root, strict_io=strict_io)
+
+
+def _discover(source_root, project_root, *, strict_io=False, fail_io=False,
+              allow_missing_source=True):
     enumeration_errors = []
-    files = walk_source(source_root, project_root, io_errors=enumeration_errors if strict_io else None)
+    files = _walk_source(source_root, project_root,
+                         io_errors=enumeration_errors if strict_io else None,
+                         fail_io=fail_io, allow_missing_source=allow_missing_source)
     bundles = {}
     standalone = []
     warnings, artifacts = enumeration_errors, []
@@ -182,6 +207,8 @@ def discover(source_root, project_root, *, strict_io=False):
         try:
             raw = Path(file['abs']).read_bytes().decode('utf-8', errors='replace')
         except OSError as error:
+            if fail_io:
+                raise
             from .filesystem import node_os_error
             warnings.append({'kind': 'malformed-frontmatter', 'artifact': file['rel'], 'message': f'unreadable: {node_os_error(error,"open",file["abs"])}'})
             return
