@@ -57,6 +57,50 @@ def test_missing_canonical_root_without_selected_managed_outputs_remains_noop(tm
     assert mutation_snapshot(tmp_path, output) == before
 
 
+@pytest.mark.parametrize('dry_run', [False, True])
+def test_disappearing_unknown_type_entry_preserves_managed_output(tmp_path, monkeypatch, dry_run):
+    source, output = canonical_project(tmp_path)
+    before = mutation_snapshot(tmp_path, output)
+    scandir = os.scandir
+    with scandir(source.parent) as entries:
+        observed = next(entry for entry in entries if entry.name == source.name)
+
+    class UnknownTypeEntry:
+        """Mirror a DT_UNKNOWN entry's missing-stat predicate behavior."""
+        name, path = observed.name, observed.path
+
+        def stat(self, *, follow_symlinks=True):
+            return Path(self.path).stat(follow_symlinks=follow_symlinks)
+
+        def is_dir(self, *, follow_symlinks=True):
+            try:
+                return stat.S_ISDIR(self.stat(follow_symlinks=follow_symlinks).st_mode)
+            except FileNotFoundError:
+                return False
+
+        def is_file(self, *, follow_symlinks=True):
+            try:
+                return stat.S_ISREG(self.stat(follow_symlinks=follow_symlinks).st_mode)
+            except FileNotFoundError:
+                return False
+
+    def disappears(directory):
+        if Path(directory) == source.parent:
+            if source.exists():
+                source.unlink()
+            return iter([UnknownTypeEntry()])
+        return scandir(directory)
+
+    monkeypatch.setattr(core.os, 'scandir', disappears)
+    with pytest.raises(FileNotFoundError):
+        apply(tmp_path, CLI, dry_run=dry_run)
+    assert mutation_snapshot(tmp_path, output) == before
+    assert not (tmp_path / '.prosaic-backups').exists()
+    readonly = core.discover(tmp_path / '.prosaic', tmp_path)
+    assert readonly['artifacts'] == [] and readonly['warnings'] == []
+    assert mutation_snapshot(tmp_path, output) == before
+
+
 @pytest.mark.parametrize('failure', ['directory', 'primary', 'vanished-primary'])
 @pytest.mark.parametrize('dry_run', [False, True])
 def test_apply_rejects_incomplete_source_without_reconciliation(tmp_path, monkeypatch, failure, dry_run):

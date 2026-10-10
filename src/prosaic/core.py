@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+import stat
 from pathlib import Path
 
 from .compat import js_sort_key, js_string, load_yaml, yaml_error_message
@@ -166,8 +167,13 @@ def _walk_source(source_root, project_root, *, io_errors=None, fail_io=False,
             if path == backup or backup in path.parents:
                 continue
             try:
-                is_dir = entry.is_dir(follow_symlinks=False)
-                is_file = entry.is_file(follow_symlinks=False)
+                if fail_io:
+                    metadata = entry.stat(follow_symlinks=False)
+                    is_dir = stat.S_ISDIR(metadata.st_mode)
+                    is_file = stat.S_ISREG(metadata.st_mode)
+                else:
+                    is_dir = entry.is_dir(follow_symlinks=False)
+                    is_file = entry.is_file(follow_symlinks=False)
             except OSError:
                 if fail_io:
                     raise
