@@ -1,5 +1,6 @@
 """Canonical prose inspection and distribution, implemented in Python."""
-from .core import ArtifactNotFoundError, ParseError, discover, inspect_artifact, parse_artifact
+from .core import (ArtifactNotFoundError, ParseError, discover, inspect_artifact,
+                   parse_artifact, validate_artifact_definition)
 from .config import ConfigError, resolve_config
 from .registry import (Registry, StaticRegistrySource, BuiltinRegistrySource, CatalogRegistrySource,
                        UnknownTargetError, REGISTRY_VERSION, builtin_registry, get_target,
@@ -8,7 +9,7 @@ from .pipeline import run_pipeline, PIPELINE_STAGES, resolve_execution, LossyTra
 
 from .tools import discover_tools
 
-__version__ = '0.3.1'
+__version__ = '0.3.2'
 
 
 def apply(*args, **kwargs):

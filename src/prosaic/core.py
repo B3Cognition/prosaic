@@ -102,6 +102,30 @@ def validate_frontmatter(kind, frontmatter):
     return {'ok': True, 'frontmatter': frontmatter.copy()}
 
 
+def validate_artifact_definition(kind, frontmatter):
+    """Validate an explicit canonical kind and frontmatter without filesystem work.
+
+    Return the existing ``ok``/``field``/``reason``/``frontmatter`` contract.
+    A declared ``type`` must agree with ``kind``; an absent type stays absent.
+    Successful validation returns a shallow frontmatter copy, retaining extensions.
+    """
+    if not isinstance(kind, str) or kind not in ARTIFACT_TYPES:
+        return {'ok': False, 'field': 'type',
+                'reason': 'artifact type must be one of rule|skill|subagent|command'}
+    if not isinstance(frontmatter, dict):
+        return {'ok': False, 'field': 'frontmatter',
+                'reason': f'Expected object, received {_type_name(frontmatter)}'}
+    if 'type' in frontmatter:
+        declared = frontmatter['type']
+        if declared not in ARTIFACT_TYPES:
+            return {'ok': False, 'field': 'type',
+                    'reason': f'frontmatter type "{js_string(declared)}" is not one of rule|skill|subagent|command'}
+        if declared != kind:
+            return {'ok': False, 'field': 'type',
+                    'reason': f'frontmatter type "{declared}" does not match explicit artifact type "{kind}"'}
+    return validate_frontmatter(kind, frontmatter)
+
+
 def walk_source(source_root, project_root):
     source = Path(os.path.abspath(source_root))
     backup = Path(os.path.abspath(project_root)) / '.prosaic-backups'

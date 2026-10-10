@@ -117,14 +117,25 @@ for installation, all permission layers and offline verification.
 
 ```python
 from pathlib import Path
-from prosaic import apply, inspect_artifact, resolve_execution_data, discover_tools
+from prosaic import (apply, inspect_artifact, resolve_execution_data, discover_tools,
+                     validate_artifact_definition)
 
 root = Path('/path/to/project')
 inspection = inspect_artifact(root, 'subagents/reviewer.md')
 preview = apply(root, cli={'targets': ['claude-code']}, dry_run=True)
 resolved = resolve_execution_data(root, 'commands/deploy.md', 'claude-code')
 catalogue = discover_tools(root / '.prosaic/tools')
+validation = validate_artifact_definition('subagent', {
+    'name': 'reviewer', 'description': 'Review supplied prose',
+})
 ```
+
+`validate_artifact_definition(kind, frontmatter)` performs pure canonical validation
+for explicit `rule`, `skill`, `subagent`, or `command` definitions. It returns
+`{'ok': True, 'frontmatter': ...}` with a shallow metadata copy, or
+`{'ok': False, 'field': ..., 'reason': ...}`. A supplied `type` must match `kind`;
+an absent `type` stays absent. Validation retains extension metadata and never
+reads files or executes tools. Runtime applies its execution constraints separately.
 
 Python function names use snake_case; serialized contract keys retain camelCase.
 Registry injection, configuration precedence, target registration and pipeline

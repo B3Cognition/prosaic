@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2] - candidate
+
+- Export pure validate_artifact_definition for explicit canonical kinds and
+  frontmatter, preserving existing validation/discovery contracts and extensions.
+
 ## [0.3.0] - 2026-10-01
 
 ### Changed
