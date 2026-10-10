@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- Add read-only project validation and safe versioned CI diagnostics, with
+  CommonMark bundle links, explicit source failures and configured loss severity.
+- Serialize project provenance mutations with persistent OS-backed locks and
+  reserve their coordination inode throughout filesystem operations.
+- Prepare `b3-prosaic` 0.4.0 for the public package-index channel, preserving
+  Python imports, CLI commands and historical artifact identities.
+
 ## [0.3.2] - 2026-10-10
 
 - Export pure validate_artifact_definition for explicit canonical kinds and

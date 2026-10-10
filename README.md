@@ -5,20 +5,23 @@ targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness
 
 ## Install
 
-Prosaic 0.3.1 is Python 3.11+. The repository, distribution, import module, and
-CLI remain `prosaic`. There is no Node.js runtime dependency.
+Prosaic 0.4.0 is Python 3.11+. Its public distribution is `b3-prosaic`; the
+repository, Python import module and CLI remain `prosaic`. There is no Node.js
+runtime dependency. The normal package-index channel starts with this release.
 
 ```sh
-uv tool install git+https://github.com/B3Cognition/prosaic.git@v0.3.1
+uv tool install 'b3-prosaic==0.4.0'
 # Alternative:
-pipx install git+https://github.com/B3Cognition/prosaic.git@v0.3.1
+pipx install 'b3-prosaic==0.4.0'
 ```
 
-The GitHub release provides a wheel and source archive, not an npm package or
-a PyPI publication. npm installation and the JavaScript library API are retired.
-Existing consumer installers pinned to TS need an explicit update. When switching
-a global installation, explicitly uninstall its old npm CLI and check
-`command -v prosaic` so PATH does not select the old executable.
+The GitHub release provides the same qualified wheel and source archive as the
+package index. Use a fresh virtual environment or reinstall a pipx/uv tool when
+migrating from the old `prosaic` distribution: old and new distributions share
+import files and must not coexist. PyPI's unrelated `prosaic` project is not this
+SDK. Historical release names and bytes remain unchanged. npm installation and
+the JavaScript library API are retired; remove its old CLI and check
+`command -v prosaic` when switching a global installation.
 
 ## Quick start
 

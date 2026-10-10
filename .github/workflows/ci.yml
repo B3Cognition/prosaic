@@ -53,7 +53,7 @@ jobs:
       - name: Verify installed wheel without Node
         run: |
           python -m venv .wheel-test
-          .wheel-test/bin/python -m pip install dist/prosaic-*-py3-none-any.whl
+          .wheel-test/bin/python -m pip install dist/b3_prosaic-*-py3-none-any.whl
           .wheel-test/bin/python scripts/wheel_smoke.py
       - name: Upload Python distributions and parity receipt
         if: always()

@@ -11,7 +11,7 @@ from .tools import discover_tools
 from .locking import ProjectBusyError, ProjectLockError
 from .validation import validate_project
 
-__version__ = '0.3.2'
+__version__ = '0.4.0'
 
 
 def apply(*args, **kwargs):

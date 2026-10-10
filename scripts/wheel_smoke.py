@@ -1,5 +1,6 @@
 """Run with the installed wheel's Python; deliberately hide Node from PATH."""
 import json
+from importlib import metadata
 import os
 from pathlib import Path
 import shutil
@@ -15,6 +16,11 @@ def main():
     environment = {**os.environ, 'PATH': str(executable.parent), 'NO_COLOR': '1'}
     assert shutil.which('node', path=environment['PATH']) is None
     assert 'site-packages' in str(Path(prosaic.__file__).resolve()), prosaic.__file__
+    installed = {distribution.metadata['Name'].lower().replace('_', '-')
+                 for distribution in metadata.distributions()}
+    assert 'b3-prosaic' in installed and 'prosaic' not in installed, installed
+    assert metadata.version('b3-prosaic') == prosaic.__version__
+    assert metadata.packages_distributions()['prosaic'] == ['b3-prosaic']
     with tempfile.TemporaryDirectory(prefix='prosaic-wheel-') as temporary:
         root = Path(temporary)
         source = root / '.prosaic/commands/greet.md'
