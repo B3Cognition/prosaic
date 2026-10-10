@@ -9,6 +9,7 @@ from .pipeline import run_pipeline, PIPELINE_STAGES, resolve_execution, LossyTra
 
 from .tools import discover_tools
 from .locking import ProjectBusyError, ProjectLockError
+from .validation import validate_project
 
 __version__ = '0.3.2'
 

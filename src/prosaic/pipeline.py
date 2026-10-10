@@ -1,5 +1,6 @@
 """Pure artifact transformations and structured execution resolution."""
 import math
+import posixpath
 import re
 import datetime
 from pathlib import Path
@@ -74,16 +75,26 @@ def apply_overrides(concrete, fm, descriptor):
     return out
 
 
-def rewrite_references(text, resources, artifact_id, target_id):
+def rewrite_references(text, resources, artifact_id, target_id, *, resource_path=None, primary_path=None):
     def normalize(target):
         return re.sub(r'^\./', '', target.split('#')[0].split('?')[0])
-    known = {normalize(r['relPath']) for r in resources}
+    if resource_path is None:
+        known = {normalize(r['relPath']) for r in resources}
+        resolve = normalize
+    else:
+        # Opt-in authoring validation follows Markdown's containing-document
+        # paths. Existing rendering keeps its frozen reference semantics.
+        known = {posixpath.normpath(normalize(r['relPath'])) for r in resources}
+        if primary_path is not None:
+            known.add(posixpath.normpath(primary_path))
+        def resolve(target):
+            return posixpath.normpath(posixpath.join(posixpath.dirname(resource_path), normalize(target)))
     warnings = []
     for match in re.finditer(r'(!?\[[^\]]*\]\()([^)' + _JS_SPACE + r']+)(\))', text):
         target = match[2]
         if re.match(r'^[a-z][a-z0-9+.-]*:', target, re.I) or target.startswith(('/', '#')):
             continue
-        if normalize(target) and normalize(target) not in known:
+        if normalize(target) and resolve(target) not in known:
             warnings.append({'kind': 'unresolved-reference', 'artifact': artifact_id, 'target': target_id,
                              'message': f'internal reference "{target}" does not resolve to a bundle resource'})
     return {'text': text, 'warnings': warnings}

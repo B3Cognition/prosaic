@@ -68,6 +68,7 @@ prosaic revert
 prosaic import ./foreign --format claude-code --dry-run
 prosaic resolve commands/deploy.md --target claude-code
 prosaic inspect subagents/reviewer.md --json
+prosaic validate --json --strict --targets claude-code
 prosaic tools --source .prosaic
 prosaic package deploy my-package --dry-run
 prosaic package revert my-package --dry-run
@@ -77,7 +78,7 @@ prosaic package revert my-package --dry-run
 apply warnings remain on stdout. Explicit `--color` / `--no-color`,
 `NO_COLOR`, and `FORCE_COLOR` retain the CLI presentation contract.
 
-See [package deployment](docs/packages.md), [target contracts](docs/target-contracts.md),
+See [read-only validation](docs/validation.md), [package deployment](docs/packages.md), [target contracts](docs/target-contracts.md),
 [adding a target](docs/add-a-target.md), and [examples](examples/README.md).
 
 ## Neutral CLI-tool catalogue
@@ -118,11 +119,12 @@ for installation, all permission layers and offline verification.
 ```python
 from pathlib import Path
 from prosaic import (apply, inspect_artifact, resolve_execution_data, discover_tools,
-                     validate_artifact_definition)
+                     validate_artifact_definition, validate_project)
 
 root = Path('/path/to/project')
 inspection = inspect_artifact(root, 'subagents/reviewer.md')
 preview = apply(root, cli={'targets': ['claude-code']}, dry_run=True)
+project_report = validate_project(root, {'targets': ['claude-code']}, strict=True)
 resolved = resolve_execution_data(root, 'commands/deploy.md', 'claude-code')
 catalogue = discover_tools(root / '.prosaic/tools')
 validation = validate_artifact_definition('subagent', {

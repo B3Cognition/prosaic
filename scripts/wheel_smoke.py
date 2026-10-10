@@ -34,6 +34,10 @@ def main():
         assert inspection['id'] == 'commands/greet.md', inspection
         resolution = json.loads(run('resolve', 'commands/greet.md', '--target', 'claude-code'))
         assert resolution['artifactId'] == 'commands/greet.md', resolution
+        report = json.loads(run('validate', '--json', '--strict', '--targets', 'claude-code'))
+        assert report['schemaVersion'] == 1 and report['valid'], report
+        assert prosaic.validate_project(root, {'targets': []})['valid']
+        assert not (root / '.prosaic-operation.lock').exists()
         run('apply', '--targets', 'claude-code', '--dry-run')
         assert not (root / '.prosaic-manifest.json').exists()
         run('apply', '--targets', 'claude-code')
@@ -43,7 +47,7 @@ def main():
         run('revert', '--targets', 'claude-code')
         assert not (root / '.claude/commands/greet.md').exists()
     print(json.dumps({'module': prosaic.__file__, 'node_on_path': False,
-                      'checks': ['help', 'version', 'tools', 'inspect', 'resolve', 'dry-run', 'apply',
+                      'checks': ['help', 'version', 'tools', 'inspect', 'resolve', 'validate', 'dry-run', 'apply',
                                  'apply-noop', 'import-dry-run', 'revert']}, indent=2))
 
 

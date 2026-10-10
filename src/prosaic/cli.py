@@ -53,11 +53,14 @@ def style_preview(line, style=False):
     return f'{paint(label, code, True)} {paint(path, 4, True)}{tail}'
 
 
-def _parse(args):
+def _parse(args, *, validation=False):
     values, positional = {}, []
     arrays = {'targets', 'types'}
     strings = {'source', 'lossy', 'target', 'format', 'directory'}
     boolean = {'dry-run', 'overwrite', 'json', 'color', 'help', 'version'}
+    # The additive command's flag must not change legacy parser recognition.
+    if validation:
+        boolean.add('strict')
     index = 0
     while index < len(args):
         token = args[index]
@@ -113,10 +116,12 @@ def main(args=None):
     out_style = err_style = False
     help_command = ''
     try:
-        flags, positional = _parse(list(args))
+        flags, positional = _parse(list(args), validation=True)
+        if not positional or positional[0] != 'validate':
+            flags, positional = _parse(list(args))
         out_style, err_style = styled(sys.stdout, flags.get('color')), styled(sys.stderr, flags.get('color'))
         command = positional[0] if positional else 'apply'
-        help_command = ' '.join(positional[:2]) if command == 'package' and len(positional)>1 and positional[1] in ('deploy', 'revert') else (command if positional and command in ('apply', 'revert', 'inspect', 'resolve', 'import', 'package', 'tools') else '')
+        help_command = ' '.join(positional[:2]) if command == 'package' and len(positional)>1 and positional[1] in ('deploy', 'revert') else (command if positional and command in ('apply', 'revert', 'inspect', 'resolve', 'import', 'package', 'tools', 'validate') else '')
         if flags.get('version'):
             print(__version__)
             return 0
@@ -132,9 +137,9 @@ def main(args=None):
         if command == 'package' and (len(positional)<2 or (len(positional)<3 and positional[1] in ('deploy', 'revert'))):
             raise ParserError('Not enough non-option arguments: got 0, need at least 1')
         allowed = {'version', 'help', 'targets', 'types', 'source', 'lossy', 'color'}
-        allowed |= {'apply': {'dry-run'}, 'revert': {'dry-run'}, 'import': {'format', 'dry-run', 'overwrite'}, 'inspect': {'json'}, 'resolve': {'target'}, 'package': {'dry-run'}, 'tools': {'directory'}}.get(command, {'dry-run'})
+        allowed |= {'apply': {'dry-run'}, 'revert': {'dry-run'}, 'import': {'format', 'dry-run', 'overwrite'}, 'inspect': {'json'}, 'resolve': {'target'}, 'package': {'dry-run'}, 'tools': {'directory'}, 'validate': {'json', 'strict'}}.get(command, {'dry-run'})
         unknown = flags.get('_unknown', []) + [key for key in flags if key not in allowed and key != '_unknown']
-        count = {'apply': 1, 'revert': 1, 'inspect': 2, 'resolve': 2, 'import': 2, 'package': 3, 'tools': 1}.get(command, 0)
+        count = {'apply': 1, 'revert': 1, 'inspect': 2, 'resolve': 2, 'import': 2, 'package': 3, 'tools': 1, 'validate': 1}.get(command, 0)
         if command == 'package' and len(positional)>1 and positional[1] not in ('deploy', 'revert'):
             unknown += positional[1:]
         else:
@@ -147,6 +152,17 @@ def main(args=None):
                 cli[field] = flags[flag]
         root = Path.cwd()
         dry_run = flags.get('dry-run', False)
+        if command == 'validate':
+            from .validation import validate_project
+            report = validate_project(root, cli, strict=flags.get('strict', False))
+            if flags.get('json'):
+                print(stringify_json(report))
+            else:
+                for issue in report['issues']:
+                    where = issue['artifactId'] + (' -> ' + issue['targetId'] if 'targetId' in issue else '')
+                    print(f'{issue["severity"]}[{issue["code"]}] {where}: {issue["message"]}')
+                print(f'validate: {report["artifactCount"]} artifact(s), {report["errorCount"]} error(s), {report["warningCount"]} warning(s).')
+            return 0 if report['valid'] else 1
         if command == 'tools':
             from .config import resolve_config
             from .tools import discover_tools
