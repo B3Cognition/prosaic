@@ -17,6 +17,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   reserve their coordination inode throughout filesystem operations.
 - Prepare `b3-prosaic` 0.4.1 for the public package-index channel, preserving
   Python imports, CLI commands and historical artifact identities.
+- Add inert `<!-- enforce: ... -->` and `<!-- prose-only: ... -->` rule tags:
+  inspect reports `rules`/`ruleIssues` only for tagged bodies, validation adds
+  five `enforce-*` errors, apply strips tags for every target, and core never
+  registers, looks up or executes a guard. Export `strip_tags` and
+  `parse_rules` so hosts reuse the canonical functions. See docs/rules.md.
 
 ## [0.3.2] - 2026-10-10
 
