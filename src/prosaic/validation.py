@@ -3,7 +3,8 @@ from pathlib import Path
 import unicodedata
 
 from .config import resolve_config
-from .core import discover
+from .core import _discover
+from .enforcement import parse_rules
 from .pipeline import rewrite_references, run_pipeline, translate_neutral
 from .registry import Registry
 
@@ -23,9 +24,10 @@ def _bounded(value):
     return ''.join(c for c in str(value) if not unicodedata.category(c).startswith('C'))[:256]
 
 
-def _issue(code, artifact, *, target=None, location='$.frontmatter', severity='error'):
+def _issue(code, artifact, *, target=None, location='$.frontmatter', severity='error', message=None):
     result = {'code': code, 'severity': severity, 'location': _bounded(location),
-              'message': _MESSAGES[code], 'artifactId': _bounded(artifact)}
+              'message': _MESSAGES[code] if message is None else _bounded(message),
+              'artifactId': _bounded(artifact)}
     if target is not None:
         result['targetId'] = _bounded(target)
     return result
@@ -42,7 +44,9 @@ def validate_project(project_root, cli=None, *, strict=False, registry=None, glo
     config = resolve_config(project_root, cli, global_dir)
     registry = Registry() if registry is None else registry
     descriptors = registry.resolve_selection(config['targets'])
-    discovery = discover(Path(project_root) / config['source'], project_root, strict_io=True)
+    offsets = {}
+    discovery = _discover(Path(project_root) / config['source'], project_root, strict_io=True,
+                          body_offsets=offsets)
     issues = []
     for warning in discovery['warnings']:
         code = warning['kind']
@@ -58,6 +62,9 @@ def validate_project(project_root, cli=None, *, strict=False, registry=None, glo
             for unused in rewrite_references(text, resources, artifact['id'], '',
                     resource_path=resource_path, primary_path=primary_path)['warnings']:
                 issues.append(_issue('unresolved-reference', artifact['id'], location=location))
+        # Tag messages carry file:line and accepted values, never rejected values.
+        for tag in parse_rules(artifact['body'], artifact['id'], offsets[artifact['id']])['issues']:
+            issues.append(_issue(tag['code'], artifact['id'], location=tag['location'], message=tag['message']))
         if artifact['type'] not in config['artifactTypes']:
             continue
         for descriptor in descriptors:

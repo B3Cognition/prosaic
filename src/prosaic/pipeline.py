@@ -7,6 +7,7 @@ from pathlib import Path
 from urllib.parse import unquote
 
 from .compat import dump_yaml, js_string
+from .enforcement import strip_tags
 from .registry import NEUTRAL_KEYS, UnknownTargetError, get_target, slot_for
 
 PIPELINE_STAGES = ('path-rewrite', 'name-rewrite', 'argument-rewrite', 'neutral-translate',
@@ -230,7 +231,8 @@ def render_yaml_file(fm, body, body_field='prompt'):
 def run_pipeline(artifact, descriptor, lossy_policy='warn', trace=None):
     deployment = resolve_deployment_type(artifact)
     fm = dict(artifact['frontmatter'])
-    body = artifact['body']
+    # Enforcement tags are inert declarations and never reach a target.
+    body = strip_tags(artifact['body'])
     resources = [dict(r) for r in artifact.get('resources', [])]
     warnings = []
     warnings += rewrite_references(body, resources, artifact['id'], descriptor['id'])['warnings']

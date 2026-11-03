@@ -8,6 +8,7 @@ from pathlib import Path
 
 from .compat import js_sort_key, js_string, load_yaml, yaml_error_message
 from .config import ARTIFACT_TYPES, _type_name, resolve_config
+from .enforcement import parse_rules
 
 FRONTMATTER_RE = re.compile(r'^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$')
 DIR_CONVENTION = {folder: kind for kind, folders in {
@@ -103,12 +104,15 @@ def validate_frontmatter(kind, frontmatter):
     return {'ok': True, 'frontmatter': frontmatter.copy()}
 
 
-def validate_artifact_definition(kind, frontmatter):
+def validate_artifact_definition(kind, frontmatter, *, body=None, source_path=None):
     """Validate an explicit canonical kind and frontmatter without filesystem work.
 
     Return the existing ``ok``/``field``/``reason``/``frontmatter`` contract.
     A declared ``type`` must agree with ``kind``; an absent type stays absent.
     Successful validation returns a shallow frontmatter copy, retaining extensions.
+    A supplied ``body`` also has its enforcement tags validated; the first issue
+    is reported as ``source_path:line`` (``body:line`` by default), counting
+    lines from the start of the body.
     """
     if not isinstance(kind, str) or kind not in ARTIFACT_TYPES:
         return {'ok': False, 'field': 'type',
@@ -124,7 +128,14 @@ def validate_artifact_definition(kind, frontmatter):
         if declared != kind:
             return {'ok': False, 'field': 'type',
                     'reason': f'frontmatter type "{declared}" does not match explicit artifact type "{kind}"'}
-    return validate_frontmatter(kind, frontmatter)
+    result = validate_frontmatter(kind, frontmatter)
+    if not result['ok'] or body is None:
+        return result
+    for field, value in (('body', body), ('source_path', source_path)):
+        if value is not None and not isinstance(value, str):
+            return {'ok': False, 'field': field, 'reason': f'Expected string, received {_type_name(value)}'}
+    issues = parse_rules(body, 'body' if source_path is None else source_path)['issues']
+    return {'ok': False, 'field': 'body', 'reason': issues[0]['message']} if issues else result
 
 
 def walk_source(source_root, project_root, *, io_errors=None):
@@ -194,7 +205,8 @@ def discover(source_root, project_root, *, strict_io=False):
 
 
 def _discover(source_root, project_root, *, strict_io=False, fail_io=False,
-              allow_missing_source=True):
+              allow_missing_source=True, body_offsets=None):
+    """``body_offsets`` receives source lines before each artifact body, by id."""
     enumeration_errors = []
     files = _walk_source(source_root, project_root,
                          io_errors=enumeration_errors if strict_io else None,
@@ -233,6 +245,9 @@ def _discover(source_root, project_root, *, strict_io=False, fail_io=False,
             return
         artifact = {'id': file['rel'], 'type': classified['type'], 'frontmatter': validated['frontmatter'],
                     'body': parsed['body'], 'sourcePath': file['rel']}
+        if body_offsets is not None:
+            text = raw.removeprefix('\ufeff')
+            body_offsets[file['rel']] = text[:len(text) - len(parsed['body'])].count('\n')
         if bundle:
             artifact['bundleRoot'] = bundle
             artifact['resources'] = sorted([
@@ -258,13 +273,21 @@ def inspect_artifact(project_root, artifact_id, cli=None):
     try:
         config = resolve_config(project_root, cli)
         source = Path(os.path.abspath(os.path.join(project_root, config['source'])))
-        artifact = next((a for a in discover(source, project_root)['artifacts'] if a['id'] == artifact_id), None)
+        offsets = {}
+        artifact = next((a for a in _discover(source, project_root, body_offsets=offsets)['artifacts']
+                         if a['id'] == artifact_id), None)
         if artifact is None:
             raise ArtifactNotFoundError(artifact_id)
-        return {'ok': True, 'data': {'id': artifact['id'], 'type': artifact['type'],
+        data = {'id': artifact['id'], 'type': artifact['type'],
                 'frontmatter': artifact['frontmatter'], 'body': artifact['body'],
                 'bundleRoot': str(source / artifact['bundleRoot']) if artifact.get('bundleRoot') else None,
-                'resources': artifact.get('resources', [])}}
+                'resources': artifact.get('resources', [])}
+        # No tag, no keys: untagged output stays identical to the frozen oracle.
+        # Every tag yields a rule or an issue, so empty lists mean no tag.
+        parsed = parse_rules(artifact['body'], artifact['id'], offsets[artifact['id']])
+        if parsed['rules'] or parsed['issues']:
+            data.update(rules=parsed['rules'], ruleIssues=parsed['issues'])
+        return {'ok': True, 'data': data}
     except ArtifactNotFoundError as error:
         return {'ok': False, 'errorKind': 'artifact-not-found', 'artifactId': artifact_id, 'message': str(error)}
     except Exception as error:
