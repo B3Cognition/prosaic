@@ -1,0 +1,46 @@
+{
+  "commands/file-report.md": [
+    {"id": "commands/file-report.md:4:report_sections", "kind": "enforce", "guard": "report_sections", "stage": "final", "action": "retry",
+     "settings": {"required": ["weather", "harvest", "chores"]}, "reason": null,
+     "source": {"file": "commands/file-report.md", "line": 4}, "text": "Write the weekly report for plot $ARGUMENTS."},
+    {"id": "commands/file-report.md:5:tool_inventory", "kind": "enforce", "guard": "tool_inventory", "stage": "before_tool", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "commands/file-report.md", "line": 5}, "text": "Mention any broken tools."}
+  ],
+  "rules/tidy-desk.md": [
+    {"id": "rules/tidy-desk.md:4:workspace_clean", "kind": "enforce", "guard": "workspace_clean", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "rules/tidy-desk.md", "line": 4}, "text": "Leave the desk as you found it."},
+    {"id": "rules/tidy-desk.md:6:prose-only", "kind": "prose_only", "guard": null, "stage": null, "action": null,
+     "settings": {}, "reason": "labels are judged by people, not checks",
+     "source": {"file": "rules/tidy-desk.md", "line": 6}, "text": "Label every shared folder."}
+  ],
+  "skills/pantry-planner/SKILL.md": [
+    {"id": "skills/pantry-planner/SKILL.md:7:pantry_only", "kind": "enforce", "guard": "pantry_only", "stage": "final", "action": "retry",
+     "settings": {"list": "reference.md"}, "reason": null,
+     "source": {"file": "skills/pantry-planner/SKILL.md", "line": 7}, "text": "Use only listed ingredients."},
+    {"id": "skills/pantry-planner/SKILL.md:9:allergen_check", "kind": "enforce", "guard": "allergen_check", "stage": "before_answer", "action": "fail",
+     "settings": {}, "reason": null,
+     "source": {"file": "skills/pantry-planner/SKILL.md", "line": 9}, "text": "Flag allergens before suggesting a dish."}
+  ],
+  "subagents/shelf-keeper.md": [
+    {"id": "subagents/shelf-keeper.md:12:no_contact_details", "kind": "enforce", "guard": "no_contact_details", "stage": "before_answer", "action": "fail",
+     "settings": {}, "reason": null,
+     "source": {"file": "subagents/shelf-keeper.md", "line": 12}, "text": "Never print a borrower's contact details."},
+    {"id": "subagents/shelf-keeper.md:14:max_lines", "kind": "enforce", "guard": "max_lines", "stage": "after_tool", "action": "retry",
+     "settings": {"limit": 12}, "reason": null,
+     "source": {"file": "subagents/shelf-keeper.md", "line": 14}, "text": "Keep each catalogue entry within the house line limit."},
+    {"id": "subagents/shelf-keeper.md:14:entry_format", "kind": "enforce", "guard": "entry_format", "stage": "final", "action": "fix",
+     "settings": {"fields": ["title", "author", "shelf mark"]}, "reason": null,
+     "source": {"file": "subagents/shelf-keeper.md", "line": 14}, "text": "Keep each catalogue entry within the house line limit."},
+    {"id": "subagents/shelf-keeper.md:15:cite_sources", "kind": "enforce", "guard": "cite_sources", "stage": "final", "action": "retry",
+     "settings": {"source": "donation slip"}, "reason": null,
+     "source": {"file": "subagents/shelf-keeper.md", "line": 15}, "text": "Cite the donation slip for every entry."},
+    {"id": "subagents/shelf-keeper.md:17:prose-only", "kind": "prose_only", "guard": null, "stage": null, "action": null,
+     "settings": {}, "reason": "tone is judged by people, not checks",
+     "source": {"file": "subagents/shelf-keeper.md", "line": 17}, "text": "Be warm and patient with volunteers."},
+    {"id": "subagents/shelf-keeper.md:19:plain_language", "kind": "enforce", "guard": "plain_language", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "subagents/shelf-keeper.md", "line": 19}, "text": "Answer in plain English, without jargon."}
+  ]
+}

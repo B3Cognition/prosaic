@@ -1,0 +1,9 @@
+{
+  "artifactId": "subagents/bike-courier.md",
+  "rules": [],
+  "ruleIssues": [
+    {"code": "enforce-unknown-action", "severity": "error", "location": "$.body", "message": "subagents/bike-courier.md:5: unknown on_violation; accepted: fix, retry, fail"},
+    {"code": "enforce-unknown-action", "severity": "error", "location": "$.body", "message": "subagents/bike-courier.md:6: unknown on_violation; accepted: fix, retry, fail"},
+    {"code": "enforce-unknown-action", "severity": "error", "location": "$.body", "message": "subagents/bike-courier.md:7: unknown on_violation; accepted: fix, retry, fail"}
+  ]
+}
