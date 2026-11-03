@@ -5,7 +5,7 @@ targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness
 
 ## Install
 
-Prosaic 0.4.1 is a Python 3.11+ candidate. Its public distribution is `b3-prosaic`; the
+Prosaic 0.4.1 is a published Python 3.11+ release. Its public distribution is `b3-prosaic`; the
 repository, Python import module and CLI remain `prosaic`. There is no Node.js
 runtime dependency. The normal package-index channel starts with this release.
 
@@ -83,6 +83,15 @@ apply warnings remain on stdout. Explicit `--color` / `--no-color`,
 
 See [read-only validation](docs/validation.md), [package deployment](docs/packages.md), [target contracts](docs/target-contracts.md),
 [adding a target](docs/add-a-target.md), and [examples](examples/README.md).
+
+## Reasoning effort and native execution
+
+Canonical agent Markdown can carry `effort` and natural-language instructions.
+Core inspects this metadata; Runtime maps effort to the selected provider/model's
+native control. Running prose through Claude/Codex native profiles does not
+require `prosaic apply` or copying it into vendor folders. File distribution is
+a separate operation. See [the effort guide](docs/reasoning-effort.md) and the
+[Integration Lab blueprints](https://github.com/B3Cognition/prosaic-integration-lab/blob/main/docs/reasoning-effort.md).
 
 ## Neutral CLI-tool catalogue
 
