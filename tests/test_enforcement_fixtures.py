@@ -128,6 +128,31 @@ def test_every_target_renders_tagged_source_byte_identical_to_untagged(tmp_path)
         assert result == untagged[key], key
 
 
+def test_recovered_tags_and_code_examples_distribute_identically_for_every_target(tmp_path):
+    tagged = ('- > Rule. <!-- enforce: a(note="`") --> <!-- enforce: b() --> `\n'
+              'Next. <!-- enforce: broken( <!-- enforce: good() -->\n'
+              '<!-- enforce: open(\n```\nnot a --> b\n```\nAfter.\n')
+    untagged = '- > Rule. `\nNext.\n```\nnot a --> b\n```\nAfter.\n'
+    primary = tmp_path / '.prosaic/skills/recovery/SKILL.md'
+    primary.parent.mkdir(parents=True)
+    primary.write_text('---\nname: recovery\ndescription: Recovery\n---\n' + tagged)
+    (primary.parent / 'guide.md').write_text(tagged)
+
+    data = inspect_artifact(tmp_path, 'skills/recovery/SKILL.md')['data']
+    assert [(rule['guard'], rule['text']) for rule in data['rules']] == [
+        ('a', 'Rule. `'), ('b', 'Rule. `'), ('good', 'Next.')
+    ]
+    report = validate_project(tmp_path, {'targets': []})
+    assert report['errorCount'] == 7  # Two primary errors and five resource tags.
+    assert {issue['code'] for issue in report['issues']} == {'enforce-malformed', 'enforce-in-resource'}
+    artifact = artifacts(tmp_path)[0]
+    expected = {**artifact, 'body': untagged,
+                'resources': [{'relPath': 'guide.md', 'content': untagged}]}
+    for descriptor in builtin_registry():
+        if descriptor['capabilities'].get('skill', False):
+            assert run_pipeline(artifact, descriptor) == run_pipeline(expected, descriptor), descriptor['id']
+
+
 def plan(root):
     report = apply(root, {'targets': ['all']}, dry_run=True)
     return ([(w['targetId'], w['path'], w['content'].encode()) for w in report['plan']['writes']], report['warnings'])

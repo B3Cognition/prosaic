@@ -179,6 +179,103 @@ def test_tags_in_code_are_examples(body):
     assert parse_rules(body, 'a.md') == {'rules': [], 'issues': []}
 
 
+@pytest.mark.parametrize(
+    'body,guards,stripped',
+    [
+        (r'Rule. \` <!-- enforce: g() --> \`', ['g'], r'Rule. \` \`'),
+        ('Rule. <!-- enforce: a(note="`") --> <!-- enforce: b() --> `\n',
+         ['a', 'b'], 'Rule. `\n'),
+        ('Rule. <!-- note: ` --> <!-- enforce: g() --> `\n',
+         ['g'], 'Rule. <!-- note: ` --> `\n'),
+        ('Rule [label](foo "`") <!-- enforce: g() --> `\n',
+         ['g'], 'Rule [label](foo "`") `\n'),
+        ('Rule [label](foo`bar) <!-- enforce: g() --> `\n',
+         ['g'], 'Rule [label](foo`bar) `\n'),
+        ('Rule <https://example.com/`> <!-- enforce: g() --> `\n',
+         ['g'], 'Rule <https://example.com/`> `\n'),
+    ],
+)
+def test_literal_backticks_do_not_hide_tags(body, guards, stripped):
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['issues'] == []
+    assert [rule['guard'] for rule in parsed['rules']] == guards
+    assert strip_tags(body) == stripped
+
+
+def test_code_in_link_and_image_labels_remains_an_example():
+    body = ('A prefix longer than the image label itself. '
+            '![`<!-- enforce: example() -->`](image) '
+            '[`<!-- enforce: linked() -->`](page) <!-- enforce: g() -->\n')
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['issues'] == []
+    assert [rule['guard'] for rule in parsed['rules']] == ['g']
+    assert strip_tags(body) == ('A prefix longer than the image label itself. '
+                                '![`<!-- enforce: example() -->`](image) '
+                                '[`<!-- enforce: linked() -->`](page)\n')
+
+
+@pytest.mark.parametrize('fence', ['```', '~~~'])
+def test_unclosed_standalone_tag_preserves_following_code_fence(fence):
+    body = f'Rule.\n<!-- enforce: broken(\n{fence}\nnot a --> b\n{fence}\nAfter.\n'
+    assert strip_tags(body) == f'Rule.\n{fence}\nnot a --> b\n{fence}\nAfter.\n'
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['rules'] == []
+    assert [issue['code'] for issue in parsed['issues']] == ['enforce-malformed']
+
+
+def test_complete_standalone_tag_preserves_following_indented_code():
+    body = 'Rule.\n<!-- enforce: g() -->\n    Example <!-- enforce: sample() -->\n'
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['issues'] == []
+    assert [rule['guard'] for rule in parsed['rules']] == ['g']
+    assert strip_tags(body) == 'Rule.\n    Example <!-- enforce: sample() -->\n'
+
+
+def test_complete_standalone_tag_preserves_thematic_break_classification():
+    body = 'Rule.\n<!-- enforce: g() -->\n---\n'
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['issues'] == []
+    assert [(rule['guard'], rule['text']) for rule in parsed['rules']] == [('g', 'Rule.')]
+
+
+def test_unclosed_tag_recovers_at_another_opening_on_the_same_line():
+    body = 'Rule. <!-- enforce: broken( <!-- enforce: good() -->\n'
+    parsed = parse_rules(body, 'a.md')
+    assert [issue['code'] for issue in parsed['issues']] == ['enforce-malformed']
+    assert [(rule['guard'], rule['text']) for rule in parsed['rules']] == [('good', 'Rule.')]
+    assert strip_tags(body) == 'Rule.\n'
+
+
+def test_same_line_ordinary_comment_stops_cross_line_recovery():
+    body = 'Rule. <!-- enforce: broken( <!-- note -->\nTail --> stays.\n'
+    assert strip_tags(body) == 'Rule.<!-- note -->\nTail --> stays.\n'
+    assert [issue['code'] for issue in parse_rules(body, 'a.md')['issues']] == ['enforce-malformed']
+
+
+def test_comment_opening_in_a_quoted_setting_is_not_a_recovery_boundary():
+    body = 'Rule. <!-- enforce: g(note="<!-- example") -->\n'
+    parsed = parse_rules(body, 'a.md')
+    assert parsed['issues'] == []
+    assert [(rule['guard'], rule['settings']) for rule in parsed['rules']] == [
+        ('g', {'note': '<!-- example'})
+    ]
+    assert strip_tags(body) == 'Rule.\n'
+
+
+@pytest.mark.parametrize('prefix', ['- > ', '> - > ', '- - ', '1. > - '])
+def test_nested_markdown_markers_are_removed_from_rule_text(prefix):
+    parsed = parse_rules(prefix + 'Rule. <!-- enforce: g() -->\n', 'a.md')
+    assert parsed['issues'] == []
+    assert [rule['text'] for rule in parsed['rules']] == ['Rule.']
+
+
+@pytest.mark.parametrize('prefix', ['- > ', '> - > ', '- - ', '1. > - '])
+def test_empty_nested_markdown_items_are_not_rule_sentences(prefix):
+    parsed = parse_rules(prefix + '<!-- enforce: g() -->\n', 'a.md')
+    assert parsed['rules'] == []
+    assert [issue['code'] for issue in parsed['issues']] == ['enforce-no-rule']
+
+
 def test_package_exports_the_canonical_parser_and_stripper():
     import prosaic
 

@@ -35,7 +35,9 @@ guard, and a tag never changes what an agent may do.
   integer too long for the interpreter to convert is malformed.
 - A tag left open runs to the next `-->`, unless a code block or another `<!--`
   comes first, so a later rule, tag or code fence is never swallowed. It is
-  stripped whole and reported as malformed on its opening line.
+  stripped whole and reported as malformed on its opening line. Another comment
+  opening on the same line also stops recovery; `<!--` inside a quoted setting
+  remains part of that setting.
 
 A tag binds to the **rule sentence** on its own line, or, when the tag line holds
 only tags, to the line directly before it. A rule sentence is any non-blank,
@@ -45,7 +47,8 @@ that line with tags, list markers and block-quote markers removed.
 Tags inside fenced or indented code blocks and inline code spans on one line
 are examples: they are not parsed, reported or stripped. Other HTML comments,
 including `<!-- enforcement notes -->` and `<!-- Enforce: ... -->`, are ordinary
-prose. Tags belong in the primary body. A tag in a Markdown bundle resource is
+prose. Escaped backticks and backticks inside HTML comments do not start code
+spans. Tags belong in the primary body. A tag in a Markdown bundle resource is
 never bound: it is stripped from distribution and reported as
 `enforce-in-resource`. Bundle resources are Markdown files; any other file
 given to the pipeline passes through byte-for-byte.

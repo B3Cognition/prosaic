@@ -16,7 +16,8 @@ _TOKEN = re.compile(
     r'\s*(?:(?P<string>"(?:[^"\\]|\\["\\])*")|(?P<integer>-?[0-9]+)(?![A-Za-z0-9_])'
     r'|(?P<identifier>[A-Za-z_][A-Za-z0-9_]*)|(?P<punct>[(),=\[\]]))'
 )
-_MARKER = re.compile(r'^[ \t]*(?:>[ \t]?)*[ \t]*(?:(?:[-*+]|[0-9]{1,9}[.)])(?=[ \t]|$))?')
+_MARKER = re.compile(r'^[ \t]*(?:>[ \t]?|(?:[-*+]|[0-9]{1,9}[.)])(?=[ \t]|$))[ \t]*')
+_OPENING = re.compile(r'"(?:[^"\\]|\\["\\])*"|<!--')
 _SCALARS = ('string', 'integer', 'identifier')
 _MALFORMED = (
     'malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or '
@@ -109,16 +110,35 @@ def _parse_tag(content):
 
 
 def _code_spans(line):
-    runs = [match.span() for match in re.finditer(r'`+', line)]
-    spans, index = [], 0
-    while index < len(runs):
-        start, end = runs[index]
-        close = next((j for j in range(index + 1, len(runs)) if runs[j][1] - runs[j][0] == end - start), None)
-        if close is None:
-            index += 1
-            continue
-        spans.append((start, runs[close][1]))
-        index = close + 1
+    from markdown_it import MarkdownIt
+    from markdown_it.rules_inline import backtick, image
+
+    spans = []
+    offset = 0
+
+    def record_backtick(state, silent):
+        start, count = state.pos, len(state.tokens)
+        matched = backtick(state, silent)
+        if not silent and len(state.tokens) > count and state.tokens[-1].type == 'code_inline':
+            spans.append((offset + start, offset + state.pos))
+        return matched
+
+    def record_image(state, silent):
+        nonlocal offset
+        previous = offset
+        # Image labels are parsed recursively from a substring, unlike links
+        # which reuse the original inline state. Keep spans in source columns.
+        offset += state.pos + 2  # ![
+        try:
+            return image(state, silent)
+        finally:
+            offset = previous
+
+    parser = MarkdownIt('commonmark')
+    # CommonMark keeps escapes, HTML, link destinations and titles atomic.
+    parser.inline.ruler.at('backticks', record_backtick)
+    parser.inline.ruler.at('image', record_image)
+    parser.parseInline(line)
     return spans
 
 
@@ -131,8 +151,14 @@ def _candidates(line, position=0):
         if any(left <= start < right for left, right in spans):
             continue
         close = line.find('-->', position)
-        position = len(line) if close < 0 else close + 3
-        found.append((start, position, None if close < 0 else line[start + 4 : close]))
+        boundary = len(line) if close < 0 else close
+        # Another comment ends a malformed opener, but comment-like text in a
+        # quoted setting is part of that setting rather than a new annotation.
+        opening = next((m.start() for m in _OPENING.finditer(line, position, boundary)
+                        if m[0] == '<!--'), None)
+        position = opening if opening is not None else len(line) if close < 0 else close + 3
+        content = None if opening is not None or close < 0 else line[start + 4 : close]
+        found.append((start, position, content))
     return found
 
 
@@ -163,9 +189,22 @@ def _lines(body):
     so a later rule, tag or code fence is never swallowed.
     """
     from markdown_it import MarkdownIt
+    from markdown_it.rules_block import html_block
+
+    def ordinary_html_block(state, start, end, silent):
+        position = state.bMarks[start] + state.tShift[start]
+        # An annotation must not become an HTML block that hides subsequent
+        # fences/headings from malformed-tag recovery.
+        if (_TAG.match(state.src, position)
+                and '-->' not in state.src[position:state.eMarks[start]]):
+            return False
+        return html_block(state, start, end, silent)
 
     code, headings = set(), set()
-    for token in MarkdownIt('commonmark').parse(body.replace('\r', '')):
+    parser = MarkdownIt('commonmark')
+    parser.block.ruler.at('html_block', ordinary_html_block,
+                          {'alt': ['paragraph', 'reference', 'blockquote']})
+    for token in parser.parse(body.replace('\r', '')):
         if token.map and token.type in ('fence', 'code_block'):
             code.update(range(*token.map))
         elif token.map and token.type == 'heading_open':
@@ -183,7 +222,7 @@ def _lines(body):
             else:
                 consumed, position, close = [(0, close[1], None)], close[1], None
         tags = [] if kind == 'code' else _candidates(text, position)
-        if tags and tags[-1][2] is None:
+        if tags and tags[-1][2] is None and tags[-1][1] == len(text):
             close = _closing(texts, index + 1, code)
         lines.append({'text': text, 'ending': ending, 'kind': kind, 'tags': tags, 'consumed': consumed})
     return lines
@@ -202,7 +241,10 @@ def _remove(text, spans):
 
 
 def _sentence(line):
-    return _MARKER.sub('', _remove(line['text'], _spans(line)), count=1).strip()
+    text = _remove(line['text'], _spans(line))
+    while match := _MARKER.match(text):
+        text = text[match.end():]
+    return text.strip()
 
 
 def has_tags(body):
