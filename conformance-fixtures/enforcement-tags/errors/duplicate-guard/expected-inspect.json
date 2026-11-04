@@ -1,0 +1,23 @@
+{
+  "artifactId": "subagents/bike-mechanic.md",
+  "rules": [
+    {"id": "subagents/bike-mechanic.md:5:safety_check", "kind": "enforce", "guard": "safety_check", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "subagents/bike-mechanic.md", "line": 5}, "text": "Check brakes first."},
+    {"id": "subagents/bike-mechanic.md:7:prose-only", "kind": "prose_only", "guard": null, "stage": null, "action": null,
+     "settings": {}, "reason": "explanations vary",
+     "source": {"file": "subagents/bike-mechanic.md", "line": 7}, "text": "Explain each repair."},
+    {"id": "subagents/bike-mechanic.md:8:no_prices", "kind": "enforce", "guard": "no_prices", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "subagents/bike-mechanic.md", "line": 8}, "text": "Quote no prices."},
+    {"id": "subagents/bike-mechanic.md:9:prose-only", "kind": "prose_only", "guard": null, "stage": null, "action": null,
+     "settings": {}, "reason": "hygiene is a habit",
+     "source": {"file": "subagents/bike-mechanic.md", "line": 9}, "text": "Wash hands after oiling chains."}
+  ],
+  "ruleIssues": [
+    {"code": "enforce-duplicate-guard", "severity": "error", "location": "$.body", "message": "subagents/bike-mechanic.md:6: guard already bound in this file at line 5; bind each guard once per file"},
+    {"code": "enforce-duplicate-guard", "severity": "error", "location": "$.body", "message": "subagents/bike-mechanic.md:7: rule at line 7 is already bound; a rule takes enforce tags or one prose-only tag, not both"},
+    {"code": "enforce-duplicate-guard", "severity": "error", "location": "$.body", "message": "subagents/bike-mechanic.md:8: rule at line 8 is already bound; a rule takes enforce tags or one prose-only tag, not both"},
+    {"code": "enforce-duplicate-guard", "severity": "error", "location": "$.body", "message": "subagents/bike-mechanic.md:10: rule at line 9 is already bound; a rule takes enforce tags or one prose-only tag, not both"}
+  ]
+}

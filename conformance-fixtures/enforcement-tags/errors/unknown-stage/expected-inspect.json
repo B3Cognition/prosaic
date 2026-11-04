@@ -1,0 +1,10 @@
+{
+  "artifactId": "subagents/tide-watcher.md",
+  "rules": [],
+  "ruleIssues": [
+    {"code": "enforce-unknown-stage", "severity": "error", "location": "$.body", "message": "subagents/tide-watcher.md:5: unknown stage; accepted: before_tool, after_tool, before_answer, final"},
+    {"code": "enforce-unknown-stage", "severity": "error", "location": "$.body", "message": "subagents/tide-watcher.md:6: unknown stage; accepted: before_tool, after_tool, before_answer, final"},
+    {"code": "enforce-unknown-stage", "severity": "error", "location": "$.body", "message": "subagents/tide-watcher.md:7: unknown stage; accepted: before_tool, after_tool, before_answer, final"},
+    {"code": "enforce-unknown-action", "severity": "error", "location": "$.body", "message": "subagents/tide-watcher.md:7: unknown on_violation; accepted: fix, retry, fail"}
+  ]
+}

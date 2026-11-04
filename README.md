@@ -93,6 +93,14 @@ require `prosaic apply` or copying it into vendor folders. File distribution is
 a separate operation. See [the effort guide](docs/reasoning-effort.md) and the
 [Integration Lab blueprints](https://github.com/B3Cognition/prosaic-integration-lab/blob/main/docs/reasoning-effort.md).
 
+## Enforcement tags
+
+A rule sentence can carry `<!-- enforce: NAME(key=value, stage=final, on_violation=retry) -->`
+or `<!-- prose-only: REASON -->`. Core parses, validates and reports these as
+`rules` in `inspect`, and strips them from every distributed target; it never
+registers, looks up or runs a guard. A tag declares a check a host may enforce
+and never widens what an agent may do. See [enforcement tags](docs/rules.md).
+
 ## Neutral CLI-tool catalogue
 
 `prosaic tools` lists sorted YAML/YML manifests from `<source>/tools`;

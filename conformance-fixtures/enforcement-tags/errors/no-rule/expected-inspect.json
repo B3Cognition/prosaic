@@ -1,0 +1,16 @@
+{
+  "artifactId": "subagents/choir-scheduler.md",
+  "rules": [
+    {"id": "subagents/choir-scheduler.md:9:hall_booking", "kind": "enforce", "guard": "hall_booking", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "subagents/choir-scheduler.md", "line": 9}, "text": "Book the hall a week ahead."}
+  ],
+  "ruleIssues": [
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:5: tag has no rule sentence; place it on a rule line or the line directly after one"},
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:6: tag has no rule sentence; place it on a rule line or the line directly after one"},
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:7: tag has no rule sentence; place it on a rule line or the line directly after one"},
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:10: tag has no rule sentence; place it on a rule line or the line directly after one"},
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:12: tag has no rule sentence; place it on a rule line or the line directly after one"},
+    {"code": "enforce-no-rule", "severity": "error", "location": "$.body", "message": "subagents/choir-scheduler.md:13: tag has no rule sentence; place it on a rule line or the line directly after one"}
+  ]
+}

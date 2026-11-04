@@ -6,6 +6,7 @@ from .registry import (Registry, StaticRegistrySource, BuiltinRegistrySource, Ca
                        UnknownTargetError, REGISTRY_VERSION, builtin_registry, get_target,
                        parse_descriptor, validate_descriptor, register_target, runtime_capability_for)
 from .pipeline import run_pipeline, PIPELINE_STAGES, resolve_execution, LossyTransformError
+from .enforcement import parse_rules, strip_tags
 
 from .tools import discover_tools
 from .locking import ProjectBusyError, ProjectLockError
