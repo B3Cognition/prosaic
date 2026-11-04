@@ -136,9 +136,16 @@ def _candidates(line, position=0):
     return found
 
 
-def _closing(texts, start):
-    """Find where an open tag ends: the next ``-->`` unless another ``<!--`` opens first."""
+def is_markdown(path):
+    """Whether a resource path is Markdown, the only kind of file tags are read from."""
+    return path.lower().endswith('.md')
+
+
+def _closing(texts, start, code):
+    """Find where an open tag ends: the next ``-->``, unless code or another ``<!--`` comes first."""
     for later in range(start, len(texts)):
+        if later in code:
+            return None
         close, opening = texts[later].find('-->'), texts[later].find('<!--')
         if opening >= 0 and (close < 0 or opening < close):
             return None
@@ -152,8 +159,8 @@ def _lines(body):
 
     A tag left open runs to the next ``-->``: the lines it covers record that
     span in ``consumed`` so stripping removes all of it. If no ``-->`` follows,
-    or another ``<!--`` opens first, only the opening line is affected, so a
-    later rule or tag is never swallowed.
+    or code or another ``<!--`` comes first, only the opening line is affected,
+    so a later rule, tag or code fence is never swallowed.
     """
     from markdown_it import MarkdownIt
 
@@ -177,7 +184,7 @@ def _lines(body):
                 consumed, position, close = [(0, close[1], None)], close[1], None
         tags = [] if kind == 'code' else _candidates(text, position)
         if tags and tags[-1][2] is None:
-            close = _closing(texts, index + 1)
+            close = _closing(texts, index + 1, code)
         lines.append({'text': text, 'ending': ending, 'kind': kind, 'tags': tags, 'consumed': consumed})
     return lines
 
@@ -235,7 +242,7 @@ def resource_issues(bundle_root, resources):
     """Report each tag in a bundle resource; tags are read only from the primary body."""
     issues = []
     for index, resource in enumerate(resources):
-        if not has_tags(resource['content']):
+        if not is_markdown(resource['relPath']) or not has_tags(resource['content']):
             continue
         for number, line in enumerate(_lines(resource['content']), 1):
             report = _reporter(

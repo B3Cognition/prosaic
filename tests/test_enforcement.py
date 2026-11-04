@@ -215,6 +215,8 @@ def test_untagged_bodies_are_returned_unchanged():
         ('Rule. <!-- enforce: x(\nNext line.\n', 'Rule.\nNext line.\n'),
         ('Rule. <!-- enforce: x(\nNext. <!-- enforce: y() -->\n', 'Rule.\nNext.\n'),
         ('Rule. <!-- enforce: x(\nNext.\n<!-- note -->\n', 'Rule.\nNext.\n<!-- note -->\n'),
+        # Code ends the search too, so a fence is never unbalanced.
+        ('Rule. <!-- enforce: x(\n```\na --> b\n```\nAfter.\n', 'Rule.\n```\na --> b\n```\nAfter.\n'),
     ],
 )
 def test_strip_tags(tagged, untagged):
@@ -268,6 +270,40 @@ def test_tags_in_bundle_resources_are_stripped_for_every_target():
             resources = run_pipeline(artifact, descriptor)['resources']
             assert [r['content'] for r in resources] == ['# Guide\n\nAsk first.\n']
     assert artifact['resources'][0]['content'] == content
+
+
+def test_non_markdown_resources_pass_through_byte_for_byte():
+    from prosaic.enforcement import resource_issues
+    from prosaic.pipeline import run_pipeline
+    from prosaic.registry import get_target
+
+    script = 'MARKER = "<!-- enforce: foo("\ndef run(): ...\nx = a --> b\n'
+    resources = [
+        {'relPath': 'guide.md', 'content': 'Ask first. <!-- enforce: ask_first() -->\n'},
+        {'relPath': 'helper.py', 'content': script},
+    ]
+    artifact = {
+        'id': 'skills/s/SKILL.md',
+        'type': 'skill',
+        'frontmatter': {'name': 's', 'description': 'd'},
+        'body': 'Body.\n',
+        'sourcePath': 'skills/s/SKILL.md',
+        'bundleRoot': 'skills/s',
+        'resources': resources,
+    }
+    rendered = run_pipeline(artifact, get_target('claude-code'))['resources']
+    assert [r['content'] for r in rendered] == ['Ask first.\n', script]
+    assert [i['message'].split(':')[0] for i in resource_issues('skills/s', resources)] == ['skills/s/guide.md']
+
+
+def test_discovery_never_loads_non_markdown_files_as_resources(tmp_path):
+    from prosaic import inspect_artifact
+
+    write(tmp_path, 'skills/x/SKILL.md', '---\nname: x\ndescription: d\n---\nBody.\n')
+    write(tmp_path, 'skills/x/helper.py', 'MARKER = "<!-- enforce: foo("\n')
+    write(tmp_path, 'skills/x/notes.md', 'Notes.\n')
+    data = inspect_artifact(tmp_path, 'skills/x/SKILL.md')['data']
+    assert [r['relPath'] for r in data['resources']] == ['notes.md']
 
 
 def test_rule_text_is_the_bound_line_without_markers_or_tags():

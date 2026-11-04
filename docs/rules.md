@@ -33,9 +33,9 @@ guard, and a tag never changes what an agent may do.
 - The keywords are lowercase and a tag fits on one line. Several tags may share
   a line. Values are read by a small tokenizer; nothing is evaluated, and an
   integer too long for the interpreter to convert is malformed.
-- A tag left open runs to the next `-->`, unless another `<!--` opens first,
-  so a later rule or tag is never swallowed. It is stripped whole and reported
-  as malformed on its opening line.
+- A tag left open runs to the next `-->`, unless a code block or another `<!--`
+  comes first, so a later rule, tag or code fence is never swallowed. It is
+  stripped whole and reported as malformed on its opening line.
 
 A tag binds to the **rule sentence** on its own line, or, when the tag line holds
 only tags, to the line directly before it. A rule sentence is any non-blank,
@@ -45,8 +45,10 @@ that line with tags, list markers and block-quote markers removed.
 Tags inside fenced or indented code blocks and inline code spans on one line
 are examples: they are not parsed, reported or stripped. Other HTML comments,
 including `<!-- enforcement notes -->` and `<!-- Enforce: ... -->`, are ordinary
-prose. Tags belong in the primary body. A tag in a bundle resource is never
-bound: it is stripped from distribution and reported as `enforce-in-resource`.
+prose. Tags belong in the primary body. A tag in a Markdown bundle resource is
+never bound: it is stripped from distribution and reported as
+`enforce-in-resource`. Bundle resources are Markdown files; any other file
+given to the pipeline passes through byte-for-byte.
 
 ## Inspection
 
@@ -138,8 +140,8 @@ parsed = parse_rules(data['body'], data['id'])
   tag, well-formed or not, is removed with the spaces or tabs before it, a tag
   left open is removed through its closing `-->`, a line left blank is removed
   with its line ending, and tags in code are kept. A body without tags is
-  returned unchanged, as the same object. Apply it to each bundle resource a
-  host delivers, as distribution does.
+  returned unchanged, as the same object. Apply it to each Markdown bundle
+  resource a host delivers, as distribution does, and to no other file.
 - `parse_rules(body, file, line_offset=0)` returns `{'rules': [...], 'issues':
   [...]}` with the entry and issue shapes above, in line, then column, order.
   `file` names the source in ids and messages. `line_offset` is the number of
