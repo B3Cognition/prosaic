@@ -25,6 +25,7 @@ _MALFORMED = (
 _STAGE = 'unknown stage; accepted: ' + ', '.join(STAGES)
 _ACTION = 'unknown on_violation; accepted: ' + ', '.join(ACTIONS)
 _NO_RULE = 'tag has no rule sentence; place it on a rule line or the line directly after one'
+_IN_RESOURCE = 'tag in a bundle resource; place tags in the primary document'
 
 
 class _Malformed(ValueError):
@@ -44,7 +45,12 @@ def _tokens(text):
 def _scalar(kind, text):
     if kind == 'string':
         return re.sub(r'\\(["\\])', r'\1', text[1:-1])
-    return int(text) if kind == 'integer' else text
+    if kind == 'integer':
+        try:
+            return int(text)
+        except ValueError:  # Beyond the interpreter's integer string conversion limit.
+            raise _Malformed from None
+    return text
 
 
 def _arguments(text):
@@ -116,10 +122,10 @@ def _code_spans(line):
     return spans
 
 
-def _candidates(line):
+def _candidates(line, position=0):
     """Return ``(start, end, content)`` per tag; unterminated tags run to line end."""
     spans = _code_spans(line) if '`' in line else []
-    found, position = [], 0
+    found = []
     while match := _TAG.search(line, position):
         start, position = match.start(), match.end()
         if any(left <= start < right for left, right in spans):
@@ -130,8 +136,25 @@ def _candidates(line):
     return found
 
 
+def _closing(texts, start):
+    """Find where an open tag ends: the next ``-->`` unless another ``<!--`` opens first."""
+    for later in range(start, len(texts)):
+        close, opening = texts[later].find('-->'), texts[later].find('<!--')
+        if opening >= 0 and (close < 0 or opening < close):
+            return None
+        if close >= 0:
+            return later, close + 3
+    return None
+
+
 def _lines(body):
-    """Split on ``\\n`` and classify lines with CommonMark; code is never tagged."""
+    """Split on ``\\n`` and classify lines with CommonMark; code is never tagged.
+
+    A tag left open runs to the next ``-->``: the lines it covers record that
+    span in ``consumed`` so stripping removes all of it. If no ``-->`` follows,
+    or another ``<!--`` opens first, only the opening line is affected, so a
+    later rule or tag is never swallowed.
+    """
     from markdown_it import MarkdownIt
 
     code, headings = set(), set()
@@ -141,27 +164,38 @@ def _lines(body):
         elif token.map and token.type == 'heading_open':
             headings.update(range(*token.map))
     pieces = body.split('\n')
-    lines = []
-    for index, piece in enumerate(pieces):
-        text = piece.removesuffix('\r')
-        ending = piece[len(text) :] + ('\n' if index < len(pieces) - 1 else '')
+    texts = [piece.removesuffix('\r') for piece in pieces]
+    lines, close = [], None
+    for index, text in enumerate(texts):
+        ending = pieces[index][len(text) :] + ('\n' if index < len(pieces) - 1 else '')
         kind = 'code' if index in code else 'heading' if index in headings else 'blank' if not text.strip() else 'text'
-        lines.append(
-            {'text': text, 'ending': ending, 'kind': kind, 'tags': [] if kind == 'code' else _candidates(text)}
-        )
+        consumed, position = [], 0
+        if close is not None:
+            if index < close[0]:
+                consumed, position = [(0, len(text), None)], len(text)
+            else:
+                consumed, position, close = [(0, close[1], None)], close[1], None
+        tags = [] if kind == 'code' else _candidates(text, position)
+        if tags and tags[-1][2] is None:
+            close = _closing(texts, index + 1)
+        lines.append({'text': text, 'ending': ending, 'kind': kind, 'tags': tags, 'consumed': consumed})
     return lines
 
 
-def _remove(text, tags):
+def _spans(line):
+    return line['consumed'] + line['tags']
+
+
+def _remove(text, spans):
     kept, position = [], 0
-    for start, end, _ in tags:
+    for start, end, _ in spans:
         kept.append(text[position:start].rstrip(' \t'))
         position = end
     return ''.join(kept) + text[position:]
 
 
 def _sentence(line):
-    return _MARKER.sub('', _remove(line['text'], line['tags']), count=1).strip()
+    return _MARKER.sub('', _remove(line['text'], _spans(line)), count=1).strip()
 
 
 def has_tags(body):
@@ -183,17 +217,33 @@ def strip_tags(body):
         return body
     kept = []
     for line in lines:
-        text = _remove(line['text'], line['tags']) if line['tags'] else line['text']
-        if not line['tags'] or text.strip():
+        spans = _spans(line)
+        text = _remove(line['text'], spans) if spans else line['text']
+        if not spans or text.strip():
             kept.append(text + line['ending'])
     return ''.join(kept)
 
 
-def _reporter(issues, prefix):
+def _reporter(issues, prefix, location='$.body'):
     def report(code, message):
-        issues.append({'code': code, 'severity': 'error', 'location': '$.body', 'message': prefix + message})
+        issues.append({'code': code, 'severity': 'error', 'location': location, 'message': prefix + message})
 
     return report
+
+
+def resource_issues(bundle_root, resources):
+    """Report each tag in a bundle resource; tags are read only from the primary body."""
+    issues = []
+    for index, resource in enumerate(resources):
+        if not has_tags(resource['content']):
+            continue
+        for number, line in enumerate(_lines(resource['content']), 1):
+            report = _reporter(
+                issues, f'{bundle_root}/{resource["relPath"]}:{number}: ', f'$.resources[{index}].content'
+            )
+            for _ in line['tags']:
+                report('enforce-in-resource', _IN_RESOURCE)
+    return issues
 
 
 def parse_rules(body, file, line_offset=0):
@@ -217,7 +267,7 @@ def parse_rules(body, file, line_offset=0):
         rule = None
         if line['kind'] == 'heading':
             pass
-        elif _remove(line['text'], line['tags']).strip():
+        elif _remove(line['text'], _spans(line)).strip():
             rule = index if _sentence(line) else None
         elif index and lines[index - 1]['kind'] == 'text' and _sentence(lines[index - 1]):
             rule = index - 1

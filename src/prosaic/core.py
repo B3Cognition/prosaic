@@ -8,7 +8,7 @@ from pathlib import Path
 
 from .compat import js_sort_key, js_string, load_yaml, yaml_error_message
 from .config import ARTIFACT_TYPES, _type_name, resolve_config
-from .enforcement import parse_rules
+from .enforcement import parse_rules, resource_issues
 
 FRONTMATTER_RE = re.compile(r'^---\r?\n([\s\S]*?)\r?\n---\r?\n?([\s\S]*)$')
 DIR_CONVENTION = {folder: kind for kind, folders in {
@@ -285,8 +285,9 @@ def inspect_artifact(project_root, artifact_id, cli=None):
         # No tag, no keys: untagged output stays identical to the frozen oracle.
         # Every tag yields a rule or an issue, so empty lists mean no tag.
         parsed = parse_rules(artifact['body'], artifact['id'], offsets[artifact['id']])
-        if parsed['rules'] or parsed['issues']:
-            data.update(rules=parsed['rules'], ruleIssues=parsed['issues'])
+        issues = parsed['issues'] + resource_issues(artifact.get('bundleRoot'), artifact.get('resources', []))
+        if parsed['rules'] or issues:
+            data.update(rules=parsed['rules'], ruleIssues=issues)
         return {'ok': True, 'data': data}
     except ArtifactNotFoundError as error:
         return {'ok': False, 'errorKind': 'artifact-not-found', 'artifactId': artifact_id, 'message': str(error)}

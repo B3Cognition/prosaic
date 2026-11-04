@@ -14,6 +14,7 @@
     {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:10: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"},
     {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:11: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"},
     {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:12: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"},
-    {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:13: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"}
+    {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:13: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"},
+    {"code": "enforce-malformed", "severity": "error", "location": "$.body", "message": "subagents/garden-helper.md:15: malformed tag; expected <!-- enforce: NAME(key=value, ...) --> or <!-- prose-only: REASON -->, NAME matching [a-z][a-z0-9_]*"}
   ]
 }

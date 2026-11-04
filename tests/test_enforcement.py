@@ -113,6 +113,8 @@ def test_prose_only_grammar():
         '<!-- prose-only:    -->',
         '<!-- prose-only -->',
         '<!-- prose-only reason -->',
+        '<!-- enforce: x(a=' + '9' * 5000 + ') -->',
+        '<!-- enforce: x(a=[1, -' + '9' * 5000 + ']) -->',
     ],
 )
 def test_malformed_tags(tag):
@@ -204,10 +206,68 @@ def test_untagged_bodies_are_returned_unchanged():
         ('Rule <!-- enforce: x() --> continues.\n', 'Rule continues.\n'),
         ('Rule. <!-- enforce: broken(\n', 'Rule.\n'),
         ('Keep `<!-- enforce: x() -->` here. <!-- enforce: y() -->\n', 'Keep `<!-- enforce: x() -->` here.\n'),
+        # A tag left open runs to the next -->, however many lines away.
+        ('Rule.\n<!-- enforce: foo(\n  stage=final) -->\nNext.\n', 'Rule.\nNext.\n'),
+        ('Rule. <!-- enforce: foo(\r\n  a=1,\r\n  stage=final) -->\r\nNext.\r\n', 'Rule.\r\nNext.\r\n'),
+        ('Rule. <!-- prose-only: a\nlong reason --> <!-- enforce: y() -->\nNext.\n', 'Rule.\nNext.\n'),
+        # Without a later -->, or when another comment opens first, only the
+        # opening line is stripped; a following rule or tag is never swallowed.
+        ('Rule. <!-- enforce: x(\nNext line.\n', 'Rule.\nNext line.\n'),
+        ('Rule. <!-- enforce: x(\nNext. <!-- enforce: y() -->\n', 'Rule.\nNext.\n'),
+        ('Rule. <!-- enforce: x(\nNext.\n<!-- note -->\n', 'Rule.\nNext.\n<!-- note -->\n'),
     ],
 )
 def test_strip_tags(tagged, untagged):
     assert strip_tags(tagged) == untagged
+
+
+def test_a_multi_line_tag_is_one_malformed_issue_and_later_tags_still_bind():
+    body = 'Rule.\n<!-- enforce: foo(\n  stage=final) -->\nNext. <!-- enforce: bar() -->\n'
+    parsed = parse_rules(body, 'a.md')
+    assert [(i['code'], i['message'].split(':')[1]) for i in parsed['issues']] == [('enforce-malformed', '2')]
+    assert [(r['id'], r['text']) for r in parsed['rules']] == [('a.md:4:bar', 'Next.')]
+    unclosed = parse_rules('One. <!-- enforce: x(\nTwo. <!-- enforce: y() -->\n', 'a.md')
+    assert [i['code'] for i in unclosed['issues']] == ['enforce-malformed']
+    assert [(r['id'], r['text']) for r in unclosed['rules']] == [('a.md:2:y', 'Two.')]
+
+
+def test_oversized_integers_are_reported_not_raised(tmp_path):
+    from prosaic import inspect_artifact, validate_artifact_definition, validate_project
+
+    body = 'Rule. <!-- enforce: x(a=' + '9' * 5000 + ') -->\n'
+    write(tmp_path, 'rules/huge.md', body)
+    write(tmp_path, 'rules/fine.md', 'Fine.\n')
+    report = validate_project(tmp_path, {'targets': []})
+    assert [(i['code'], i['artifactId']) for i in report['issues']] == [('enforce-malformed', 'rules/huge.md')]
+    assert report['artifactCount'] == 2
+    data = inspect_artifact(tmp_path, 'rules/huge.md')['data']
+    assert data['rules'] == [] and [i['code'] for i in data['ruleIssues']] == ['enforce-malformed']
+    assert validate_artifact_definition('rule', {}, body=body) == {
+        'ok': False,
+        'field': 'body',
+        'reason': 'body:1: ' + MALFORMED,
+    }
+
+
+def test_tags_in_bundle_resources_are_stripped_for_every_target():
+    from prosaic.pipeline import run_pipeline
+    from prosaic.registry import builtin_registry
+
+    content = '# Guide\n\nAsk first. <!-- enforce: ask_first() -->\n<!-- prose-only: why -->\n'
+    artifact = {
+        'id': 'skills/s/SKILL.md',
+        'type': 'skill',
+        'frontmatter': {'name': 's', 'description': 'd'},
+        'body': 'Body.\n',
+        'sourcePath': 'skills/s/SKILL.md',
+        'bundleRoot': 'skills/s',
+        'resources': [{'relPath': 'guide.md', 'content': content}],
+    }
+    for descriptor in builtin_registry():
+        if descriptor['capabilities']['skill']:
+            resources = run_pipeline(artifact, descriptor)['resources']
+            assert [r['content'] for r in resources] == ['# Guide\n\nAsk first.\n']
+    assert artifact['resources'][0]['content'] == content
 
 
 def test_rule_text_is_the_bound_line_without_markers_or_tags():

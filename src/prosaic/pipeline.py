@@ -233,7 +233,7 @@ def run_pipeline(artifact, descriptor, lossy_policy='warn', trace=None):
     fm = dict(artifact['frontmatter'])
     # Enforcement tags are inert declarations and never reach a target.
     body = strip_tags(artifact['body'])
-    resources = [dict(r) for r in artifact.get('resources', [])]
+    resources = [{**r, 'content': strip_tags(r['content'])} for r in artifact.get('resources', [])]
     warnings = []
     warnings += rewrite_references(body, resources, artifact['id'], descriptor['id'])['warnings']
     for resource in resources:

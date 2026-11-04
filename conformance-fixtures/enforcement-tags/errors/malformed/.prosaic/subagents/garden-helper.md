@@ -12,3 +12,5 @@ description: Answer allotment questions.
 - Log every visit. <!-- prose-only: -->
 - Greet new members. <!-- enforce: greet(stage=final)
 - Lock the shed. <!-- enforce: shed_lock() -->
+- Turn off the tap. <!-- enforce: tap_off(
+  stage=final) -->

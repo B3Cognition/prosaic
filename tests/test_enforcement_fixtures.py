@@ -13,7 +13,9 @@ from prosaic.pipeline import run_pipeline
 from prosaic.registry import builtin_registry
 
 FIXTURES = Path(__file__).resolve().parents[1] / 'conformance-fixtures' / 'enforcement-tags'
-ERROR_CASES = ['malformed', 'unknown-stage', 'unknown-action', 'duplicate-guard', 'no-rule']
+ERROR_CASES = ['malformed', 'unknown-stage', 'unknown-action', 'duplicate-guard', 'no-rule', 'in-resource']
+# Definitions carry a body but no bundle resources.
+BODY_ERROR_CASES = [case for case in ERROR_CASES if case != 'in-resource']
 LEGACY_KEYS = {'id', 'type', 'frontmatter', 'body', 'bundleRoot', 'resources'}
 
 
@@ -79,7 +81,7 @@ def test_error_fixture_validation_report(tmp_path, case):
     assert report['artifactCount'] == 1
 
 
-@pytest.mark.parametrize('case', ERROR_CASES)
+@pytest.mark.parametrize('case', BODY_ERROR_CASES)
 def test_error_fixture_definition_validation_names_the_first_problem(case):
     from prosaic import parse_artifact, validate_artifact_definition
 
@@ -180,3 +182,5 @@ def test_apply_strips_even_invalid_tags(tmp_path, case):
     assert writes
     for _, _, content in writes:
         assert b'<!-- enforce' not in content and b'<!-- prose-only' not in content
+        # No half-stripped multi-line tag may leave its tail behind.
+        assert b'-->' not in content

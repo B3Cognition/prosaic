@@ -1,0 +1,12 @@
+{
+  "artifactId": "skills/seed-library/SKILL.md",
+  "rules": [
+    {"id": "skills/seed-library/SKILL.md:5:loan_recorded", "kind": "enforce", "guard": "loan_recorded", "stage": "final", "action": "retry",
+     "settings": {}, "reason": null,
+     "source": {"file": "skills/seed-library/SKILL.md", "line": 5}, "text": "Record every seed loan in the [lending guide](./lending.md)."}
+  ],
+  "ruleIssues": [
+    {"code": "enforce-in-resource", "severity": "error", "location": "$.resources[0].content", "message": "skills/seed-library/lending.md:3: tag in a bundle resource; place tags in the primary document"},
+    {"code": "enforce-in-resource", "severity": "error", "location": "$.resources[0].content", "message": "skills/seed-library/lending.md:4: tag in a bundle resource; place tags in the primary document"}
+  ]
+}

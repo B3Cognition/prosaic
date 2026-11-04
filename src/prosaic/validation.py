@@ -4,7 +4,7 @@ import unicodedata
 
 from .config import resolve_config
 from .core import _discover
-from .enforcement import parse_rules
+from .enforcement import parse_rules, resource_issues
 from .pipeline import rewrite_references, run_pipeline, translate_neutral
 from .registry import Registry
 
@@ -63,7 +63,8 @@ def validate_project(project_root, cli=None, *, strict=False, registry=None, glo
                     resource_path=resource_path, primary_path=primary_path)['warnings']:
                 issues.append(_issue('unresolved-reference', artifact['id'], location=location))
         # Tag messages carry file:line and accepted values, never rejected values.
-        for tag in parse_rules(artifact['body'], artifact['id'], offsets[artifact['id']])['issues']:
+        for tag in [*parse_rules(artifact['body'], artifact['id'], offsets[artifact['id']])['issues'],
+                    *resource_issues(artifact.get('bundleRoot'), resources)]:
             issues.append(_issue(tag['code'], artifact['id'], location=tag['location'], message=tag['message']))
         if artifact['type'] not in config['artifactTypes']:
             continue
