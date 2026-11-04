@@ -31,9 +31,10 @@ issues, `targetId`. Fields are bounded; messages omit raw prose, rejected values
 and parser snippets. Ordering follows artifact/target/code/location. Each call
 returns independently owned data.
 
-[Enforcement tag](rules.md) problems are canonical errors at `$.body` with
+[Enforcement tag](rules.md) problems are canonical errors at `$.body`, or
+`$.resources[i].content` for a bundle resource, with six codes:
 `enforce-malformed`, `enforce-unknown-stage`, `enforce-unknown-action`,
-`enforce-duplicate-guard` or `enforce-no-rule` codes. Their messages name
+`enforce-duplicate-guard`, `enforce-no-rule` or `enforce-in-resource`. Their messages name
 `file:line` and the accepted values, still never the rejected value or prose.
 Messages are bounded to 256 characters, so a very long artifact path can
 truncate the end of the accepted-values list; `prosaic inspect` reports the

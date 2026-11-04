@@ -31,7 +31,11 @@ guard, and a tag never changes what an agent may do.
   `retry`). Both take bare identifiers.
 - `REASON` is any non-empty text.
 - The keywords are lowercase and a tag fits on one line. Several tags may share
-  a line. Values are read by a small tokenizer; nothing is evaluated.
+  a line. Values are read by a small tokenizer; nothing is evaluated, and an
+  integer too long for the interpreter to convert is malformed.
+- A tag left open runs to the next `-->`, unless another `<!--` opens first,
+  so a later rule or tag is never swallowed. It is stripped whole and reported
+  as malformed on its opening line.
 
 A tag binds to the **rule sentence** on its own line, or, when the tag line holds
 only tags, to the line directly before it. A rule sentence is any non-blank,
@@ -41,7 +45,8 @@ that line with tags, list markers and block-quote markers removed.
 Tags inside fenced or indented code blocks and inline code spans on one line
 are examples: they are not parsed, reported or stripped. Other HTML comments,
 including `<!-- enforcement notes -->` and `<!-- Enforce: ... -->`, are ordinary
-prose. Only the primary body is read; bundle resources are not.
+prose. Tags belong in the primary body. A tag in a bundle resource is never
+bound: it is stripped from distribution and reported as `enforce-in-resource`.
 
 ## Inspection
 
@@ -73,8 +78,8 @@ pinned to the frozen v0.2.0 differential oracle and its shipped CLI suite.
 
 ## Distribution
 
-`apply` strips all tags from the body before rendering it for any target,
-including malformed and unbound tags. A tag is removed with the
+`apply` strips all tags from the body and from bundle resources before
+rendering them for any target, including malformed and unbound tags. A tag is removed with the
 spaces or tabs before it, and a line left blank is removed with its line ending.
 A source with tags and the same source without them therefore distribute
 byte-identical files; the committed fixtures under
@@ -88,7 +93,8 @@ tags does not round-trip byte-for-byte.
 ## Validation
 
 `validate_project` reports tag problems as canonical errors, independent of
-selected targets, at location `$.body`:
+selected targets, at location `$.body` or, for a bundle resource,
+`$.resources[i].content`. There are six codes:
 
 | Code | Raised for |
 | --- | --- |
@@ -97,6 +103,7 @@ selected targets, at location `$.body`:
 | `enforce-unknown-action` | An `on_violation` outside the accepted actions. |
 | `enforce-duplicate-guard` | The same guard bound twice in one file, or a rule given two `prose-only` tags or both `prose-only` and `enforce`. |
 | `enforce-no-rule` | A tag with no rule sentence: on a heading line, an empty list item, or a tag-only line at the start of the body or after a blank line, heading, code block or another tag-only line. |
+| `enforce-in-resource` | Any tag in a bundle resource. Tags are read only from the primary document. |
 
 Messages name `file:line` and the accepted values, for example
 `subagents/tide-watcher.md:5: unknown stage; accepted: before_tool, after_tool,
@@ -128,15 +135,18 @@ parsed = parse_rules(data['body'], data['id'])
 ```
 
 - `strip_tags(body)` returns the body exactly as every target receives it: each
-  tag, well-formed or not, is removed with the spaces or tabs before it, a line
-  left blank is removed with its line ending, and tags in code are kept. A body
-  without tags is returned unchanged, as the same object.
+  tag, well-formed or not, is removed with the spaces or tabs before it, a tag
+  left open is removed through its closing `-->`, a line left blank is removed
+  with its line ending, and tags in code are kept. A body without tags is
+  returned unchanged, as the same object. Apply it to each bundle resource a
+  host delivers, as distribution does.
 - `parse_rules(body, file, line_offset=0)` returns `{'rules': [...], 'issues':
   [...]}` with the entry and issue shapes above, in line, then column, order.
   `file` names the source in ids and messages. `line_offset` is the number of
   source lines before the body, such as frontmatter; with the default, lines
   count from the body. Both lists are empty when the body has no tag outside
-  code. Unlike `validate_project`, issue messages are not truncated.
+  code. Unlike `validate_project`, issue messages are not truncated. It reads
+  one body; `enforce-in-resource` issues come from `inspect` and validation.
 
 Neither function reads files, looks up or executes a guard, or evaluates a
 value. Prefer `rules` from `inspect_artifact`, which already counts frontmatter
@@ -158,9 +168,12 @@ A Runtime reads `rules` from inspection, never the raw comments:
 
 1. Register guards in host code or configuration. Validate each guard's
    `settings` keys and values at registration or admission time.
-2. For each `enforce` entry, look up `guard` in the host registry. An unknown
-   guard is a host decision (refuse admission, or warn and skip); core has no
-   opinion and never resolves it.
+2. For each `enforce` entry, look up `guard` in the host registry. Refuse
+   admission when a declared guard is not registered, at least for
+   `on_violation=fail`, and never treat an unregistered guard as passing.
+   Core never resolves it. Treat `reason`, `text` and `settings` as untrusted
+   author data: never pass them to a model as instructions, and keep any
+   path-like setting inside the project.
 3. Run the guard at `stage` and, on a violation, apply `action`: `fix` lets the
    host repair the output, `retry` asks the model again, `fail` stops the step.
    After an `on_violation=fix` repair, the host re-runs every rule before
