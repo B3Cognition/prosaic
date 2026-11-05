@@ -166,13 +166,28 @@ def parse_descriptor(raw):
     if 'slots' in raw:
         slots = _expect(raw['slots'], 'object', 'slots')
         out['slots'] = {}
-        for key in ('command', 'skill', 'agent'):
+        for key in ('command', 'skill', 'agent', 'rule'):
             if key not in slots: continue
             slot = _expect(slots[key], 'object', 'slots.' + key)
             parsed = {'dir': _expect(slot.get('dir', _MISSING), 'string', 'slots.' + key + '.dir')}
             if 'extension' in slot: parsed['extension'] = _expect(slot['extension'], 'string', 'slots.' + key + '.extension')
             if 'naming' in slot: parsed['naming'] = _naming(slot['naming'], 'slots.' + key + '.naming', True)
+            if 'layout' in slot:
+                parsed['layout'] = _enum(slot['layout'], ['flat', 'bundle'], 'slots.' + key + '.layout')
+            if 'primaryName' in slot or slot.get('layout') == 'bundle':
+                primary = _expect(slot.get('primaryName', _MISSING), 'string', 'slots.' + key + '.primaryName', True)
+                if primary in ('.', '..') or any(c in primary for c in '/\\\x00\r\n'):
+                    raise _DescriptorError('slots.' + key + '.primaryName', 'Expected a single filename')
+                parsed['primaryName'] = primary
             out['slots'][key] = parsed
+    if 'aggregate' in raw:
+        aggregate = _expect(raw['aggregate'], 'object', 'aggregate')
+        file = _expect(aggregate.get('file', _MISSING), 'string', 'aggregate.file', True)
+        if file in ('.', '..') or any(c in file for c in '/\\\x00\r\n'):
+            raise _DescriptorError('aggregate.file', 'Expected a single filename')
+        if out['format'] != 'markdown':
+            raise _DescriptorError('aggregate', 'Aggregation requires markdown')
+        out['aggregate'] = {'file': file}
     translations = _expect(raw.get('translations', {}), 'object', 'translations')
     out['translations'] = {}
     for key in NEUTRAL_KEYS:
@@ -239,6 +254,25 @@ class Registry:
     def supports(self, id, type): return supports(self.get(id), type)
     def runtime_capability(self, id): return runtime_capability_for(self.get(id))
     def resolve_selection(self, selection): return self.all() if selection == 'all' else [self.get(id) for id in selection]
+
+
+def registry_for_config(config, registry=None):
+    """Select the versioned native overlay only for the bundled registry.
+
+    Injected application registries retain their own routing policy.
+    """
+    if registry is not None:
+        return registry
+    if config.get('outputContracts') != 'native-v1':
+        return Registry()
+    descriptors = builtin_registry()
+    for descriptor in descriptors:
+        if descriptor['id'] == 'claude-code':
+            descriptor['slots']['rule'] = {'dir': '.claude/rules', 'extension': '.md'}
+            descriptor['slots']['skill'].update(layout='bundle', primaryName='SKILL.md')
+        elif descriptor['id'] == 'agents-md':
+            descriptor['aggregate'] = {'file': 'AGENTS.md'}
+    return Registry(StaticRegistrySource(descriptors, {**REGISTRY_VERSION, 'version': '1.1.0-native.1'}))
 
 
 def register_target(existing, descriptor, version=None):

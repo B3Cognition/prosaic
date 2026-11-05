@@ -11,8 +11,9 @@ from .enforcement import parse_rules, strip_tags
 from .tools import discover_tools
 from .locking import ProjectBusyError, ProjectLockError
 from .validation import validate_project
+from .checking import check_project
 
-__version__ = '0.4.1'
+__version__ = '0.5.0'
 
 
 def apply(*args, **kwargs):

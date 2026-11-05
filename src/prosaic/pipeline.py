@@ -241,6 +241,8 @@ def run_pipeline(artifact, descriptor, lossy_policy='warn', trace=None):
     for resource in resources:
         warnings += rewrite_references(resource['content'], resources, artifact['id'], descriptor['id'])['warnings']
     slot = slot_for(descriptor, deployment)
+    if artifact['type'] == 'rule' and 'rule' in descriptor.get('slots', {}):
+        slot = slot_for(descriptor, 'rule')
     name = compute_name(artifact, {**descriptor['naming'], **slot.get('naming', {})})
     if artifact['type'] == 'command' or deployment == 'command':
         for ph in descriptor.get('argumentPlaceholders', DEFAULT_PLACEHOLDERS):
@@ -261,9 +263,11 @@ def run_pipeline(artifact, descriptor, lossy_policy='warn', trace=None):
     body_field = descriptor.get('bodyField', 'prompt')
     fmt = descriptor['format']
     content = render_markdown(fm, body) if fmt == 'markdown' else (render_toml_file(fm, body, body_field) if fmt == 'toml' else render_yaml_file(fm, body, body_field))
-    route = {'dir': descriptor['destinationDir'], 'extension': descriptor['extension']} if artifact['type'] == 'rule' else slot
+    route = slot_for(descriptor, 'rule') if artifact['type'] == 'rule' else slot
     directory = route['dir'].rstrip('/')
     path = (directory + '/' if directory else '') + name + route.get('extension', descriptor['extension'])
+    if route.get('layout') == 'bundle':
+        path = (directory + '/' if directory else '') + name + '/' + route['primaryName']
     directory = '/'.join(path.split('/')[:-1])
     def expand(template): return template.replace('{name}', name).replace('{body}', body)
     companions = [{'path': (directory.rstrip('/') + '/' if directory else '') + expand(r['nameTemplate']),

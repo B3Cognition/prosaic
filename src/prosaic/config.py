@@ -38,7 +38,9 @@ def parse_config(raw, label):
     if not isinstance(raw, dict):
         issues.append(f'(root): Expected object, received {_type_name(raw)}')
     else:
-        allowed = {'source', 'targets', 'artifactTypes', 'lossyPolicy', 'backupRetention', 'packages'}
+        allowed = {'source', 'targets', 'artifactTypes', 'lossyPolicy', 'backupRetention', 'packages', 'outputContracts'}
+        if 'outputContracts' in raw and raw['outputContracts'] not in ('legacy', 'native-v1'):
+            issues.append("outputContracts: Expected 'legacy' | 'native-v1'")
         if 'source' in raw:
             value = raw['source']
             if not isinstance(value, str):
@@ -153,6 +155,14 @@ def resolve_config(project_root, cli=None, global_dir=None):
         merged[key] = value
     defaults = {'source': '.prosaic', 'targets': 'all', 'artifactTypes': ARTIFACT_TYPES.copy(),
                 'lossyPolicy': 'warn', 'backupRetention': 3, 'packages': []}
+    # Installation age is unavailable to a project. A fresh project has neither
+    # configuration nor ownership provenance; do not silently migrate an older
+    # configuration or manifest. Once native ownership is recorded, retain it
+    # even if a later config omits the selector. Explicit settings always win.
+    native_state = (root / '.prosaic-blocks.json').exists()
+    fresh_project = not sources and not (root / '.prosaic-manifest.json').exists()
+    if native_state or fresh_project:
+        defaults['outputContracts'] = 'native-v1'
     defaults.update(merged)
     defaults['backupRetention'] = int(defaults['backupRetention'])
     return defaults

@@ -100,6 +100,7 @@ def test_yaml_number_output_bytes(value):
 
 
 def test_injected_registry_manifest_interoperability(tmp_path):
+    (tmp_path / 'prosaic.config.yaml').write_text('targets: [review-custom]\n')
     descriptor = get_target('claude-code')
     descriptor.update(id='review-custom', destinationDir='review-output', slots={})
     version = {'version': 'review-2', 'rulerParityRef': 'review@1', 'parityBaseline': 1}

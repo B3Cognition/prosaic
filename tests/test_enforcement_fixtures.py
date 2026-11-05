@@ -22,6 +22,9 @@ LEGACY_KEYS = {'id', 'type', 'frontmatter', 'body', 'bundleRoot', 'resources'}
 def project(tmp_path, name):
     root = tmp_path / name.replace('/', '-')
     shutil.copytree(FIXTURES / name, root)
+    # Preserve the legacy distribution goldens, including permissive stripping
+    # of invalid enforcement tags. Native mode validates before distribution.
+    (root / 'prosaic.config.yaml').write_text('targets: all\n')
     return root
 
 

@@ -28,6 +28,7 @@ def normalize(value):
 
 def fixture(root):
     (root / '.prosaic/commands').mkdir(parents=True)
+    (root / 'prosaic.config.yaml').write_text('targets: all\n')
     (root / '.prosaic/commands/greet.md').write_text('---\ndescription: Greetings\n---\nHello $ARGUMENTS\n')
 
 def test_lifecycle_reference_reports_and_manifest(tmp_path):

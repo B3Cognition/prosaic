@@ -89,16 +89,19 @@ def execute_apply(plan, fs_gate, manifest, backups, staged_package=None):
 
 def apply(project_root, cli=None, dry_run=False, *, registry=None, global_dir=None, theme=None):
     from .config import resolve_config
-    from .registry import Registry
+    from .registry import registry_for_config
     fs_gate = GuardedFs(project_root)
     config = resolve_config(project_root, cli, global_dir)
-    registry = registry if registry is not None else Registry()
+    registry = registry_for_config(config, registry)
     descriptors = registry.resolve_selection(config['targets'])
     base = {'dryRun': bool(dry_run), 'empty': False, 'zeroTargets': False, 'warnings': [], 'preview': [], 'changedFiles': 0,
             **dict.fromkeys(('created', 'overwritten', 'unchanged', 'removed', 'backedUp'), 0), 'plan': empty_plan()}
     if config['targets'] == []:
         return {**base, 'zeroTargets': True, 'preview': ['0 targets selected; no-op run. 0 files written.']}
     with nullcontext() if dry_run else project_mutation_lock(project_root):
+        if config.get('outputContracts') == 'native-v1':
+            from .native import apply_native
+            return apply_native(project_root, config, descriptors, registry, fs_gate, base, dry_run, theme)
         return _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, dry_run, theme)
 
 
@@ -106,6 +109,10 @@ def _apply_unlocked(project_root, config, descriptors, registry, fs_gate, base, 
     from .core import _discover
     from .pipeline import run_pipeline
     manifest = Manifest.load_or_empty(fs_gate)
+    from .managed_blocks import BlockLedger, OutputConflictError
+    ledger = BlockLedger.load(fs_gate)
+    if ledger.entries or ledger.native_targets or ('native' in manifest.registry_version and manifest.all()):
+        raise OutputConflictError('Managed native outputs exist; use outputContracts: native-v1 or revert them first.')
     source = Path(project_root) / config['source']
     selected = {descriptor['id'] for descriptor in descriptors}
     # A removed root is incomplete input when selected outputs are managed.
@@ -151,7 +158,14 @@ def revert(project_root, cli=None, dry_run=False, *, registry=None, global_dir=N
 
 
 def _revert_unlocked(fs_gate, config, dry_run, theme):
+    from .managed_blocks import BLOCKS_FILENAME
+    if config.get('outputContracts') == 'native-v1' or fs_gate.exists(BLOCKS_FILENAME):
+        from .native import revert_native
+        return revert_native(fs_gate, config, dry_run, theme)
     manifest = Manifest.load(fs_gate)
+    if 'native' in manifest.registry_version:
+        from .native import revert_native
+        return revert_native(fs_gate, config, dry_run, theme)
     plan = plan_revert(manifest, config['targets'])
     return {'dryRun': bool(dry_run), 'removed': 0 if dry_run or config['targets'] == [] else execute_revert(plan, fs_gate, manifest),
             'preview': preview_plan(plan, 'revert', theme) if dry_run else [], 'plan': plan}

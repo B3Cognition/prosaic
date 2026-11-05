@@ -6,7 +6,7 @@ from .config import resolve_config
 from .core import _discover
 from .enforcement import parse_rules, resource_issues
 from .pipeline import rewrite_references, run_pipeline, translate_neutral
-from .registry import Registry
+from .registry import registry_for_config
 
 _MESSAGES = {
     'source-unreadable': 'Canonical source is missing, unreadable or not a directory.',
@@ -42,7 +42,7 @@ def validate_project(project_root, cli=None, *, strict=False, registry=None, glo
     operational exceptions rather than fabricated validation reports.
     """
     config = resolve_config(project_root, cli, global_dir)
-    registry = Registry() if registry is None else registry
+    registry = registry_for_config(config, registry)
     descriptors = registry.resolve_selection(config['targets'])
     offsets = {}
     discovery = _discover(Path(project_root) / config['source'], project_root, strict_io=True,

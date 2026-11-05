@@ -34,7 +34,38 @@
 
 1. Confirm the tool's current on-disk contract against its docs / the pinned
    Ruler reference.
-2. Edit the target's descriptor in `src/registry/adapters/<cluster>/index.ts`.
-3. Regenerate `contract-matrix.md` and the golden conformance fixtures
-   (`UPDATE_FIXTURES=1 npm test`), then review the fixture diff before committing.
-4. Bump `registry/version.ts` when a contract changes (NFR-011).
+2. Edit the target descriptor or versioned opt-in overlay in `src/prosaic/registry.py`.
+3. Run `.venv/bin/python scripts/generate_contracts.py` to regenerate the matrix
+   and native-v1 golden outputs. Review the diff against the authored sources.
+   Never regenerate the immutable v0.2.0 reference to hide intentional changes.
+4. Version a changed contract independently of the default compatibility registry.
+
+## Native-v1 audit (2026-11-05)
+
+Only Claude Code and agents-md change in this overlay. The baseline registry
+remains version 1.0.0; the overlay is 1.1.0-native.1 and is the fresh-project
+default. Existing configuration and legacy ownership keep their prior contract.
+This is not a claim that
+the remaining historical adapters match current tool releases.
+
+- [Claude skills](https://code.claude.com/docs/en/skills): project skills use
+  `.claude/skills/<name>/SKILL.md` with supporting resources in that folder.
+- [Claude project rules](https://code.claude.com/docs/en/memory): `.claude/rules/`
+  Markdown files load automatically with project settings enabled. `paths`
+  scopes a rule; without it a rule loads at launch. Recent versions support
+  AGENTS.md directly, depending on version and instruction-file settings.
+- [Claude subagents](https://code.claude.com/docs/en/sub-agents): project agent
+  definitions remain Markdown files in `.claude/agents/`.
+- [Codex AGENTS.md discovery](https://learn.chatgpt.com/docs/agent-configuration/agents-md):
+  project instruction discovery recognizes AGENTS.md, subject to override and
+  configured filename/size precedence. Managed markers are Prosaic's ownership
+  mechanism, not a tool-specific requirement.
+
+Current documentation also confirms bundle skill support in
+[Cursor](https://cursor.com/help/customization/skills),
+[GitHub Copilot](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills),
+[Codex](https://learn.chatgpt.com/docs/build-skills), and
+[Gemini CLI](https://geminicli.com/docs/cli/skills/). Their descriptor refresh is
+deferred; the overlay does not silently enable these capabilities. Windsurf's
+former skills documentation redirected to a page unavailable during this audit,
+so its current layout was not verified.

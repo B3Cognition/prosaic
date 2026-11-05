@@ -19,6 +19,7 @@ def canonical_project(root):
     source = root / '.prosaic/commands/nested/check.md'
     source.parent.mkdir(parents=True)
     source.write_text('---\ndescription: Check\n---\nOriginal instructions\n')
+    (root / 'prosaic.config.yaml').write_text('targets: [claude-code]\n')
     apply(root, CLI)
     return source, root / '.claude/commands/check.md'
 
@@ -49,6 +50,7 @@ def test_missing_canonical_root_preserves_selected_managed_outputs(tmp_path, dry
 
 
 def test_missing_canonical_root_without_selected_managed_outputs_remains_noop(tmp_path):
+    (tmp_path / 'prosaic.config.yaml').write_text('targets: [claude-code]\n')
     assert apply(tmp_path, CLI)['empty'] is True
     source, output = canonical_project(tmp_path)
     before = mutation_snapshot(tmp_path, output)

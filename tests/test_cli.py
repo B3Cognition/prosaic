@@ -31,6 +31,9 @@ def run(executable,args,cwd,env=None):
 def test_cli_contract(tmp_path,args):
     if not shutil.which('node') or not TS.exists():
         pytest.skip('reference not available')
+    # This suite freezes the existing-project contract, not the fresh-project
+    # native default. The old oracle understands this selector-free config.
+    (tmp_path/'prosaic.config.yaml').write_text('targets: all\n')
     source=tmp_path/'.prosaic/rules/a.md'
     source.parent.mkdir(parents=True)
     source.write_text('---\ndescription: a\n---\nA rule\n')

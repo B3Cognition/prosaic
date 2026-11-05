@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-11-05
+
+- Default fresh projects to `outputContracts: native-v1`: isolated Claude skill bundles,
+  `.claude/rules/` routing, and deterministic managed-block AGENTS.md output.
+  Retain legacy behavior for existing configuration and ownership records;
+  keep `outputContracts: legacy` as an explicit selection. Preserve baseline
+  registry descriptors, legacy flat layouts, file-manifest format and frozen
+  reference fixtures. Native apply/revert preflight collisions and ownership,
+  preserve local edits and hash-check legacy cleanup after replacements succeed.
+- Add read-only `prosaic check [--json]` and `check_project` for CI output drift,
+  including committed output without local provenance. Existing validate and
+  apply-dry-run exit behavior is unchanged. See docs/native-output-contracts.md.
+
 - Abort apply and package deployment before output reconciliation when source
   enumeration or reads fail; a missing canonical source cannot remove managed outputs.
 - Replace generated files atomically, preserve file permissions, and retain

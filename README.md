@@ -3,16 +3,22 @@
 Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
 targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
 
+Fresh projects use native Claude skill bundles, `.claude/rules/` and a managed
+`AGENTS.md`. Existing configuration and ownership records retain their previous
+layout. `prosaic check` verifies generated output for CI. See the
+[0.5.0 release notes](docs/release-0.5.0.md) and
+[native output contracts](docs/native-output-contracts.md).
+
 ## Install
 
-Prosaic 0.4.1 is a published Python 3.11+ release. Its public distribution is `b3-prosaic`; the
+Prosaic 0.5.0 requires Python 3.11+. Its public distribution is `b3-prosaic`; the
 repository, Python import module and CLI remain `prosaic`. There is no Node.js
-runtime dependency. The normal package-index channel starts with this release.
+runtime dependency.
 
 ```sh
-uv tool install 'b3-prosaic==0.4.1'
+uv tool install 'b3-prosaic==0.5.0'
 # Alternative:
-pipx install 'b3-prosaic==0.4.1'
+pipx install 'b3-prosaic==0.5.0'
 ```
 
 The GitHub release provides the same qualified wheel and source archive as the
@@ -41,6 +47,7 @@ prosaic apply --targets claude-code --dry-run
 prosaic apply --targets claude-code
 prosaic inspect commands/greet.md
 prosaic resolve commands/greet.md --target claude-code
+prosaic check --targets claude-code
 prosaic revert --targets claude-code --dry-run
 ```
 
@@ -52,16 +59,32 @@ internal references.
 
 Existing filenames and keys remain supported: `prosaic.config.yaml`,
 `prosaic.config.yml`, `.prosaic.yaml`, `source`, `targets`, `artifactTypes`,
-`lossyPolicy`, `backupRetention`, and `packages`. Markdown and manifest formats
-are unchanged.
+`lossyPolicy`, `backupRetention`, and `packages`. `outputContracts` selects native
+or legacy output. Canonical Markdown, inspection JSON and the existing file
+manifest format remain compatible. Shared-file ownership is recorded separately
+in `.prosaic-blocks.json`.
 
 ```yaml
 source: .prosaic
-targets: [claude-code, codex-cli]
+outputContracts: native-v1
+targets: [claude-code, agents-md]
 artifactTypes: [rule, skill, subagent, command]
 lossyPolicy: warn
 backupRetention: 3
 ```
+
+Pin `outputContracts` in committed configuration so development and clean CI
+checkouts agree. Existing selector-free configs and legacy manifests keep legacy
+layouts; a project with neither defaults to native. To migrate, preview with
+`prosaic apply --dry-run`, resolve any local-edit conflicts, then apply. Use
+`outputContracts: legacy` to select the previous layouts explicitly.
+
+Native output uses `.claude/skills/<name>/SKILL.md` with resources inside each
+skill, `.claude/rules/<name>.md`, and one deterministic managed block in
+`AGENTS.md`. Local content outside the block survives apply and revert. Edited
+managed content is preserved and reported as a conflict. Claude agents and
+commands retain their existing paths. Runtime providers, including
+OpenAI-compatible execution, continue to inspect canonical source directly.
 
 ```sh
 prosaic apply --dry-run
@@ -72,6 +95,7 @@ prosaic import ./foreign --format claude-code --dry-run
 prosaic resolve commands/deploy.md --target claude-code
 prosaic inspect subagents/reviewer.md --json
 prosaic validate --json --strict --targets claude-code
+prosaic check --json
 prosaic tools --source .prosaic
 prosaic package deploy my-package --dry-run
 prosaic package revert my-package --dry-run
@@ -80,6 +104,12 @@ prosaic package revert my-package --dry-run
 `inspect`, `resolve`, and `tools` emit JSON. Import warnings go to stderr;
 apply warnings remain on stdout. Explicit `--color` / `--no-color`,
 `NO_COLOR`, and `FORCE_COLOR` retain the CLI presentation contract.
+
+`check` is read-only and exits nonzero for invalid source, missing or changed
+expected output, recorded stale output, or conflicts. It can compare committed
+output without local provenance; detecting extra stale files requires the
+ownership manifests. Existing `validate` and `apply --dry-run` exit behavior is
+unchanged. See [CI and migration details](docs/native-output-contracts.md).
 
 See [read-only validation](docs/validation.md), [package deployment](docs/packages.md), [target contracts](docs/target-contracts.md),
 [adding a target](docs/add-a-target.md), and [examples](examples/README.md).
@@ -173,7 +203,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 .venv/bin/python -m build
 python3 -m venv .wheel-test
-.wheel-test/bin/python -m pip install dist/b3_prosaic-0.4.1-py3-none-any.whl
+.wheel-test/bin/python -m pip install dist/b3_prosaic-0.5.0-py3-none-any.whl
 .wheel-test/bin/python scripts/wheel_smoke.py
 ```
 

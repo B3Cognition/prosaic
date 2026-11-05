@@ -26,11 +26,14 @@ def main():
         source = root / '.prosaic/commands/greet.md'
         source.parent.mkdir(parents=True)
         source.write_text('---\ndescription: Greetings\n---\nHello $ARGUMENTS\n')
+        rule = root / '.prosaic/rules/infra.md'
+        rule.parent.mkdir()
+        rule.write_text('Use approved modules.\n')
 
-        def run(*arguments):
+        def run(*arguments, expected=0):
             result = subprocess.run([str(executable), *arguments], cwd=root,
                                     env=environment, text=True, capture_output=True)
-            assert result.returncode == 0, (arguments, result.stdout, result.stderr)
+            assert result.returncode == expected, (arguments, result.stdout, result.stderr)
             return result.stdout
 
         assert 'prosaic' in run('--help')
@@ -48,13 +51,41 @@ def main():
         assert not (root / '.prosaic-manifest.json').exists()
         run('apply', '--targets', 'claude-code')
         assert (root / '.claude/commands/greet.md').exists()
+        assert (root / '.claude/rules/infra.md').is_file()
+        assert not (root / '.claude/infra.md').exists()
         run('apply', '--targets', 'claude-code')
         run('import', '.claude/commands', '--format', 'claude-code', '--dry-run')
         run('revert', '--targets', 'claude-code')
         assert not (root / '.claude/commands/greet.md').exists()
+        root = root / 'native-project'
+        (root / '.prosaic/rules').mkdir(parents=True)
+        (root / '.prosaic/rules/infra.md').write_text('Use approved modules.\n')
+        for name in ('first', 'second'):
+            bundle = root / '.prosaic/skills' / name
+            (bundle / 'references').mkdir(parents=True)
+            (bundle / 'SKILL.md').write_text(
+                f'---\nname: {name}\ndescription: Follow this workflow\n---\n[guide](references/guide.md)\n')
+            (bundle / 'references/guide.md').write_text(name + '\n')
+        (root / 'prosaic.config.yaml').write_text('outputContracts: native-v1\ntargets: [claude-code, agents-md]\n')
+        local = b'# Local\r\nKeep this without a final newline.'
+        (root / 'AGENTS.md').write_bytes(local)
+        assert not json.loads(run('check', '--json', expected=1))['clean']
+        assert not (root / '.prosaic-operation.lock').exists()
+        run('apply')
+        assert (root / '.claude/rules/infra.md').is_file()
+        for name in ('first', 'second'):
+            assert (root / f'.claude/skills/{name}/SKILL.md').is_file()
+            assert (root / f'.claude/skills/{name}/references/guide.md').read_text() == name + '\n'
+        assert json.loads(run('check', '--json'))['clean']
+        assert prosaic.check_project(root)['clean']
+        run('apply')
+        run('revert')
+        assert (root / 'AGENTS.md').read_bytes() == local
     print(json.dumps({'module': prosaic.__file__, 'node_on_path': False,
                       'checks': ['help', 'version', 'tools', 'inspect', 'resolve', 'validate', 'dry-run', 'apply',
-                                 'apply-noop', 'import-dry-run', 'revert']}, indent=2))
+                                 'apply-noop', 'import-dry-run', 'revert', 'check', 'native-apply',
+                                 'native-resource-isolation', 'native-check', 'native-revert-local-content',
+                                 'fresh-project-native-default']}, indent=2))
 
 
 if __name__ == '__main__':

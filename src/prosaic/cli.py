@@ -103,6 +103,14 @@ def _parse(args, *, validation=False):
 
 
 def _help(command=''):
+    if command == 'check':
+        return ('prosaic check\n\nCheck canonical source and generated output drift without writing files\n\n'
+                'Options:\n  --json     Emit a versioned machine-readable report\n'
+                '  --targets  Selected target identifiers (overrides config)\n'
+                '  --types    Artifact types for target checks\n'
+                '  --source   Source-of-truth directory\n'
+                '  --lossy    Loss policy (warn | error)\n'
+                '  --color    Control colored output\n  --help     Show this help\n')
     # The frozen help is contract data, independent of Python's parser formatting.
     file = Path(__file__).parent / 'data' / 'help.json'
     if file.exists():
@@ -121,7 +129,7 @@ def main(args=None):
             flags, positional = _parse(list(args))
         out_style, err_style = styled(sys.stdout, flags.get('color')), styled(sys.stderr, flags.get('color'))
         command = positional[0] if positional else 'apply'
-        help_command = ' '.join(positional[:2]) if command == 'package' and len(positional)>1 and positional[1] in ('deploy', 'revert') else (command if positional and command in ('apply', 'revert', 'inspect', 'resolve', 'import', 'package', 'tools', 'validate') else '')
+        help_command = ' '.join(positional[:2]) if command == 'package' and len(positional)>1 and positional[1] in ('deploy', 'revert') else (command if positional and command in ('apply', 'revert', 'inspect', 'resolve', 'import', 'package', 'tools', 'validate', 'check') else '')
         if flags.get('version'):
             print(__version__)
             return 0
@@ -137,9 +145,9 @@ def main(args=None):
         if command == 'package' and (len(positional)<2 or (len(positional)<3 and positional[1] in ('deploy', 'revert'))):
             raise ParserError('Not enough non-option arguments: got 0, need at least 1')
         allowed = {'version', 'help', 'targets', 'types', 'source', 'lossy', 'color'}
-        allowed |= {'apply': {'dry-run'}, 'revert': {'dry-run'}, 'import': {'format', 'dry-run', 'overwrite'}, 'inspect': {'json'}, 'resolve': {'target'}, 'package': {'dry-run'}, 'tools': {'directory'}, 'validate': {'json', 'strict'}}.get(command, {'dry-run'})
+        allowed |= {'apply': {'dry-run'}, 'revert': {'dry-run'}, 'import': {'format', 'dry-run', 'overwrite'}, 'inspect': {'json'}, 'resolve': {'target'}, 'package': {'dry-run'}, 'tools': {'directory'}, 'validate': {'json', 'strict'}, 'check': {'json'}}.get(command, {'dry-run'})
         unknown = flags.get('_unknown', []) + [key for key in flags if key not in allowed and key != '_unknown']
-        count = {'apply': 1, 'revert': 1, 'inspect': 2, 'resolve': 2, 'import': 2, 'package': 3, 'tools': 1, 'validate': 1}.get(command, 0)
+        count = {'apply': 1, 'revert': 1, 'inspect': 2, 'resolve': 2, 'import': 2, 'package': 3, 'tools': 1, 'validate': 1, 'check': 1}.get(command, 0)
         if command == 'package' and len(positional)>1 and positional[1] not in ('deploy', 'revert'):
             unknown += positional[1:]
         else:
@@ -152,6 +160,16 @@ def main(args=None):
                 cli[field] = flags[flag]
         root = Path.cwd()
         dry_run = flags.get('dry-run', False)
+        if command == 'check':
+            from .checking import check_project
+            report = check_project(root, cli)
+            if flags.get('json'):
+                print(stringify_json(report))
+            else:
+                for issue in report['issues']:
+                    print(f'{issue["severity"]}[{issue["code"]}]: {issue["message"]}')
+                print(f'check: {"clean" if report["clean"] else "failed"}, {report["changedFiles"]} changed file(s).')
+            return 0 if report['clean'] else 1
         if command == 'validate':
             from .validation import validate_project
             report = validate_project(root, cli, strict=flags.get('strict', False))
