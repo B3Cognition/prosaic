@@ -1,5 +1,7 @@
 # Multi-Artifact-Type
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](../../docs/releases.md). These examples retain their original fixtures; select legacy output explicitly when reproducing historical layouts.
+
 A source-of-truth directory with one artifact of every type Prosaic
 recognizes — `rule`, `command`, `skill`, `subagent` — distributed to two
 targets with different capabilities: `claude-code` (supports all four) and

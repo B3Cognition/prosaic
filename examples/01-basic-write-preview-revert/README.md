@@ -1,5 +1,7 @@
 # Basic Write, Preview, and Revert
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](../../docs/releases.md). These examples retain their original fixtures; select legacy output explicitly when reproducing historical layouts.
+
 A minimal, self-contained Prosaic project: one rule, one command, two
 targets (`claude-code`, `cursor`). Run it to see the full write/revert
 lifecycle — preview, write, safe re-run, and what happens when you try to

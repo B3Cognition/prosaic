@@ -1,5 +1,7 @@
 # Multi-Repository: Company-Managed Prose Source
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](../../docs/releases.md). These examples retain their original fixtures; select legacy output explicitly when reproducing historical layouts.
+
 Two real, nested directories model the "company source repository" +
 "consuming application repository" split the root README's
 "Company-Managed Prose Repository" section describes:
