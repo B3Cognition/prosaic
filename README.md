@@ -5,6 +5,12 @@ Current published release: **0.5.0**. See [release notes and compatible SDK vers
 Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
 targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
 
+Core's enforcement tags are inert metadata. Harness 0.9.12 now binds them to
+trusted Guards in workflow steps using Runtime 0.9.16, with declared accepted
+earlier outputs and finite budgets. See the [workflow contract](https://github.com/B3Cognition/prosaic-harness/blob/v0.9.12/docs/workflow-rules.md)
+and [Lab blueprint](https://github.com/B3Cognition/prosaic-integration-lab/blob/v0.9.9/docs/workflow-enforcement.md).
+Core 0.5.0 parsing, digests and published bytes are unchanged.
+
 Fresh projects use native Claude skill bundles, `.claude/rules/` and a managed
 `AGENTS.md`. Existing configuration and ownership records retain their previous
 layout. `prosaic check` verifies generated output for CI. See the
