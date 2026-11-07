@@ -1,5 +1,7 @@
 # Prosaic
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](docs/releases.md).
+
 Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
 targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
 

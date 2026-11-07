@@ -1,5 +1,7 @@
 # Import a Foreign Tool's Prose
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](../../docs/releases.md). These examples retain their original fixtures; select legacy output explicitly when reproducing historical layouts.
+
 Reuses the `claude-code` fixture from `conformance-fixtures/import-foreign/`
 (the same content the project's own round-trip conformance suite checks
 against) plus one deliberately malformed file, to show `prosaic import`

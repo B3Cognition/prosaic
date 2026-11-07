@@ -1,5 +1,7 @@
 # Resolve Execution Settings for an Orchestrator
 
+Current published release: **0.5.0**. See [release notes and compatible SDK versions](../../docs/releases.md). These examples retain their original fixtures; select legacy output explicitly when reproducing historical layouts.
+
 `prosaic resolve` returns the model, reasoning effort, tools, and execution
 type Prosaic would use for a given artifact/target pair, as structured JSON —
 for an external runtime orchestrator that wants to invoke the right AI coding
