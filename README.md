@@ -11,6 +11,13 @@ earlier outputs and finite budgets. See the [workflow contract](https://github.c
 and [Lab blueprint](https://github.com/B3Cognition/prosaic-integration-lab/blob/v0.9.9/docs/workflow-enforcement.md).
 Core 0.5.0 parsing, digests and published bytes are unchanged.
 
+Runtime0.9.17 adds trusted accounting run/variant labels visible to recorder
+`prepare(intent)` before dispatch, with no Core API or digest change.
+[Lab0.9.10](https://github.com/B3Cognition/prosaic-integration-lab/releases/tag/v0.9.10)
+provides a separate [accounting blueprint](https://github.com/B3Cognition/prosaic-integration-lab/blob/v0.9.10/docs/accounting-request-metadata.md)
+on the complete Core0.5.0/Runtime0.9.17/Harness0.9.12 train. See
+[compatibility and identity](docs/accounting-metadata-compatibility.md).
+
 Fresh projects use native Claude skill bundles, `.claude/rules/` and a managed
 `AGENTS.md`. Existing configuration and ownership records retain their previous
 layout. `prosaic check` verifies generated output for CI. See the
