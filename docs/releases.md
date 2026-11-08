@@ -2,8 +2,8 @@
 
 Compatibility documentation updated on 2026-11-08; release pages remain the publication authority.
 The latest SDKs and the Lab's qualified dependency train are separate selections.
-Harness 0.9.12 retains Runtime floor `>=0.9.16,<0.10`. Lab0.9.10 qualifies
-Runtime0.9.17/Core0.5.0/Harness0.9.12 and retains the
+Harness 0.9.12 retains Runtime floor `>=0.9.16,<0.10`. Lab0.9.11 qualifies
+Runtime0.9.18/Core0.5.0/Harness0.9.12 and retains the
 original recorder 0.3.0/store 0.4.1 bytes. Earlier Lab profiles keep their own
 archived manifests; newer SDK availability never certifies a partial mixture.
 This documentation update changes no Core version, package bytes or receipts.
@@ -11,11 +11,11 @@ This documentation update changes no Core version, package bytes or receipts.
 | Component | Latest published version | Scope |
 | --- | --- | --- |
 | Core (`b3-prosaic`) | 0.5.0 | Canonical Markdown, native outputs and inert rule tags |
-| Runtime (`b3-prosaic-runtime`) | 0.9.17 | Trusted accounting run/variant labels; headers and fee guards retained |
+| Runtime (`b3-prosaic-runtime`) | 0.9.18 | Actual sent effort controls/format; labels, headers and fee guards retained |
 | Harness (`b3-prosaic-harness`) | 0.9.12 | Workflow enforcement over accepted earlier outputs; Validator V1 retained |
 | Runtime PostgreSQL recorder | 0.3.0 | Optional usage persistence; unchanged adapter release |
 | Harness PostgreSQL store | 0.4.1 | Optional workflow/session persistence; unchanged adapter release |
-| Integration Lab | 0.9.10 | Complete public train and accounting metadata blueprint; earlier profiles retained |
+| Integration Lab | 0.9.11 | Complete public train and sent-effort blueprint; earlier profiles retained |
 
 Install current SDKs in a fresh environment; pin versions and archive hashes for reproducible deployments. Optional PostgreSQL adapters require explicit provisioning and operator readiness checks. Never co-install legacy and renamed distributions that own the same imports.
 

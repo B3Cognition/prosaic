@@ -11,6 +11,13 @@ earlier outputs and finite budgets. See the [workflow contract](https://github.c
 and [Lab blueprint](https://github.com/B3Cognition/prosaic-integration-lab/blob/v0.9.9/docs/workflow-enforcement.md).
 Core 0.5.0 parsing, digests and published bytes are unchanged.
 
+Runtime0.9.18 reports the reasoning-effort controls and format actually sent,
+separately from artifact requests and profile defaults. Sent does not prove
+provider compliance; native inner calls remain unobserved. The
+[Lab0.9.11 sent-effort blueprint](https://github.com/B3Cognition/prosaic-integration-lab/blob/v0.9.11/docs/sent-reasoning-effort.md)
+qualifies the complete Core0.5.0/Runtime0.9.18/Harness0.9.12 train. Core has no
+new version or identity fields; earlier release bytes and profiles remain intact.
+
 Runtime0.9.17 adds trusted accounting run/variant labels visible to recorder
 `prepare(intent)` before dispatch, with no Core API or digest change.
 [Lab0.9.10](https://github.com/B3Cognition/prosaic-integration-lab/releases/tag/v0.9.10)
