@@ -212,6 +212,8 @@ an absent `type` stays absent. Validation retains extension metadata and never
 reads files or executes tools. Runtime applies its execution constraints separately.
 
 Python function names use snake_case; serialized contract keys retain camelCase.
+Use [catalogue ontology](docs/catalogue-ontology.md) to validate optional
+concept and relation metadata for a host-owned agent and tool catalogue.
 Registry injection, configuration precedence, target registration and pipeline
 operations remain available. This package distributes/inspects prose; it does
 not execute models or orchestrate application workflows.

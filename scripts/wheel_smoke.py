@@ -9,6 +9,7 @@ import sys
 import tempfile
 
 import prosaic
+from prosaic import ontology
 
 
 def main():
@@ -21,6 +22,17 @@ def main():
     assert 'b3-prosaic' in installed and 'prosaic' not in installed, installed
     assert metadata.version('b3-prosaic') == prosaic.__version__
     assert metadata.packages_distributions()['prosaic'] == ['b3-prosaic']
+    distribution = metadata.distribution('b3-prosaic')
+    assert Path(ontology.__file__).resolve() == distribution.locate_file('prosaic/ontology.py').resolve()
+    fixture = Path(__file__).resolve().parents[1] / 'conformance-fixtures/catalogue-ontology/attachment.json'
+    attachment = ontology.load_ontology(fixture)
+    assert ontology.validate_ontology(attachment) == json.loads(fixture.read_bytes())
+    try:
+        ontology.validate_ontology({**attachment, 'schemaVersion': False})
+    except ValueError as error:
+        assert str(error) == 'Invalid ontology attachment'
+    else:
+        raise AssertionError('invalid ontology attachment was accepted')
     with tempfile.TemporaryDirectory(prefix='prosaic-wheel-') as temporary:
         root = Path(temporary)
         source = root / '.prosaic/commands/greet.md'
@@ -82,7 +94,7 @@ def main():
         run('revert')
         assert (root / 'AGENTS.md').read_bytes() == local
     print(json.dumps({'module': prosaic.__file__, 'node_on_path': False,
-                      'checks': ['help', 'version', 'tools', 'inspect', 'resolve', 'validate', 'dry-run', 'apply',
+                      'checks': ['catalogue-ontology', 'help', 'version', 'tools', 'inspect', 'resolve', 'validate', 'dry-run', 'apply',
                                  'apply-noop', 'import-dry-run', 'revert', 'check', 'native-apply',
                                  'native-resource-isolation', 'native-check', 'native-revert-local-content',
                                  'fresh-project-native-default']}, indent=2))
