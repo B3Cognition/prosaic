@@ -26,8 +26,10 @@ def _identifier(value):
 
 def _object(value, limit):
     _require(type(value) is dict and len(value) <= limit)
-    snapshot = dict(islice(value.items(), limit + 1))
-    _require(len(snapshot) <= limit and all(map(_identifier, snapshot)))
+    snapshot = {}
+    for key, item in islice(value.items(), limit + 1):
+        _require(len(snapshot) < limit and _identifier(key))
+        snapshot[key] = item
     return snapshot
 
 

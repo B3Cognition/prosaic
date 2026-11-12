@@ -121,6 +121,43 @@ def test_validated_values_are_owned_before_serialization(monkeypatch):
     assert document["agents"]["reviewer"] == ["candidate"]
 
 
+def test_rejects_nonstring_keys_without_using_them():
+    from prosaic.ontology import validate_ontology
+
+    class Key:
+        def __hash__(self):
+            if self.inserted:
+                raise AssertionError("invalid key was hashed during validation")
+            return 1
+
+    key = Key()
+    key.inserted = False
+    document = json.loads(FIXTURE.read_bytes())
+    document["concepts"] = {key: "Invalid key."}
+    key.inserted = True
+    with pytest.raises(ValueError, match="^Invalid ontology attachment$"):
+        validate_ontology(document)
+
+
+def test_cardinality_and_unicode_boundaries():
+    from prosaic.ontology import validate_ontology
+
+    concepts = {f"concept{i}": "Public." for i in range(256)}
+    concepts["concept0"] = "é" * 511 + "\n" + "a"
+    document = {"schemaVersion": 1, "ontologyId": "fixture", "concepts": concepts,
+                "relations": [{"source": "concept0", "predicate": f"relation{i}", "target": "concept1"}
+                              for i in range(512)],
+                "agents": {"agent": list(concepts)}, "tools": {}}
+    assert validate_ontology(document) == document
+    concepts["extra"] = "Too many concepts."
+    with pytest.raises(ValueError, match="^Invalid ontology attachment$"):
+        validate_ontology(document)
+    del concepts["extra"]
+    document["relations"].append({"source": "concept0", "predicate": "extra", "target": "concept1"})
+    with pytest.raises(ValueError, match="^Invalid ontology attachment$"):
+        validate_ontology(document)
+
+
 @pytest.mark.parametrize("payload", [
     b'{"x":{"repeated":1,"repeated":2}}',
     b"[" * 1500 + b"]" * 1500,
