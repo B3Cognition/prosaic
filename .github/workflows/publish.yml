@@ -125,7 +125,7 @@ jobs:
           .venv/bin/python scripts/release_artifacts.py qualify --directory release/artifacts --commit "$SOURCE_COMMIT" --label "${LANE}-wheel" -- .wheel-test/bin/python -I scripts/wheel_smoke.py
           mkdir -p release/ontology-sdist
           tar -xzf release/artifacts/b3_prosaic-*.tar.gz -C release/ontology-sdist
-          python -m build --wheel --outdir release/ontology-rebuilt release/ontology-sdist/b3_prosaic-*/
+          .venv/bin/python -m build --wheel --outdir release/ontology-rebuilt release/ontology-sdist/b3_prosaic-*/
           python -m venv .sdist-test
           .sdist-test/bin/python -m pip install release/ontology-rebuilt/b3_prosaic-*-py3-none-any.whl
           .venv/bin/python scripts/release_artifacts.py qualify --directory release/artifacts --commit "$SOURCE_COMMIT" --label "${LANE}-sdist" -- .sdist-test/bin/python -I scripts/wheel_smoke.py
