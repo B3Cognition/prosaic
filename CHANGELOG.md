@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1rc1] - 2026-11-12
+
+- Add experimental read-only loading and validation of versioned ontology
+  attachments over existing catalogue aliases.
+
 ## [0.5.0] - 2026-11-05
 
 - Default fresh projects to `outputContracts: native-v1`: isolated Claude skill bundles,

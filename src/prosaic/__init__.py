@@ -13,7 +13,7 @@ from .locking import ProjectBusyError, ProjectLockError
 from .validation import validate_project
 from .checking import check_project
 
-__version__ = '0.5.0'
+__version__ = '0.5.1rc1'
 
 
 def apply(*args, **kwargs):

@@ -142,6 +142,14 @@ fail closed. The Python API is `discover_tools(directory)`.
 Execution belongs in Prosaic Runtime with operator-configured grants.
 See the [companion CLI-tool guide](https://github.com/B3Cognition/prosaic-runtime/blob/main/docs/cli-tools.md).
 
+### Experimental catalogue ontology
+
+Hosts can load an optional JSON attachment with `prosaic.ontology.load_ontology(path)`
+or validate an in-memory document with `prosaic.ontology.validate_ontology(document)`.
+Both return a detached, validated document. The v1 format describes concepts
+and typed relationships and maps existing agent and tool aliases to concepts.
+See the [format and shared fixtures](docs/catalogue-ontology.md).
+
 ### Declarations are not permission grants
 
 When executing through the companion Runtime/Harness, an agent can declare
