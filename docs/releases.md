@@ -1,5 +1,10 @@
 # Releases and compatibility
 
+Core 0.5.1 supports the v1 [catalogue ontology attachment](release-0.5.1.md).
+Harness 0.9.18 can expose it through opt-in catalogue discovery with Runtime
+0.9.23. Ordinary Harness use retains the Core 0.5.0 floor. Use Lab's own
+published compatibility manifest for its stable dependency pins.
+
 Compatibility documentation updated on 2026-11-08; release pages remain the publication authority.
 The latest SDKs and the Lab's qualified dependency train are separate selections.
 Harness 0.9.12 retains Runtime floor `>=0.9.16,<0.10`. Lab0.9.11 qualifies
@@ -8,7 +13,7 @@ original recorder 0.3.0/store 0.4.1 bytes. Earlier Lab profiles keep their own
 archived manifests; newer SDK availability never certifies a partial mixture.
 This documentation update changes no Core version, package bytes or receipts.
 
-| Component | Latest published version | Scope |
+| Component | Sent-effort train | Scope |
 | --- | --- | --- |
 | Core (`b3-prosaic`) | 0.5.0 | Canonical Markdown, native outputs and inert rule tags |
 | Runtime (`b3-prosaic-runtime`) | 0.9.18 | Actual sent effort controls/format; labels, headers and fee guards retained |
