@@ -14,6 +14,7 @@ import pytest
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / 'scripts/release_artifacts.py'
+REPOSITORY = 'https://github.com/example/fixture'
 
 
 @pytest.fixture
@@ -39,6 +40,9 @@ requires-python = ">=3.11"
 dependencies = ["PyYAML>=6.0"]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
+[project.urls]
+Repository = "https://github.com/example/fixture"
+Changelog = "https://github.com/example/fixture/releases/tag/v1.0.0"
 [project.optional-dependencies]
 test = ["pytest>=8; python_version >= '3.11'"]
 [tool.setuptools.packages.find]
@@ -47,6 +51,11 @@ where = ["src"]
         'src/release_fixture/__init__.py': "__version__ = '1.0.0'\n",
         'LICENSE': 'Synthetic license fixture\n',
         'NOTICE': 'Synthetic notice fixture\n',
+        'CHANGELOG.md': (
+            '# Changelog\n\n## [Unreleased]\n\n- Next change.\n\n'
+            '## [1.0.0] - 2026-11-13\n\n### Added\n\n- A new feature.\n\n'
+            '## [0.9.0]\n\n- Previous change.\n'
+        ),
         'MANIFEST.in': 'recursive-include docs *.md\n',
         'docs/public.md': 'Public fixture\n',
     }
@@ -84,6 +93,65 @@ def test_build_uses_committed_source_only(release_tool, built_release):
     release_tool.verify_receipt(output / 'artifacts', receipt['source_commit'])
     with tarfile.open(next((output / 'artifacts').glob('*.tar.gz'))) as archive:
         assert not any('private-untracked' in name for name in archive.getnames())
+
+
+def test_prepare_release_notes_uses_only_the_version_section(release_tool, built_release):
+    output, _ = built_release
+    notes = release_tool.prepare_release_notes(output / 'source', output / 'artifacts',
+                                               'v1.0.0', REPOSITORY)
+    assert notes == '### Added\n\n- A new feature.\n'
+
+
+@pytest.mark.parametrize('changelog', [
+    None,
+    '## [Unreleased]\n\n- Next change.\n\n## [1.0.0rc1]\n\n- Preview.\n',
+    '## [1.0.0]\n\n### Added\n\n<!-- Add notes here -->\n',
+    '## [1.0.0]\n\n- First.\n\n## [1.0.0]\n\n- Duplicate.\n',
+    '```markdown\n## [1.0.0]\n\n- Example.\n```\n',
+])
+def test_prepare_release_notes_rejects_unusable_changelog(
+        release_tool, built_release, changelog):
+    output, _ = built_release
+    path = output / 'source' / 'CHANGELOG.md'
+    if changelog is None:
+        path.unlink()
+    else:
+        path.write_text(changelog)
+    with pytest.raises(release_tool.ReleaseError, match='CHANGELOG.md'):
+        release_tool.prepare_release_notes(output / 'source', output / 'artifacts',
+                                           'v1.0.0', REPOSITORY)
+
+
+@pytest.mark.parametrize('artifact_type', ['wheel', 'sdist'])
+def test_prepare_release_notes_rejects_stale_link_in_upload_bytes(
+        release_tool, built_release, artifact_type):
+    output, _ = built_release
+    artifacts = output / 'artifacts'
+    old = b'Changelog, https://github.com/example/fixture/releases/tag/v1.0.0'
+    new = old.replace(b'v1.0.0', b'v0.9.0')
+    if artifact_type == 'wheel':
+        path = next(artifacts.glob('*.whl'))
+        with zipfile.ZipFile(path) as archive:
+            entries = {name: archive.read(name) for name in archive.namelist()}
+        key = next(name for name in entries if name.endswith('/METADATA'))
+        assert old in entries[key]
+        entries[key] = entries[key].replace(old, new)
+        with zipfile.ZipFile(path, 'w') as archive:
+            for name, content in entries.items():
+                archive.writestr(name, content)
+    else:
+        path = next(artifacts.glob('*.tar.gz'))
+        entries = release_tool.tar_contents(path.read_bytes())
+        key = next(name for name in entries if name.count('/') == 1 and name.endswith('/PKG-INFO'))
+        assert old in entries[key]
+        entries[key] = entries[key].replace(old, new)
+        with tarfile.open(path, 'w:gz') as archive:
+            for name, content in entries.items():
+                item = tarfile.TarInfo(name)
+                item.size = len(content)
+                archive.addfile(item, io.BytesIO(content))
+    with pytest.raises(release_tool.ReleaseError, match='Changelog project URL'):
+        release_tool.prepare_release_notes(output / 'source', artifacts, 'v1.0.0', REPOSITORY)
 
 
 @pytest.mark.parametrize('name', ['../escape', '/escape', 'a/../../escape',

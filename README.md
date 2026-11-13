@@ -1,8 +1,9 @@
 # Prosaic
 
-Prosaic **0.5.1** adds the v1 [catalogue ontology](docs/catalogue-ontology.md)
-format for host-owned agent and tool metadata. See the [0.5.1 release notes](docs/release-0.5.1.md)
-and [SDK compatibility](docs/releases.md).
+See the [GitHub releases](https://github.com/B3Cognition/prosaic/releases)
+for version-specific notes and [SDK compatibility](https://github.com/B3Cognition/prosaic/blob/main/docs/releases.md).
+Prosaic 0.5.1 introduced the v1 [catalogue ontology](https://github.com/B3Cognition/prosaic/blob/v0.5.1/docs/catalogue-ontology.md)
+format for host-owned agent and tool metadata.
 
 Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
 targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
@@ -35,14 +36,14 @@ layout. `prosaic check` verifies generated output for CI. See the
 
 ## Install
 
-Prosaic 0.5.1 requires Python 3.11+. Its public distribution is `b3-prosaic`; the
+Prosaic requires Python 3.11+. Its public distribution is `b3-prosaic`; the
 repository, Python import module and CLI remain `prosaic`. There is no Node.js
 runtime dependency.
 
 ```sh
-uv tool install 'b3-prosaic==0.5.1'
+uv tool install b3-prosaic
 # Alternative:
-pipx install 'b3-prosaic==0.5.1'
+pipx install b3-prosaic
 ```
 
 The GitHub release provides the same qualified wheel and source archive as the

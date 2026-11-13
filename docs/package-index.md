@@ -101,6 +101,8 @@ Before and after PyPI publication, fetch the index's release metadata and actual
 distribution files and compare their hashes. Matching existing bytes are an
 idempotent success. An interrupted upload can resume its missing files after
 every already present file is verified; the final check requires the complete
-set. Different bytes require a new version. GitHub receives the
-same distributions, checksums and qualification records, with no asset overwrite.
+set. Different bytes require a new version. For Core, GitHub receives the same
+distributions, checksums and qualification records before PyPI upload so the
+Changelog link in the PyPI metadata already resolves. See the
+[release-note checklist](releases.md#release-note-checklist).
 Update the lab's exact-version manifest only from verified public downloads.
