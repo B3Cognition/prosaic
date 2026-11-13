@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "b3-prosaic"
-version = "0.5.1"
+version = "0.5.1.post1"
 description = "Canonical Markdown prose distribution engine"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -15,7 +15,7 @@ license-files = ["LICENSE", "NOTICE"]
 [project.urls]
 Repository = "https://github.com/B3Cognition/prosaic"
 Issues = "https://github.com/B3Cognition/prosaic/issues"
-Changelog = "https://github.com/B3Cognition/prosaic/releases/tag/v0.5.1"
+Changelog = "https://github.com/B3Cognition/prosaic/releases/tag/v0.5.1.post1"
 
 [project.optional-dependencies]
 test = ["pytest>=8", "build>=1", "setuptools>=77", "wheel>=0.45", "packaging>=24"]
