@@ -98,8 +98,10 @@ configuration fails the publication job rather than treating GitHub artifacts
 as evidence of package-index availability.
 
 Before and after PyPI publication, fetch the index's release metadata and actual
-distribution files and compare their hashes. Matching existing bytes are an
-idempotent success. An interrupted upload can resume its missing files after
+distribution files and compare their hashes. After upload, Core retries missing
+files and incomplete listings with delays totaling up to two minutes. Hash
+mismatches fail immediately. Matching existing bytes are an idempotent success.
+An interrupted upload can resume its missing files after
 every already present file is verified; the final check requires the complete
 set. Different bytes require a new version. For Core, GitHub receives the same
 distributions, checksums and qualification records before PyPI upload so the

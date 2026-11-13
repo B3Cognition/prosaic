@@ -285,4 +285,6 @@ jobs:
           packages-dir: upload/
           skip-existing: true # Safe only with the mandatory pre/post digest checks.
       - name: Verify actual downloaded public bytes
-        run: python scripts/release_artifacts.py index-check --directory release/artifacts --commit ${{ github.sha }}
+        run: >-
+          python scripts/release_artifacts.py index-check --directory release/artifacts
+          --commit ${{ github.sha }} --wait-for-publication

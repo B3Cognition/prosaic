@@ -19,6 +19,7 @@ import re
 import subprocess
 import sys
 import tarfile
+import time
 import tomllib
 from urllib.error import HTTPError
 from urllib.parse import urlsplit
@@ -36,6 +37,10 @@ MAX_ENTRIES = 10000
 
 class ReleaseError(ValueError):
     """Release input or evidence does not match the committed package."""
+
+
+class IndexNotReady(ReleaseError):
+    """PyPI has yet to serve the complete release."""
 
 
 def digest(content):
@@ -388,16 +393,15 @@ def fetch_public(url):
 
 def check_index(directory, commit, *, allow_missing=False, fetch=fetch_public):
     receipt = verify_receipt(directory, commit)
-    missing = False
+    missing = None
+    missing_download = None
     for distribution in receipt['distributions']:
         name, version = distribution['name'], distribution['version']
         if not re.fullmatch('[A-Za-z0-9_.-]+', name) or not re.fullmatch('[A-Za-z0-9_.+-]+', version):
             raise ReleaseError('invalid index package identity')
         response = fetch(f'https://pypi.org/pypi/{name}/{version}/json')
         if response is None:
-            if not allow_missing:
-                raise ReleaseError('published distribution is missing')
-            missing = True
+            missing = f'published distribution is missing: {name} {version}'
             continue
         files = json.loads(response)['urls']
         stem = name.replace('-', '_') + '-' + version
@@ -407,9 +411,7 @@ def check_index(directory, commit, *, allow_missing=False, fetch=fetch_public):
         if len(files) != len(present) or not present.issubset(expected):
             raise ReleaseError('existing index version has different artifacts; use a new version')
         if present != set(expected):
-            if not allow_missing:
-                raise ReleaseError('published distribution is incomplete')
-            missing = True
+            missing = f'published distribution is incomplete: {name} {version}'
         for item in files:
             if item['digests']['sha256'] != expected[item['filename']]:
                 raise ReleaseError('existing index version has different bytes; use a new version')
@@ -417,10 +419,26 @@ def check_index(directory, commit, *, allow_missing=False, fetch=fetch_public):
             if parsed.scheme != 'https' or parsed.hostname != 'files.pythonhosted.org':
                 raise ReleaseError('unexpected published artifact URL')
             content = fetch(item['url'])
-            if content is None or digest(content) != expected[item['filename']]:
+            if content is None:
+                missing_download = f'published file is missing: {item["filename"]}'
+            elif digest(content) != expected[item['filename']]:
                 raise ReleaseError('downloaded index bytes do not match qualified artifacts')
     verify_receipt(directory, commit)
+    if missing_download:
+        raise IndexNotReady(missing_download)
+    if missing and not allow_missing:
+        raise IndexNotReady(missing)
     return 'publish_required' if missing else 'already_published'
+
+
+def wait_for_index(directory, commit, *, fetch=fetch_public):
+    for delay in (5, 10, 15, 20, 30, 40):
+        try:
+            return check_index(directory, commit, fetch=fetch)
+        except IndexNotReady as error:
+            print(f'{error}; checking again in {delay}s', file=sys.stderr, flush=True)
+            time.sleep(delay)
+    return check_index(directory, commit, fetch=fetch)
 
 
 def qualify(directory, commit, label, command):
@@ -481,7 +499,9 @@ def main():
         elif action == 'gate':
             command.add_argument('--require', action='append', required=True)
         elif action == 'index-check':
-            command.add_argument('--allow-missing', action='store_true')
+            mode = command.add_mutually_exclusive_group()
+            mode.add_argument('--allow-missing', action='store_true')
+            mode.add_argument('--wait-for-publication', action='store_true')
     args = parser.parse_args()
     if args.action == 'release-notes':
         try:
@@ -499,7 +519,10 @@ def main():
         command = args.command[1:] if args.command[:1] == ['--'] else args.command
         result = qualify(args.directory, args.commit, args.label, command)
     elif args.action == 'index-check':
-        result = check_index(args.directory, args.commit, allow_missing=args.allow_missing)
+        if args.wait_for_publication:
+            result = wait_for_index(args.directory, args.commit)
+        else:
+            result = check_index(args.directory, args.commit, allow_missing=args.allow_missing)
     else:
         result = require_qualification(args.directory, args.commit, args.require)
     print(json.dumps(result, sort_keys=True))
