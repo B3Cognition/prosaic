@@ -128,6 +128,56 @@ def project_identity(source):
                      'requires_python': project['requires-python']}
 
 
+def changelog_entry(path, version):
+    from markdown_it import MarkdownIt
+
+    if not path.is_file():
+        raise ReleaseError('missing CHANGELOG.md')
+    changelog = path.read_text(encoding='utf-8')
+    lines = changelog.split('\n')
+    tokens = MarkdownIt('commonmark').parse(changelog)
+    headings = [token for token in tokens if token.type == 'heading_open'
+                and token.level == 0 and token.tag in ('h1', 'h2')]
+    title = re.compile(r' {0,3}##[ \t]+\[' + re.escape(version) +
+                       r'\](?:[ \t]+-[ \t]+\d{4}-\d{2}-\d{2})?[ \t]*')
+    matches = [i for i, heading in enumerate(headings)
+               if heading.tag == 'h2' and title.fullmatch(lines[heading.map[0]])]
+    if len(matches) != 1:
+        raise ReleaseError(f'CHANGELOG.md must contain exactly one ## [{version}] entry')
+    index = matches[0]
+    start = headings[index].map[1]
+    end = headings[index + 1].map[0] if index + 1 < len(headings) else len(lines)
+    body = '\n'.join(lines[start:end]).strip('\n').rstrip()
+    body_tokens = MarkdownIt('commonmark').parse(body)
+    if not any(token.type in ('paragraph_open', 'fence', 'code_block')
+               for token in body_tokens):
+        raise ReleaseError(f'CHANGELOG.md entry for {version} has no release notes')
+    return body + '\n'
+
+
+def prepare_release_notes(source, directory, tag, repository):
+    _, identity = project_identity(source)
+    version = identity['version']
+    if tag != 'v' + version:
+        raise ReleaseError(f'release tag {tag} does not match project version {version}')
+    notes = changelog_entry(source / 'CHANGELOG.md', version)
+
+    url = f'{repository}/releases/tag/{tag}'
+    stem = identity['name'].replace('-', '_') + '-' + version
+    wheel = directory / (stem + '-py3-none-any.whl')
+    sdist = directory / (stem + '.tar.gz')
+    with zipfile.ZipFile(wheel) as archive:
+        wheel_metadata = archive.read(stem + '.dist-info/METADATA')
+    sdist_metadata = tar_contents(sdist.read_bytes())[stem + '/PKG-INFO']
+    for artifact, content in ((wheel, wheel_metadata), (sdist, sdist_metadata)):
+        metadata = BytesParser().parsebytes(content)
+        links = [link.partition(',')[2].strip() for link in metadata.get_all('Project-URL', [])
+                 if link.partition(',')[0].strip().lower() == 'changelog']
+        if links != [url]:
+            raise ReleaseError(f'{artifact.name} must declare the Changelog project URL {url}')
+    return notes
+
+
 def audit_pair(source, wheel, sdist, expected):
     project, identity = project_identity(source)
     if expected.get(identity['name']) != identity['version']:
@@ -416,6 +466,11 @@ def main():
     build.add_argument('--output', type=Path, required=True)
     build.add_argument('--expect', action='append', required=True, help='distribution=version')
     build.add_argument('--project', action='append', default=[])
+    notes = sub.add_parser('release-notes')
+    notes.add_argument('--directory', type=Path, required=True)
+    notes.add_argument('--tag', required=True)
+    notes.add_argument('--repository', required=True, help='absolute GitHub repository URL')
+    notes.add_argument('--output', type=Path, required=True)
     for action in ('verify', 'qualify', 'gate', 'index-check'):
         command = sub.add_parser(action)
         command.add_argument('--directory', type=Path, required=True)
@@ -428,6 +483,13 @@ def main():
         elif action == 'index-check':
             command.add_argument('--allow-missing', action='store_true')
     args = parser.parse_args()
+    if args.action == 'release-notes':
+        try:
+            notes = prepare_release_notes(Path.cwd(), args.directory, args.tag, args.repository)
+        except ReleaseError as error:
+            parser.exit(1, f'{error}\n')
+        args.output.write_text(notes, encoding='utf-8')
+        return
     if args.action == 'build':
         expected = dict(value.split('=', 1) for value in args.expect)
         result = build_release(args.repo, args.ref, args.output, expected, args.project or ['.'])

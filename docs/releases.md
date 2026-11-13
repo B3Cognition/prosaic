@@ -36,6 +36,7 @@ Every published version is linked below. Backfilled notes explain changes using 
 
 | Release | Published (UTC) | Notes |
 | --- | --- | --- |
+| [v0.5.1](https://github.com/B3Cognition/prosaic/releases/tag/v0.5.1) | 2026-11-13 | [Catalogue ontology](release-0.5.1.md) |
 | [v0.5.0](https://github.com/B3Cognition/prosaic/releases/tag/v0.5.0) | 2026-11-05 | Published notes |
 | [v0.4.1](https://github.com/B3Cognition/prosaic/releases/tag/v0.4.1) | 2026-10-11 | [backfilled notes](release-history/v0.4.1.md) |
 | [v0.3.2](https://github.com/B3Cognition/prosaic/releases/tag/v0.3.2) | 2026-10-10 | Published notes |
@@ -47,3 +48,15 @@ Every published version is linked below. Backfilled notes explain changes using 
 ## Release-note checklist
 
 For each future publication, write version-specific notes before release: describe changed behavior, dependency floors and the exact qualified train, identity/fingerprint changes and readmission or migration steps, adapter publication versus witness status, and observed validation with its limits. Link the original qualification and public-consumer proof. Never substitute a generic “qualified release” sentence or rewrite historical package bytes to improve documentation.
+
+Before building a candidate, add the notes under `## [VERSION]` in
+`CHANGELOG.md` and update `project.urls.Changelog` in `pyproject.toml` to the
+absolute GitHub release URL for that tag. Use absolute URLs in the notes so
+they work on the GitHub release page. The publish workflow checks the entry
+and the links in the built wheel and source archive, then publishes the
+GitHub release with that entry as its body. PyPI upload waits for the release
+page to be published and its notes to match.
+
+If GitHub CLI leaves an incomplete draft after an interrupted asset upload,
+inspect and delete the unpublished draft, keeping the tag, then rerun the
+failed jobs with the same qualified artifacts.
