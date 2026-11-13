@@ -1,6 +1,8 @@
 # Prosaic
 
-Current published release: **0.5.0**. See [release notes and compatible SDK versions](docs/releases.md).
+Prosaic **0.5.1** adds the v1 [catalogue ontology](docs/catalogue-ontology.md)
+format for host-owned agent and tool metadata. See the [0.5.1 release notes](docs/release-0.5.1.md)
+and [SDK compatibility](docs/releases.md).
 
 Author canonical Markdown-with-YAML prose once; distribute it to 40 AI coding
 targets. Prosaic also inspects neutral artifacts for Prosaic Runtime and Harness.
@@ -33,14 +35,14 @@ layout. `prosaic check` verifies generated output for CI. See the
 
 ## Install
 
-Prosaic 0.5.0 requires Python 3.11+. Its public distribution is `b3-prosaic`; the
+Prosaic 0.5.1 requires Python 3.11+. Its public distribution is `b3-prosaic`; the
 repository, Python import module and CLI remain `prosaic`. There is no Node.js
 runtime dependency.
 
 ```sh
-uv tool install 'b3-prosaic==0.5.0'
+uv tool install 'b3-prosaic==0.5.1'
 # Alternative:
-pipx install 'b3-prosaic==0.5.0'
+pipx install 'b3-prosaic==0.5.1'
 ```
 
 The GitHub release provides the same qualified wheel and source archive as the
@@ -227,7 +229,7 @@ python3 -m venv .venv
 .venv/bin/python -m pytest
 .venv/bin/python -m build
 python3 -m venv .wheel-test
-.wheel-test/bin/python -m pip install dist/b3_prosaic-0.5.0-py3-none-any.whl
+.wheel-test/bin/python -m pip install dist/b3_prosaic-0.5.1-py3-none-any.whl
 .wheel-test/bin/python scripts/wheel_smoke.py
 ```
 
