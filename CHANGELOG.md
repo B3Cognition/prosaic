@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- Require versioned release notes and a direct Changelog link in both distributions
-  before uploading to PyPI. Use the changelog entry as the GitHub release body.
+## [0.5.1.post1] - 2026-11-13
+
+- Fix the PyPI package description and add a direct Changelog link to these
+  release notes. This post-release updates packaging metadata only.
+- See the [0.5.1 release notes](https://github.com/B3Cognition/prosaic/releases/tag/v0.5.1)
+  for the catalogue ontology changes in the original release.
 
 ## [0.5.1] - 2026-11-13
 
