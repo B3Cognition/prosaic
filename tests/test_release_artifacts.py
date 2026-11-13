@@ -354,6 +354,69 @@ def test_matching_partial_index_release_can_resume(release_tool, built_release):
                                  allow_missing=True, fetch=fetch)
 
 
+@pytest.mark.parametrize('first_response', ['missing release', 'partial release', 'missing file'])
+def test_post_upload_index_waits_for_public_files(
+        release_tool, built_release, monkeypatch, first_response):
+    output, receipt = built_release
+    directory = output / 'artifacts'
+    files = [
+        {'filename': item['filename'], 'digests': {'sha256': item['sha256']},
+         'url': 'https://files.pythonhosted.org/' + item['filename']}
+        for item in receipt['artifacts']
+    ]
+    sleeps = []
+    monkeypatch.setattr('time.sleep', sleeps.append)
+
+    def fetch(url):
+        if url.startswith('https://pypi.org/'):
+            if not sleeps and first_response == 'missing release':
+                return None
+            visible = files[:1] if not sleeps and first_response == 'partial release' else files
+            return json.dumps({'urls': visible}).encode()
+        if not sleeps and first_response == 'missing file' and url == files[0]['url']:
+            return None
+        return (directory / url.rsplit('/', 1)[1]).read_bytes()
+
+    assert release_tool.wait_for_index(directory, receipt['source_commit'],
+                                       fetch=fetch) == 'already_published'
+    assert len(sleeps) == 1
+
+
+def test_post_upload_index_stops_waiting_for_missing_release(
+        release_tool, built_release, monkeypatch):
+    output, receipt = built_release
+    sleeps = []
+    calls = []
+    monkeypatch.setattr('time.sleep', sleeps.append)
+
+    def fetch(url):
+        calls.append(url)
+        return None
+
+    with pytest.raises(release_tool.ReleaseError, match='published distribution is missing'):
+        release_tool.wait_for_index(output / 'artifacts', receipt['source_commit'], fetch=fetch)
+    assert len(calls) == len(sleeps) + 1
+    assert 60 <= sum(sleeps) <= 180
+
+
+def test_post_upload_index_does_not_retry_conflicting_partial_release(
+        release_tool, built_release, monkeypatch):
+    output, receipt = built_release
+    item = receipt['artifacts'][0]
+    metadata = json.dumps({'urls': [{
+        'filename': item['filename'], 'digests': {'sha256': '0' * 64},
+        'url': 'https://files.pythonhosted.org/' + item['filename'],
+    }]}).encode()
+
+    def unexpected_sleep(delay):
+        pytest.fail(f'conflicting release was retried after {delay} seconds')
+
+    monkeypatch.setattr('time.sleep', unexpected_sleep)
+    with pytest.raises(release_tool.ReleaseError, match='different bytes'):
+        release_tool.wait_for_index(output / 'artifacts', receipt['source_commit'],
+                                    fetch=lambda url: metadata)
+
+
 def test_verified_artifacts_detect_missing_extra_and_changed_bytes(release_tool, built_release):
     output, receipt = built_release
     directory = output / 'artifacts'
