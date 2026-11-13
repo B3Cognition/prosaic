@@ -25,6 +25,8 @@ jobs:
           -k "mutation_entrypoints or process_death or other_projects or zero_target
           or cli_reports or all_mutators or atomic_temporary or old_manifest
           or render_descriptor"
+      - name: Verify Windows catalogue ontology
+        run: python -m pytest -q tests/test_ontology.py
   build-and-test:
     runs-on: ubuntu-latest
     strategy:

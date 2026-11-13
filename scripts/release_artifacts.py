@@ -153,6 +153,11 @@ def audit_pair(source, wheel, sdist, expected):
     for name in source_files:
         if name.startswith('src/') and not '.egg-info/' in name and name not in files:
             raise ReleaseError('sdist omitted source payload')
+    if 'src/prosaic/ontology.py' in source_files:
+        fixtures = {f'conformance-fixtures/catalogue-ontology/{name}.json'
+                    for name in ('attachment', 'visible')}
+        if not fixtures <= files.keys():
+            raise ReleaseError('sdist omitted catalogue ontology fixtures')
     if 'pyproject.toml' not in files or 'PKG-INFO' not in files:
         raise ReleaseError('sdist missing package metadata')
     sdist_identity = metadata_identity(files['PKG-INFO'])

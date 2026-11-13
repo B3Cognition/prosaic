@@ -123,6 +123,12 @@ jobs:
           python -m venv .wheel-test
           .wheel-test/bin/python -m pip install release/artifacts/b3_prosaic-*-py3-none-any.whl
           .venv/bin/python scripts/release_artifacts.py qualify --directory release/artifacts --commit "$SOURCE_COMMIT" --label "${LANE}-wheel" -- .wheel-test/bin/python -I scripts/wheel_smoke.py
+          mkdir -p release/ontology-sdist
+          tar -xzf release/artifacts/b3_prosaic-*.tar.gz -C release/ontology-sdist
+          .venv/bin/python -m build --wheel --outdir release/ontology-rebuilt release/ontology-sdist/b3_prosaic-*/
+          python -m venv .sdist-test
+          .sdist-test/bin/python -m pip install release/ontology-rebuilt/b3_prosaic-*-py3-none-any.whl
+          .venv/bin/python scripts/release_artifacts.py qualify --directory release/artifacts --commit "$SOURCE_COMMIT" --label "${LANE}-sdist" -- .sdist-test/bin/python -I scripts/wheel_smoke.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qualified-linux-${{ matrix.os }}-${{ matrix.python }}
@@ -157,6 +163,11 @@ jobs:
           -- python -m pytest tests/test_project_lock.py -q
           -k "mutation_entrypoints or process_death or other_projects or zero_target
           or cli_reports or all_mutators or atomic_temporary or old_manifest or render_descriptor"
+      - name: Qualify Windows catalogue ontology
+        run: >-
+          python scripts/release_artifacts.py qualify --directory release/artifacts
+          --commit ${{ github.sha }} --label windows-ontology-${{ matrix.python }}
+          -- python -m pytest -q tests/test_ontology.py
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: qualified-windows-${{ matrix.python }}
@@ -192,8 +203,9 @@ jobs:
           from pathlib import Path
           labels = [f'linux-{os_name}-{version}-{kind}'
                     for os_name in ('ubuntu-24.04', 'ubuntu-24.04-arm')
-                    for version in ('3.11', '3.12', '3.13') for kind in ('source', 'wheel')]
+                    for version in ('3.11', '3.12', '3.13') for kind in ('source', 'wheel', 'sdist')]
           labels += [f'windows-{version}' for version in ('3.11', '3.12', '3.13')]
+          labels += [f'windows-ontology-{version}' for version in ('3.11', '3.12', '3.13')]
           release.require_qualification(Path('release/artifacts'), os.environ['GITHUB_SHA'], labels)
           PY
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

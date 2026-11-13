@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "ontologyId": "release-evidence",
+  "concepts": {
+    "candidate": "A release candidate under review.",
+    "receipt": "An observed verification receipt."
+  },
+  "relations": [{"source": "receipt", "predicate": "verifies", "target": "candidate"}],
+  "agents": {"reviewer": ["candidate"]},
+  "tools": {"read_receipt": ["receipt"]}
+}
